@@ -1,7 +1,8 @@
-package cn.ayl.socket;
+package cn.ayl.socket.server;
 
 import cn.ayl.socket.handler.DiscardServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -68,7 +69,10 @@ public class DiscardServer {
                      * option()用来配置NioServerSocketChannel(负责接收到来的connection)，
                      * 而childOption()是用来配置被ServerChannel(这里是NioServerSocketChannel) 所接收的Channel
                      */
-                    .childOption(ChannelOption.SO_KEEPALIVE, true);
+                    .childOption(ChannelOption.TCP_NODELAY, true)
+                    .childOption(ChannelOption.SO_KEEPALIVE, true)
+                    .childOption(ChannelOption.SO_REUSEADDR, true)
+                    .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
             /**
              * 剩下的事情就是绑定端口并启动服务器，这里我们绑定到机器的8080端口。你可以多次调用bind()(基于不同的地址)。
              * Bind and start to accept incoming connections.(绑定并开始接受传入的连接)
