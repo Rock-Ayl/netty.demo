@@ -6,7 +6,10 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
-public class SocketServer {
+public class SocketManager {
+
+    //通讯端口
+    public static Integer port = 8080;
 
     /**
      * 创建一个基础配置的ServerBootstrap

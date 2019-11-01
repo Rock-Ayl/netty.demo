@@ -13,12 +13,6 @@ import io.netty.channel.socket.SocketChannel;
  */
 public class EchoServer {
 
-    private int port;
-
-    public EchoServer(int port) {
-        this.port = port;
-    }
-
     public void run() throws Exception {
 
         /**
@@ -36,7 +30,7 @@ public class EchoServer {
              * ServerBootstrap是用来搭建 server 的协助类。
              * 你也可以直接使用Channel搭建 server，然而这样做步骤冗长，不是一个好的实践，大多数情况下建议使用ServerBootstrap。
              */
-            ServerBootstrap bootstrap = SocketServer.createServerBootstrap(bossGroup, workerGroup);
+            ServerBootstrap bootstrap = SocketManager.createServerBootstrap(bossGroup, workerGroup);
             /**
              * 这里的 handler 会被用来处理新接收的Channel。
              * ChannelInitializer是一个特殊的 handler，
@@ -54,7 +48,7 @@ public class EchoServer {
              * 剩下的事情就是绑定端口并启动服务器，这里我们绑定到机器的8080端口。你可以多次调用bind()(基于不同的地址)。
              * Bind and start to accept incoming connections.(绑定并开始接受传入的连接)
              */
-            ChannelFuture f = bootstrap.bind(port).sync();
+            ChannelFuture f = bootstrap.bind(SocketManager.port).sync();
             /**
              * Wait until the server socket is closed.(等待，直到服务器套接字关闭)
              * In this example, this does not happen, but you can do that to gracefully(在本例中，这种情况不会发生，但是您可以优雅地这样做)
@@ -69,12 +63,7 @@ public class EchoServer {
     }
 
     public static void main(String[] args) throws Exception {
-        int port;
-        if (args.length > 0) {
-            port = Integer.parseInt(args[0]);
-        } else {
-            port = 8080;
-        }
-        new EchoServer(port).run();
+        new EchoServer().run();
     }
+
 }
