@@ -1,5 +1,6 @@
 package cn.ayl.socket.handler;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
@@ -12,11 +13,16 @@ public class DiscardServerHandler extends ChannelInboundHandlerAdapter {
     /*这里我们重写了channelRead(),当有新数据到达时该方法就会被调用，并附带接收到的数据作为方法参数*/
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        ByteBuf in = (ByteBuf) msg;
         try {
-            //todo 根据msg做些什么
+            //打印请求
+            while (in.isReadable()) { // (1)
+                System.out.print((char) in.readByte());
+                System.out.flush();
+            }
         } finally {
             //默默的丢弃数据,调用release()直接释放资源
-            ReferenceCountUtil.release(msg);
+            ReferenceCountUtil.release(msg); // (2)
         }
     }
 
