@@ -1,7 +1,7 @@
 package cn.ayl.socket.server;
 
 import cn.ayl.socket.SocketManager;
-import cn.ayl.socket.handler.EchoServerHandler;
+import cn.ayl.socket.handler.TimeServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -12,7 +12,7 @@ import io.netty.channel.socket.SocketChannel;
 /**
  * 启动处理程序
  */
-public class EchoServer {
+public class TimeServer {
 
     public void run() throws Exception {
 
@@ -42,7 +42,7 @@ public class EchoServer {
             bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 public void initChannel(SocketChannel ch) throws Exception {
-                    ch.pipeline().addLast(new EchoServerHandler());
+                    ch.pipeline().addLast(new TimeServerHandler());
                 }
             });
             /**
@@ -64,7 +64,7 @@ public class EchoServer {
     }
 
     public static void main(String[] args) throws Exception {
-        new EchoServer().run();
+        new TimeServer().run();
     }
 
 }

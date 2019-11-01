@@ -1,4 +1,4 @@
-package cn.ayl.socket.server;
+package cn.ayl.socket;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;

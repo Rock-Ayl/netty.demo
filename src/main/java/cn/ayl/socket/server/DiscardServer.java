@@ -1,5 +1,6 @@
 package cn.ayl.socket.server;
 
+import cn.ayl.socket.SocketManager;
 import cn.ayl.socket.handler.DiscardServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -9,7 +10,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 
 /**
- * 启动 discardServerHandler
+ * 启动处理程序
  */
 public class DiscardServer {
 
