@@ -1,18 +1,20 @@
 package cn.ayl.socket.server;
 
 import cn.ayl.socket.SocketManager;
-import cn.ayl.socket.handler.EchoServerHandler;
+import cn.ayl.socket.handler.HttpServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponseEncoder;
+import io.netty.handler.stream.ChunkedWriteHandler;
 
-/**
- * 启动处理程序
- */
-public class EchoServer {
+
+public class HttpServer {
 
     public void run() throws Exception {
 
@@ -41,10 +43,20 @@ public class EchoServer {
              */
             bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
                 @Override
-                public void initChannel(SocketChannel ch) throws Exception {
-                    ch.pipeline().addLast(new EchoServerHandler());
+                protected void initChannel(SocketChannel socketChannel) throws Exception {
+                    // 请求解码器
+                    socketChannel.pipeline().addLast("http-decoder", new HttpRequestDecoder());
+                    // 将HTTP消息的多个部分合成一条完整的HTTP消息
+                    socketChannel.pipeline().addLast("http-aggregator", new HttpObjectAggregator(65535));
+                    // 响应转码器
+                    socketChannel.pipeline().addLast("http-encoder", new HttpResponseEncoder());
+                    // 解决大码流的问题，ChunkedWriteHandler：向客户端发送HTML5文件
+                    socketChannel.pipeline().addLast("http-chunked", new ChunkedWriteHandler());
+                    // 自定义处理handler
+                    socketChannel.pipeline().addLast("http-server", new HttpServerHandler());
                 }
             });
+
             /**
              * 剩下的事情就是绑定端口并启动服务器，这里我们绑定到机器的8080端口。你可以多次调用bind()(基于不同的地址)。
              * Bind and start to accept incoming connections.(绑定并开始接受传入的连接)
@@ -64,7 +76,8 @@ public class EchoServer {
     }
 
     public static void main(String[] args) throws Exception {
-        new EchoServer().run();
+        new HttpServer().run();
     }
 
 }
+

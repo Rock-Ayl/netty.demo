@@ -33,7 +33,7 @@ public class SocketManager {
                  * 这里我们写的是 TCP/IP 服务器，所以可以配置一些 socket 选项，例如 tcpNoDeply 和 keepAlive。
                  * 请参考ChannelOption和ChannelConfig文档来获取更多可用的 Channel 配置选项，并对此有个大概的了解。
                  */
-                .option(ChannelOption.SO_BACKLOG, 128)
+                //.option(ChannelOption.SO_BACKLOG, 128)
                 /**
                  * 注意到option()和childOption()了吗？
                  * option()用来配置NioServerSocketChannel(负责接收到来的connection)，
