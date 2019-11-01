@@ -24,6 +24,9 @@ import static io.netty.buffer.Unpooled.copiedBuffer;
  */
 public class HttpServerHandler extends ChannelInboundHandlerAdapter {
 
+    /*
+     * 处理请求
+     */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof FullHttpRequest) {
@@ -49,10 +52,6 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
             ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
         }
     }
-
-    /*
-     * 处理请求
-     */
 
     /*
      * 获取GET方式传递的参数
