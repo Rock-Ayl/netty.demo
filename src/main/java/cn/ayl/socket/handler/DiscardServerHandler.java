@@ -15,14 +15,11 @@ public class DiscardServerHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         ByteBuf in = (ByteBuf) msg;
         try {
-            //打印请求
-            while (in.isReadable()) { // (1)
-                System.out.print((char) in.readByte());
-                System.out.flush();
-            }
+            //解析字节缓冲并打印
+            System.out.println(in.toString(io.netty.util.CharsetUtil.US_ASCII));
         } finally {
             //默默的丢弃数据,调用release()直接释放资源
-            ReferenceCountUtil.release(msg); // (2)
+            ReferenceCountUtil.release(msg);
         }
     }
 
