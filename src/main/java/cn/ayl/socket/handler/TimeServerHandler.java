@@ -12,7 +12,6 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  */
 public class TimeServerHandler extends ChannelInboundHandlerAdapter {
 
-
     /**
      * 因为要在刚建立连接时发送消息而不管后来接收到的数据，这次我们不能使用channelRead(),而是用channelActive()代替
      * 当连接被建立后channelActive()方法会被调用，我们在方法体中发送一个32位的代表当前时间的整数

@@ -9,7 +9,9 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  */
 public class EchoServerHandler extends ChannelInboundHandlerAdapter {
 
-    /*这里我们重写了channelRead(),当有新数据到达时该方法就会被调用，并附带接收到的数据作为方法参数*/
+    /**
+     * 这里我们重写了channelRead(),当有新数据到达时该方法就会被调用，并附带接收到的数据作为方法参数
+     */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         /**
@@ -24,7 +26,9 @@ public class EchoServerHandler extends ChannelInboundHandlerAdapter {
         ctx.flush();
     }
 
-    /*当netty发生IO错误,或者handler在处理事件抛出异常时，exceptionCaught()就会被调用*/
+    /**
+     * 当netty发生IO错误,或者handler在处理事件抛出异常时，exceptionCaught()就会被调用
+     */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         //todo 记录异常
