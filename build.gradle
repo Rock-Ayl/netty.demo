@@ -1,0 +1,19 @@
+plugins {
+    id 'java'
+}
+
+group 'cn.ayl'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    //netty 依赖
+    compile group: 'io.netty', name: 'netty-all', version: '4.1.19.Final'
+
+}
