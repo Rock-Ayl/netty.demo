@@ -1,24 +1,29 @@
-package cn.ayl.socket;
+package cn.ayl.socket.server;
 
+import cn.ayl.socket.handler.HttpServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
-public class SocketManager {
+/**
+ * created by Rock-Ayl 2019-11-4
+ * 通信服务
+ */
+public class SocketServer {
 
-    //通讯端口
+    //接受端口
     public static Integer port = 8080;
 
     /**
-     * 创建一个基础配置的ServerBootstrap
+     * 创建一个默认配置的ServerBootstrap
      *
-     * @param bossGroup
-     * @param workerGroup
+     * @param bossGroup   netty-boss
+     * @param workerGroup netty-work-IO
      * @return
      */
-    public static ServerBootstrap createServerBootstrap(EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
+    public static ServerBootstrap createDefaultServerBootstrap(EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
         return new ServerBootstrap()
                 /**
                  * 组装Boss和IO
@@ -44,5 +49,22 @@ public class SocketManager {
                 .childOption(ChannelOption.SO_REUSEADDR, true)
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
     }
+
+    public void startup() {
+        try {
+            new HttpServerHandler().run();
+        } catch (Exception e) {
+            System.out.println("Run Socket Fail!");
+        }
+    }
+
+    public static void main(String[] args) {
+        new SocketServer().startup();
+    }
+
+    public void stop() {
+
+    }
+
 
 }
