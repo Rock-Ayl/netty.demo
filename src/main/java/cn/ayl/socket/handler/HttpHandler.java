@@ -103,6 +103,13 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
+    /**
+     * 处理业务
+     *
+     * @param path   eg:  /Organize/login
+     * @param params eg:  user:root pwd:123456
+     * @return
+     */
     private JsonObject handleServiceFactory(String path, Map<String, Object> params) {
         //todo 根据path和params处理业务并返回
         return JsonObject.Success();
