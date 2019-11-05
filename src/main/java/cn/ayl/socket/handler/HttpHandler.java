@@ -113,12 +113,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         FullHttpResponse response;
         JsonObject result;
         //获得请求path
-        String path = null;
-        try {
-            path = new URI(req.getUri()).getPath();
-        } catch (Exception e) {
-            logger.error("接口解析错误.");
-        }
+        String path = getPath(req);
         //根据请求类型处理请求 get post ...
         if (req.method() == HttpMethod.GET) {
             //获取请求参数
@@ -138,6 +133,23 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         }
         // 发送响应并关闭连接
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+    }
+
+    /**
+     * 获取请求Path
+     *
+     * @param req
+     * @return
+     */
+    private String getPath(FullHttpRequest req) {
+        String path = null;
+        try {
+            path = new URI(req.getUri()).getPath();
+        } catch (Exception e) {
+            logger.error("接口解析错误.");
+        } finally {
+            return path;
+        }
     }
 
     /**
