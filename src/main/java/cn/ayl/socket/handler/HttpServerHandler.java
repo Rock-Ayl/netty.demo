@@ -1,5 +1,6 @@
 package cn.ayl.socket.handler;
 
+import cn.ayl.json.JsonObject;
 import cn.ayl.socket.server.SocketServer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
@@ -13,7 +14,9 @@ import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryAttribute;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.CharsetUtil;
-import org.json.JSONObject;
+import cn.ayl.json.JsonUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
@@ -27,6 +30,8 @@ import static io.netty.buffer.Unpooled.copiedBuffer;
  * Http请求处理服务
  */
 public class HttpServerHandler extends ChannelInboundHandlerAdapter {
+
+    protected static Logger logger = LoggerFactory.getLogger(HttpServerHandler.class);
 
     /**
      * 启动
@@ -104,17 +109,17 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
             //强转
             FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
             //打印请求
-            System.out.println(fullHttpRequest);
+            logger.info(fullHttpRequest.toString());
             FullHttpResponse response;
             //如果请求为GET
             if (fullHttpRequest.method() == HttpMethod.GET) {
-                System.out.println(getGetParamsFromChannel(fullHttpRequest));
-                ByteBuf buf = copiedBuffer(new JSONObject().append("test", "123").toString(), CharsetUtil.UTF_8);
+                logger.info(getGetParamsFromChannel(fullHttpRequest).toString());
+                ByteBuf buf = copiedBuffer(JsonObject.VOID().append("test", "123").toString(), CharsetUtil.UTF_8);
                 response = responseOK(HttpResponseStatus.OK, buf);
                 //如果请求为POST
             } else if (fullHttpRequest.method() == HttpMethod.POST) {
-                System.out.println(getPostParamsFromChannel(fullHttpRequest));
-                ByteBuf content = copiedBuffer(new JSONObject().append("test", "123").toString(), CharsetUtil.UTF_8);
+                logger.info(getPostParamsFromChannel(fullHttpRequest).toString());
+                ByteBuf content = copiedBuffer(JsonObject.VOID().append("test", "123").toString(), CharsetUtil.UTF_8);
                 response = responseOK(HttpResponseStatus.OK, content);
                 //其他类型的请求
             } else {
@@ -211,7 +216,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
         byte[] reqContent = new byte[content.readableBytes()];
         content.readBytes(reqContent);
         String strContent = new String(reqContent, "UTF-8");
-        JSONObject jsonParams = new JSONObject(strContent);
+        JsonObject jsonParams = JsonUtil.parse(strContent);
         for (Object key : jsonParams.keySet()) {
             params.put(key.toString(), jsonParams.get((String) key));
         }

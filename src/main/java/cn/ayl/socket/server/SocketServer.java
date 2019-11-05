@@ -6,12 +6,16 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * created by Rock-Ayl 2019-11-4
  * 通信服务
  */
 public class SocketServer {
+
+    protected static Logger logger = LoggerFactory.getLogger(SocketServer.class);
 
     //接受端口
     public static Integer port = 8080;
@@ -54,11 +58,12 @@ public class SocketServer {
         try {
             new HttpServerHandler().run();
         } catch (Exception e) {
-            System.out.println("Run Socket Fail!");
+            logger.error("Run Socket Fail!");
         }
     }
 
     public static void main(String[] args) {
+        logger.info("开始");
         new SocketServer().startup();
     }
 

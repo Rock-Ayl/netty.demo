@@ -4,11 +4,15 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Discard Server Handler 即 抛弃 服务 处理器，用来处理IO事件,忽略所有接收到的数据
  */
 public class DiscardServerHandler extends ChannelInboundHandlerAdapter {
+
+    protected static Logger logger = LoggerFactory.getLogger(DiscardServerHandler.class);
 
     /**
      * 这里我们重写了channelRead(),当有新数据到达时该方法就会被调用，并附带接收到的数据作为方法参数
@@ -18,7 +22,7 @@ public class DiscardServerHandler extends ChannelInboundHandlerAdapter {
         ByteBuf in = (ByteBuf) msg;
         try {
             //解析字节缓冲并打印
-            System.out.println(in.toString(io.netty.util.CharsetUtil.US_ASCII));
+            logger.info(in.toString(io.netty.util.CharsetUtil.US_ASCII));
         } finally {
             //默默的丢弃数据,调用release()直接释放资源
             ReferenceCountUtil.release(msg);
