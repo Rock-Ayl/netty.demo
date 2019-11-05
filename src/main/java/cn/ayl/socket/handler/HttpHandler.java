@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -109,22 +110,31 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
 
     //处理http服务请求
     private void handleService(ChannelHandlerContext ctx, FullHttpRequest req) {
-        //打印请求
-        logger.info(req.toString());
         FullHttpResponse response;
-        //如果请求为GET
+        JsonObject result;
+        //获得请求path
+        String path = null;
+        try {
+            path = new URI(req.getUri()).getPath();
+        } catch (Exception e) {
+            logger.error("接口解析错误.");
+        }
+        //根据请求类型处理请求 get post ...
         if (req.method() == HttpMethod.GET) {
-            logger.info(getGetParamsFromChannel(req).toString());
-            ByteBuf buf = copiedBuffer(JsonObject.VOID().append("test", "123").toString(), CharsetUtil.UTF_8);
-            response = responseOK(HttpResponseStatus.OK, buf);
-            //如果请求为POST
+            //获取请求参数
+            Map<String, Object> params = getGetParamsFromChannel(req);
+            //todo 处理请求
+            result = JsonObject.Success();
+            response = responseOKAndJson(HttpResponseStatus.OK, result);
         } else if (req.method() == HttpMethod.POST) {
-            logger.info(getPostParamsFromChannel(req).toString());
-            ByteBuf content = copiedBuffer(JsonObject.VOID().append("test", "123").toString(), CharsetUtil.UTF_8);
-            response = responseOK(HttpResponseStatus.OK, content);
-            //其他类型的请求
+            //获取请求参数
+            Map<String, Object> params = getPostParamsFromChannel(req);
+            //todo 处理请求
+            result = JsonObject.Success();
+            response = responseOKAndJson(HttpResponseStatus.OK, result);
         } else {
-            response = responseOK(HttpResponseStatus.INTERNAL_SERVER_ERROR, null);
+            //todo 处理其他类型的请求
+            response = responseOKAndJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, null);
         }
         // 发送响应并关闭连接
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
@@ -224,18 +234,35 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * 响应OK
+     * 响应OK并返回Json
      *
-     * @param status  状态
-     * @param content 文本
+     * @param status 状态
+     * @param result 返回值
      * @return
      */
-    private FullHttpResponse responseOK(HttpResponseStatus status, ByteBuf content) {
+    private FullHttpResponse responseOKAndJson(HttpResponseStatus status, JsonObject result) {
+        ByteBuf content = copiedBuffer(result.toString(), CharsetUtil.UTF_8);
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
         if (content != null) {
-            //response.headers().set("Content-Type", "text/plain;charset=UTF-8");
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
-            response.headers().set("Content_Length", response.content().readableBytes());
+            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
+        }
+        return response;
+    }
+
+    /**
+     * 响应OK并返回文本
+     *
+     * @param status 状态
+     * @param result 返回值
+     * @return
+     */
+    private FullHttpResponse responseOKAndText(HttpResponseStatus status, String result) {
+        ByteBuf content = copiedBuffer(result, CharsetUtil.UTF_8);
+        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
+        if (content != null) {
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain;charset=UTF-8");
+            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         }
         return response;
     }
