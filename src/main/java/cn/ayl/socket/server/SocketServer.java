@@ -17,9 +17,6 @@ public class SocketServer {
 
     protected static Logger logger = LoggerFactory.getLogger(SocketServer.class);
 
-    //接受端口
-    public static Integer port = 8080;
-
     /**
      * 创建一个默认配置的ServerBootstrap
      *

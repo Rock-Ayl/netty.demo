@@ -1,5 +1,6 @@
 package cn.ayl.socket.test.server;
 
+import cn.ayl.config.Const;
 import cn.ayl.socket.server.SocketServer;
 import cn.ayl.socket.test.handler.DiscardServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
@@ -49,7 +50,7 @@ public class DiscardServer {
              * 剩下的事情就是绑定端口并启动服务器，这里我们绑定到机器的8080端口。你可以多次调用bind()(基于不同的地址)。
              * Bind and start to accept incoming connections.(绑定并开始接受传入的连接)
              */
-            ChannelFuture f = bootstrap.bind(SocketServer.port).sync();
+            ChannelFuture f = bootstrap.bind(Const.socketPort).sync();
             /**
              * Wait until the server socket is closed.(等待，直到服务器套接字关闭)
              * In this example, this does not happen, but you can do that to gracefully(在本例中，这种情况不会发生，但是您可以优雅地这样做)
