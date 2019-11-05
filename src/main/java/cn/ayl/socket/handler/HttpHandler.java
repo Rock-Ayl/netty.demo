@@ -103,6 +103,11 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
+    private JsonObject handleServiceFactory(String path, Map<String, Object> params) {
+        //todo 根据path和params处理业务并返回
+        return JsonObject.Success();
+    }
+
     private void handleHttpRequest(final ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
         //todo http请求内容分类,目前设定为全部为服务请求(可以存在页面,资源,上传等等)
         handleService(ctx, req);
@@ -118,14 +123,14 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         if (req.method() == HttpMethod.GET) {
             //获取请求参数
             Map<String, Object> params = getGetParamsFromChannel(req);
-            //todo 处理请求
-            result = JsonObject.Success();
+            //业务
+            result = handleServiceFactory(path, params);
             response = responseOKAndJson(HttpResponseStatus.OK, result);
         } else if (req.method() == HttpMethod.POST) {
             //获取请求参数
             Map<String, Object> params = getPostParamsFromChannel(req);
-            //todo 处理请求
-            result = JsonObject.Success();
+            //处理业务
+            result = handleServiceFactory(path, params);
             response = responseOKAndJson(HttpResponseStatus.OK, result);
         } else {
             //todo 处理其他类型的请求
