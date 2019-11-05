@@ -1,6 +1,7 @@
 package cn.ayl.socket.handler;
 
 import cn.ayl.json.JsonObject;
+import cn.ayl.socket.decoder.HttpDecoder;
 import cn.ayl.socket.server.SocketServer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
@@ -62,22 +63,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
              * 往 pipeline 添加一些 handler (例如DiscardServerHandler) 从而实现你的应用逻辑。
              * 当你的应用变得复杂，你可能会向 pipeline 添加更多的 handler，并把这里的匿名类抽取出来作为一个单独的类。
              */
-            bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
-                //一个http请求过来，先从这里走，进行解码
-                @Override
-                protected void initChannel(SocketChannel socketChannel) throws Exception {
-                    // 请求解码器
-                    socketChannel.pipeline().addLast("http-decoder", new HttpRequestDecoder());
-                    // 将HTTP消息的多个部分合成一条完整的HTTP消息
-                    socketChannel.pipeline().addLast("http-aggregator", new HttpObjectAggregator(65535));
-                    // 响应转码器
-                    socketChannel.pipeline().addLast("http-encoder", new HttpResponseEncoder());
-                    // 解决大码流的问题，ChunkedWriteHandler：向客户端发送HTML5文件
-                    socketChannel.pipeline().addLast("http-chunked", new ChunkedWriteHandler());
-                    // 自定义处理handler
-                    socketChannel.pipeline().addLast("http-server", new HttpServerHandler());
-                }
-            });
+            bootstrap.childHandler(new HttpDecoder());
             /**
              * 剩下的事情就是绑定端口并启动服务器，这里我们绑定到机器的8080端口。你可以多次调用bind()(基于不同的地址)。
              * Bind and start to accept incoming connections.(绑定并开始接受传入的连接)
