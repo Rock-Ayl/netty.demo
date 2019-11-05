@@ -10,7 +10,7 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 
 /**
  * created by Rock-Ayl 2019-11-5
- * http请求的解码器
+ * http请求的解码器，一个http请求需要先从这里走，实现init
  */
 public class HttpDecoder extends ChannelInitializer<SocketChannel> {
 
