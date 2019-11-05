@@ -1,6 +1,6 @@
 package cn.ayl.socket.server;
 
-import cn.ayl.socket.handler.HttpServerHandler;
+import cn.ayl.socket.handler.HttpHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
@@ -56,7 +56,7 @@ public class SocketServer {
 
     public void startup() {
         try {
-            new HttpServerHandler().run();
+            new HttpHandler().start();
         } catch (Exception e) {
             logger.error("Run Socket Fail!");
         }

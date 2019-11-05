@@ -7,15 +7,14 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryAttribute;
-import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.CharsetUtil;
 import cn.ayl.json.JsonUtil;
+import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,16 +29,38 @@ import static io.netty.buffer.Unpooled.copiedBuffer;
  * created by Rock-Ayl 2019-11-4
  * Http请求处理服务
  */
-public class HttpServerHandler extends ChannelInboundHandlerAdapter {
+public class HttpHandler extends ChannelInboundHandlerAdapter {
 
-    protected static Logger logger = LoggerFactory.getLogger(HttpServerHandler.class);
+    protected static Logger logger = LoggerFactory.getLogger(HttpHandler.class);
+
+    /**
+     * 请求解码后，从通道读取,进行分类处理
+     *
+     * @param ctx
+     * @param msg
+     * @throws Exception
+     */
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        try {
+            if (msg instanceof FullHttpRequest) {
+                handleHttpRequest(ctx, (FullHttpRequest) msg);
+            } else if (msg instanceof HttpContent) {
+                //todo handleHttpContent
+            }
+        } catch (Exception e) {
+            logger.error("channelRead", e);
+        } finally {
+            ReferenceCountUtil.safeRelease(msg);
+        }
+    }
 
     /**
      * 启动
      *
      * @throws Exception
      */
-    public void run() throws Exception {
+    public void start() throws Exception {
         /**
          * NioEventLoopGroup是一个处理I/O操作的事件循环器 (其实是个线程池)。
          * netty为不同类型的传输协议提供了多种NioEventLoopGroup的实现。
@@ -81,39 +102,32 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    /**
-     * 请求解码后，从通道读取
-     *
-     * @param ctx
-     * @param msg
-     * @throws Exception
-     */
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        //如果是完整的http请求
-        if (msg instanceof FullHttpRequest) {
-            //强转
-            FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
-            //打印请求
-            logger.info(fullHttpRequest.toString());
-            FullHttpResponse response;
-            //如果请求为GET
-            if (fullHttpRequest.method() == HttpMethod.GET) {
-                logger.info(getGetParamsFromChannel(fullHttpRequest).toString());
-                ByteBuf buf = copiedBuffer(JsonObject.VOID().append("test", "123").toString(), CharsetUtil.UTF_8);
-                response = responseOK(HttpResponseStatus.OK, buf);
-                //如果请求为POST
-            } else if (fullHttpRequest.method() == HttpMethod.POST) {
-                logger.info(getPostParamsFromChannel(fullHttpRequest).toString());
-                ByteBuf content = copiedBuffer(JsonObject.VOID().append("test", "123").toString(), CharsetUtil.UTF_8);
-                response = responseOK(HttpResponseStatus.OK, content);
-                //其他类型的请求
-            } else {
-                response = responseOK(HttpResponseStatus.INTERNAL_SERVER_ERROR, null);
-            }
-            // 发送响应
-            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+    private void handleHttpRequest(final ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
+        //todo http请求内容分类,目前设定为全部为服务请求(可以存在页面,资源,上传等等)
+        handleService(ctx, req);
+    }
+
+    //处理http服务请求
+    private void handleService(ChannelHandlerContext ctx, FullHttpRequest req) {
+        //打印请求
+        logger.info(req.toString());
+        FullHttpResponse response;
+        //如果请求为GET
+        if (req.method() == HttpMethod.GET) {
+            logger.info(getGetParamsFromChannel(req).toString());
+            ByteBuf buf = copiedBuffer(JsonObject.VOID().append("test", "123").toString(), CharsetUtil.UTF_8);
+            response = responseOK(HttpResponseStatus.OK, buf);
+            //如果请求为POST
+        } else if (req.method() == HttpMethod.POST) {
+            logger.info(getPostParamsFromChannel(req).toString());
+            ByteBuf content = copiedBuffer(JsonObject.VOID().append("test", "123").toString(), CharsetUtil.UTF_8);
+            response = responseOK(HttpResponseStatus.OK, content);
+            //其他类型的请求
+        } else {
+            response = responseOK(HttpResponseStatus.INTERNAL_SERVER_ERROR, null);
         }
+        // 发送响应并关闭连接
+        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
     /**
