@@ -6,7 +6,7 @@ package cn.ayl.config;
  */
 public class Const {
 
-    //通信端口
-    public static Integer socketPort = 8080;
+    //SocketPort
+    public static Integer socketPort = 8888;
 
 }

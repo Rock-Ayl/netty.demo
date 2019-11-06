@@ -81,7 +81,7 @@ public class SocketServer {
         try {
             //启动Http
             //new HttpHandler().start();
-            //启动WebSocket
+            //启动WebSocket 并调用 ws://127.0.0.1:8888/ws
             new WebSocketHandler().start();
         } catch (Exception e) {
             logger.error("Run Socket Fail!");

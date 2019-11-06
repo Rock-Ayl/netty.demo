@@ -46,11 +46,13 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
     //读到客户端的内容并且向客户端去写内容
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
+        //todo 服务器接收的话
         logger.info("收到消息：" + msg.text());
         /**
          * writeAndFlush接收的参数类型是Object类型，但是一般我们都是要传入管道中传输数据的类型，比如我们当前的demo
          * 传输的就是TextWebSocketFrame类型的数据
          */
+        //todo 服务器响应的话
         while (true) {
             ctx.channel().writeAndFlush(new TextWebSocketFrame("服务时间：" + LocalDateTime.now()));
         }
@@ -60,17 +62,17 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
         //打印出channel唯一值，asLongText方法是channel的id的全名
-        System.out.println("handlerAdded：" + ctx.channel().id().asLongText());
+        logger.info("handlerAdded：" + ctx.channel().id().asLongText());
     }
 
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("handlerRemoved：" + ctx.channel().id().asLongText());
+        logger.info("handlerRemoved：" + ctx.channel().id().asLongText());
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        System.out.println("异常发生");
+        logger.error("WebSocket Exception!");
         ctx.close();
     }
 

@@ -32,13 +32,9 @@ public class WebSocketDecoder extends ChannelInitializer<SocketChannel> {
         //ws://server:port/context_path
         //ws://localhost:9999/ws
         /**
-         * WebSocketServerProtocolHandler：参数是访问路径，这边指定的是ws，服务客户端访问服务器的时候指定的url是：ws://localhost:8899/ws。
-         * 它负责websocket握手以及处理控制框架（Close，Ping（心跳检检测request），Pong（心跳检测响应））。 文本和二进制数据帧被传递到管道中的下一个处理程序进行处理。
-         *
-         * 作者：二月_春风
-         * 链接：https://www.jianshu.com/p/9a97e667cf84
-         * 来源：简书
-         * 著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+         * WebSocketServerProtocolHandler：参数是访问路径，这边指定的是ws，服务客户端访问服务器的时候指定的url是：ws://127.0.0.1:8888/ws。
+         * 它负责websocket握手以及处理控制框架（Close，Ping（心跳检检测request），Pong（心跳检测响应））。
+         * 文本和二进制数据帧被传递到管道中的下一个处理程序进行处理。
          */
         //参数指的是context_path
         pipeline.addLast(new WebSocketServerProtocolHandler("/ws"));
