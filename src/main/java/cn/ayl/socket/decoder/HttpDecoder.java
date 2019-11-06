@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * created by Rock-Ayl 2019-11-5
- * http请求的解码器，一个http请求需要先从这里走，实现init
+ * Http请求的解码器，一个请求需要先从这里走，实现init
  */
 public class HttpDecoder extends ChannelInitializer<SocketChannel> {
 
@@ -20,7 +20,7 @@ public class HttpDecoder extends ChannelInitializer<SocketChannel> {
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-        logger.info(" http start initChannel .");
+        logger.info(" Http Start InitChannel .");
         // 请求解码器
         ch.pipeline().addLast("http-decoder", new HttpRequestDecoder());
         // 将HTTP消息的多个部分合成一条完整的HTTP消息

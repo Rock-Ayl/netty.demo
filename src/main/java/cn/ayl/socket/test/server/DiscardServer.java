@@ -32,7 +32,7 @@ public class DiscardServer {
              * ServerBootstrap是用来搭建 server 的协助类。
              * 你也可以直接使用Channel搭建 server，然而这样做步骤冗长，不是一个好的实践，大多数情况下建议使用ServerBootstrap。
              */
-            ServerBootstrap bootstrap = SocketServer.createDefaultServerBootstrap(bossGroup, workerGroup);
+            ServerBootstrap bootstrap = SocketServer.createDefaultHttpServerBootstrap(bossGroup, workerGroup);
             /**
              * 这里的 handler 会被用来处理新接收的Channel。
              * ChannelInitializer是一个特殊的 handler，

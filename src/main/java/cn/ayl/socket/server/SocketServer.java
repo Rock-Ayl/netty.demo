@@ -1,11 +1,14 @@
 package cn.ayl.socket.server;
 
 import cn.ayl.socket.handler.HttpHandler;
+import cn.ayl.socket.handler.WebSocketHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,13 +21,13 @@ public class SocketServer {
     protected static Logger logger = LoggerFactory.getLogger(SocketServer.class);
 
     /**
-     * 创建一个默认配置的ServerBootstrap
+     * 创建一个默认配置的HttpServerBootstrap
      *
      * @param bossGroup   netty-boss
      * @param workerGroup netty-work-IO
      * @return
      */
-    public static ServerBootstrap createDefaultServerBootstrap(EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
+    public static ServerBootstrap createDefaultHttpServerBootstrap(EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
         return new ServerBootstrap()
                 /**
                  * 组装Boss和IO
@@ -55,9 +58,31 @@ public class SocketServer {
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
     }
 
+    /**
+     * 创建一个默认配置的WebSocketServerBootstrap
+     *
+     * @param bossGroup   netty-boss
+     * @param workerGroup netty-work-IO
+     * @return
+     */
+    public static ServerBootstrap createDefaultWebSocketServerBootstrap(EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
+        return new ServerBootstrap()
+                .group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.class)
+                .handler(new LoggingHandler(LogLevel.INFO))
+                .option(ChannelOption.SO_BACKLOG, 128)
+                .childOption(ChannelOption.SO_KEEPALIVE, true)
+                .childOption(ChannelOption.SO_REUSEADDR, true)
+                .childOption(ChannelOption.TCP_NODELAY, true)
+                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
+    }
+
     public void startup() {
         try {
-            new HttpHandler().start();
+            //启动Http
+            //new HttpHandler().start();
+            //启动WebSocket
+            new WebSocketHandler().start();
         } catch (Exception e) {
             logger.error("Run Socket Fail!");
         }
