@@ -44,10 +44,14 @@ public class SocketServer {
                  * 注意到option()和childOption()了吗？
                  * option()用来配置NioServerSocketChannel(负责接收到来的connection)，
                  * 而childOption()是用来配置被ServerChannel(这里是NioServerSocketChannel) 所接收的Channel
+                 *
+                 * ChannelOption.SO_KEEPALIVE表示是否开启TCP底层心跳机制,true为开启
+                 * ChannelOption.SO_REUSEADDR表示端口释放后立即就可以被再次使用,因为一般来说,一个端口释放后会等待两分钟之后才能再被使用
+                 * ChannelOption.TCP_NODELAY表示是否开始Nagle算法,true表示关闭,false表示开启,通俗地说,如果要求高实时性,有数据发送时就马上发送,就关闭,如果需要减少发送次数减少网络交互就开启
                  */
-                .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .childOption(ChannelOption.SO_REUSEADDR, true)
+                .childOption(ChannelOption.TCP_NODELAY, true)
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
     }
 
