@@ -1,7 +1,6 @@
 package cn.ayl.socket.handler;
 
 import cn.ayl.config.Const;
-import cn.ayl.socket.decoder.HttpDecoder;
 import cn.ayl.socket.decoder.WebSocketDecoder;
 import cn.ayl.socket.server.SocketServer;
 import io.netty.bootstrap.ServerBootstrap;
@@ -53,8 +52,15 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
          * 传输的就是TextWebSocketFrame类型的数据
          */
         //todo 服务器响应的话
+        int count = 1;
         while (true) {
-            ctx.channel().writeAndFlush(new TextWebSocketFrame("服务时间：" + LocalDateTime.now()));
+            try {
+                Thread.sleep(2 * 1000); //设置暂停的时间 5 秒
+                count++;
+                ctx.channel().writeAndFlush(new TextWebSocketFrame("服务时间：" + LocalDateTime.now() + "--循环执行第" + count + "次"));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
