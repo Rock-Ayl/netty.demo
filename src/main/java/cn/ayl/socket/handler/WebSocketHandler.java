@@ -53,23 +53,27 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<TextWebSocketF
          */
         //todo 服务器响应的话
         ctx.channel().writeAndFlush(new TextWebSocketFrame("服务时间：" + LocalDateTime.now()));
-
     }
 
-    //每个channel都有一个唯一的id值
+    /**
+     * 每个channel都有一个唯一的id值
+     * asLongText方法是channel的id的全名
+     */
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-        //打印出channel唯一值，asLongText方法是channel的id的全名
+        //todo 连接打开时
         logger.info("handlerAdded：" + ctx.channel().id().asLongText());
     }
 
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        //todo 连接关闭时
         logger.info("handlerRemoved：" + ctx.channel().id().asLongText());
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        //todo 出现异常
         logger.error("WebSocket Exception!");
         ctx.close();
     }
