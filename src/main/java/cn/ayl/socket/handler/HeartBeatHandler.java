@@ -17,11 +17,11 @@ public class HeartBeatHandler extends ChannelInboundHandlerAdapter {
     protected static Logger logger = LoggerFactory.getLogger(HeartBeatHandler.class);
 
     @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        // 判断evt是否是IdleStateEvent（用于触发用户事件，包含 读空闲/写空闲/读写空闲 ）
-        if (evt instanceof IdleStateEvent) {
+    public void userEventTriggered(ChannelHandlerContext ctx, Object msg) throws Exception {
+        // 判断evt是否是 IdleStateEvent(超时的事件，用于触发用户事件，包含读空闲/写空闲/读写空闲 ）
+        if (msg instanceof IdleStateEvent) {
             // 强制类型转换
-            IdleStateEvent event = (IdleStateEvent) evt;
+            IdleStateEvent event = (IdleStateEvent) msg;
             if (event.state() == IdleState.READER_IDLE) {
                 logger.info("进入读空闲...");
             } else if (event.state() == IdleState.WRITER_IDLE) {
