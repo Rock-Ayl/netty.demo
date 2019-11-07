@@ -22,6 +22,10 @@ import java.util.Map;
 
 import static io.netty.buffer.Unpooled.copiedBuffer;
 
+/**
+ * created by Rock-Ayl on 2019-11-7
+ * Http请求和WebSocket请求的处理程序
+ */
 public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
 
     protected static Logger logger = LoggerFactory.getLogger(HttpAndWebSocketHandler.class);
@@ -29,7 +33,7 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
     private WebSocketServerHandshaker webSocketServerHandshaker;
 
     /**
-     * 功能：读取服务器发送过来的信息
+     * 通道，请求过来从这里分类
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {

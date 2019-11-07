@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * created by Rock-Ayl 2019-11-17
- * WebSocket心跳处理handler
+ * WebSocket心跳处理程序
  */
 public class HeartBeatHandler extends ChannelInboundHandlerAdapter {
 
