@@ -1,11 +1,14 @@
 package cn.ayl.socket.server;
 
-import cn.ayl.socket.handler.HttpHandler;
-import cn.ayl.socket.handler.WebSocketHandler;
+import cn.ayl.config.Const;
+import cn.ayl.socket.decoder.HttpAndWebSocketDecoder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -20,6 +23,18 @@ public class SocketServer {
 
     protected static Logger logger = LoggerFactory.getLogger(SocketServer.class);
 
+    private Channel channel;
+    /**
+     * NioEventLoopGroup是一个处理I/O操作的事件循环器 (其实是个线程池)。
+     * netty为不同类型的传输协议提供了多种NioEventLoopGroup的实现。
+     * 在本例中我们要实现一个服务端应用，并使用了两个NioEventLoopGroup。
+     * 第一个通常被称为boss，负责接收已到达的 connection。
+     * 第二个被称作 worker，当 boss 接收到 connection 并把它注册到 worker 后，worker 就可以处理 connection 上的数据通信。
+     * 要创建多少个线程，这些线程如何匹配到Channel上会随着EventLoopGroup实现的不同而改变，或者你可以通过构造器去配置他们。
+     */
+    EventLoopGroup bossGroup = new NioEventLoopGroup();
+    EventLoopGroup workerGroup = new NioEventLoopGroup();
+
     /**
      * 创建一个默认配置的HttpServerBootstrap
      *
@@ -27,7 +42,7 @@ public class SocketServer {
      * @param workerGroup netty-work-IO
      * @return
      */
-    public static ServerBootstrap createDefaultHttpServerBootstrap(EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
+    public static ServerBootstrap createDefaultServerBootstrap(EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
         return new ServerBootstrap()
                 /**
                  * 组装Boss和IO
@@ -59,42 +74,58 @@ public class SocketServer {
     }
 
     /**
-     * 创建一个默认配置的WebSocketServerBootstrap
-     *
-     * @param bossGroup   netty-boss
-     * @param workerGroup netty-work-IO
-     * @return
+     * 开启Http与WebSocket
      */
-    public static ServerBootstrap createDefaultWebSocketServerBootstrap(EventLoopGroup bossGroup, EventLoopGroup workerGroup) {
-        return new ServerBootstrap()
-                .group(bossGroup, workerGroup)
-                .channel(NioServerSocketChannel.class)
-                .handler(new LoggingHandler(LogLevel.INFO))
-                .option(ChannelOption.SO_BACKLOG, 128)
-                .childOption(ChannelOption.SO_KEEPALIVE, true)
-                .childOption(ChannelOption.SO_REUSEADDR, true)
-                .childOption(ChannelOption.TCP_NODELAY, true)
-                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-    }
-
     public void startup() {
         try {
-            //启动Http
-            //new HttpHandler().start();
-            //启动WebSocket 并调用 ws://127.0.0.1:8888/ws
-            new WebSocketHandler().start();
+            try {
+                /**
+                 * ServerBootstrap是用来搭建 server 的协助类。
+                 * 你也可以直接使用Channel搭建 server，然而这样做步骤冗长，不是一个好的实践，大多数情况下建议使用ServerBootstrap。
+                 */
+                ServerBootstrap bootstrap = SocketServer.createDefaultServerBootstrap(bossGroup, workerGroup);
+                /**
+                 * 这里的 handler 会被用来处理新接收的Channel。
+                 * ChannelInitializer是一个特殊的 handler，
+                 * 帮助开发者配置Channel，而多数情况下你会配置Channel下的ChannelPipeline，
+                 * 往 pipeline 添加一些 handler (例如DiscardServerHandler) 从而实现你的应用逻辑。
+                 * 当你的应用变得复杂，你可能会向 pipeline 添加更多的 handler，并把这里的匿名类抽取出来作为一个单独的类。
+                 */
+                //bootstrap.childHandler(new HttpDecoder());
+                bootstrap.childHandler(new HttpAndWebSocketDecoder());
+                /**
+                 * 剩下的事情就是绑定端口并启动服务器，这里我们绑定到机器的8080端口。你可以多次调用bind()(基于不同的地址)。
+                 * Bind and start to accept incoming connections.(绑定并开始接受传入的连接)
+                 */
+                ChannelFuture f = bootstrap.bind(Const.socketPort).sync();
+                /**
+                 * Wait until the server socket is closed.(等待，直到服务器套接字关闭)
+                 * In this example, this does not happen, but you can do that to gracefully(在本例中，这种情况不会发生，但是您可以优雅地这样做)
+                 * shut down your server.(关闭你的服务)
+                 */
+                channel = f.channel();
+                channel.closeFuture().sync();
+            } finally {
+                workerGroup.shutdownGracefully();
+                bossGroup.shutdownGracefully();
+            }
         } catch (Exception e) {
             logger.error("Run Socket Fail!");
         }
     }
 
-    public static void main(String[] args) {
-        logger.info("开始");
-        new SocketServer().startup();
+    //关闭Socket
+    public void destroy() {
+        if (channel != null) {
+            channel.close();
+        }
+        bossGroup.shutdownGracefully();
+        workerGroup.shutdownGracefully();
+        System.out.println("WebsocketChatServer Destroy:" + Const.socketPort);
     }
 
-    public void stop() {
-
+    public static void main(String[] args) {
+        new SocketServer().startup();
     }
 
 
