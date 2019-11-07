@@ -25,23 +25,41 @@ public class HttpAndWebSocketDecoder extends ChannelInitializer<SocketChannel> {
     protected void initChannel(SocketChannel ch) throws Exception {
         logger.info("解析请求.");
         ChannelPipeline pipeline = ch.pipeline();
+        //http解码
+        initHttpChannel(pipeline);
+        //心跳检测
+        initHeartBeat(pipeline);
+        //基于http的WebSocket
+        initWebSocket(pipeline);
+        //处理器
+        pipeline.addLast(new HttpAndWebSocketHandler());
+    }
+
+    //Http部分
+    private void initHttpChannel(ChannelPipeline pipeline) throws Exception {
         //http解码器(webSocket是http的升级)
         pipeline.addLast(new HttpServerCodec());
         //以块的方式来写的处理器，解决大码流的问题，ChunkedWriteHandler：可以向客户端发送HTML5文件
         pipeline.addLast(new ChunkedWriteHandler());
         //netty是基于分段请求的，HttpObjectAggregator的作用是将HTTP消息的多个部分合成一条完整的HTTP消息,参数是聚合字节的最大长度
         pipeline.addLast(new HttpObjectAggregator(65535));
+    }
+
+    //心跳部分
+    private void initHeartBeat(ChannelPipeline pipeline) throws Exception {
         // 针对客户端，如果在1分钟时没有向服务端发送读写心跳(ALL)，则主动断开,如果是读空闲或者写空闲，不处理
         pipeline.addLast(new IdleStateHandler(8, 10, 12));
         // 自定义的空闲状态检测
         pipeline.addLast(new HeartBeatHandler());
+    }
+
+    //WebSocket部分
+    private void initWebSocket(ChannelPipeline pipeline) throws Exception {
         /**
          * WebSocketServerProtocolHandler负责websocket握手以及处理控制框架（Close，Ping（心跳检检测request），Pong（心跳检测响应））。
          * 参数为ws请求的访问路径 eg:ws://127.0.0.1:8888/WebSocket。
          */
         pipeline.addLast(new WebSocketServerProtocolHandler("/WebSocket"));
-        //处理器
-        pipeline.addLast(new HttpAndWebSocketHandler());
     }
 
 }
