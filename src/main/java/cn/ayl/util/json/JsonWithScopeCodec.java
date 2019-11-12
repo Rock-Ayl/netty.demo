@@ -1,4 +1,4 @@
-package cn.ayl.json;
+package cn.ayl.util.json;
 
 import org.bson.BsonReader;
 import org.bson.BsonWriter;

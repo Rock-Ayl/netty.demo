@@ -1,5 +1,5 @@
 
-package cn.ayl.json;
+package cn.ayl.util.json;
 
 import org.bson.*;
 import org.bson.codecs.*;
