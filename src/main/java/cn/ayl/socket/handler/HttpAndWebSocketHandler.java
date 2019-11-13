@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.*;
 
@@ -105,7 +106,7 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
      * @param params eg:  user:root pwd:123456
      * @return
      */
-    private JsonObject handleServiceFactory(String path, Map<String, Object> params) {
+    private Object handleServiceFactory(String path, Map<String, Object> params) {
         //根据请求路径获得服务和方法名
         List<String> serviceAndMethod = getServiceAndMethod(path);
         if (serviceAndMethod.size() < 2) {
@@ -145,21 +146,27 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         }
         //实现类
         Object service;
-        JsonObject result = JsonObject.VOID();
+        Object result;
         try {
             //调用构造函数
             Constructor noArgConstructor = serviceClass.getDeclaredConstructor();
             //构建
             service = noArgConstructor.newInstance();
-
-
-            //todo 未完成部分
-            /*Method method = serviceClass.getMethod("login", String.class, Integer.class, Boolean.class);
-            Object a = method.invoke(service, "ayl", 123, false);
-            result = (JsonObject) a*/
-            ;
-
-
+            //组装参数和参数类型
+            Object[] valueArr = new Object[paramList.size()];
+            Class<?>[] valueTypeArr = new Class[paramList.size()];
+            for (int i = 0; i < paramList.size(); i++) {
+                //组装参数
+                valueArr[i] = params.get(paramList.get(i));
+                //组装类型
+                valueTypeArr[i] = methodEntry.paramMap.get(paramList.get(i)).clazz;
+            }
+            //定位服务的方法
+            Method method = serviceClass.getMethod("login", valueTypeArr);
+            //加入参数并执行
+            Object resultObject = method.invoke(service, valueArr);
+            //获取返回值
+            result = resultObject;
         } catch (Exception e) {
             logger.error("请求构建函数失败, error: [{}]", e);
             return Const.Json_Find_Exception;
@@ -180,7 +187,7 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
      */
     private void handleService(ChannelHandlerContext ctx, FullHttpRequest req) {
         FullHttpResponse response;
-        JsonObject result;
+        Object result;
         //获得请求path
         String path = getPath(req);
         //根据请求类型处理请求 get post ...
@@ -356,7 +363,7 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
      * @param result 返回值
      * @return
      */
-    private FullHttpResponse responseOKAndJson(HttpResponseStatus status, JsonObject result) {
+    private FullHttpResponse responseOKAndJson(HttpResponseStatus status, Object result) {
         ByteBuf content = copiedBuffer(result.toString(), CharsetUtil.UTF_8);
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
         if (content != null) {
@@ -373,8 +380,8 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
      * @param result 返回值
      * @return
      */
-    private FullHttpResponse responseOKAndText(HttpResponseStatus status, String result) {
-        ByteBuf content = copiedBuffer(result, CharsetUtil.UTF_8);
+    private FullHttpResponse responseOKAndText(HttpResponseStatus status, Object result) {
+        ByteBuf content = copiedBuffer(result.toString(), CharsetUtil.UTF_8);
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
         if (content != null) {
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain;charset=UTF-8");
