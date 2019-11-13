@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface Service {
 
-    //服务备注
+    //注释
     String desc() default "";
 
 }

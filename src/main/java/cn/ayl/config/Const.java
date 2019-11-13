@@ -31,7 +31,7 @@ public class Const {
     public enum ClassType {
         void_, string_, integer_, long_, double_, float_, boolean_,
         strings_, integers_, longs_, doubles_, floats_, booleans_, enum_,
-        class_, context_, user_
+        json_, jsons_, class_,
     }
 
 }

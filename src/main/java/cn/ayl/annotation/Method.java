@@ -15,16 +15,18 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 public @interface Method {
 
-    //方法备注
+    //注释
     String desc() default "";
 
     //请求类型
     Const.Command command() default Const.Command.post;
 
-    //返回值类型
+    //上下文类型
     Const.ContentType contentType() default Const.ContentType.json;
 
     //是否需要授权
     boolean auth() default false;
 
+    //路径
+    String path() default "";
 }

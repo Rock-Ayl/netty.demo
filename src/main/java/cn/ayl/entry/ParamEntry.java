@@ -8,10 +8,14 @@ import cn.ayl.config.Const;
  */
 public class ParamEntry {
 
+    //该参数class类型 eg: String Boolean ...
     public final Class<?> clazz;
-    public final String name;
-    public final String desc;
     public transient final Const.ClassType type;
+    //名称
+    public final String name;
+    //注释
+    public final String desc;
+    //是否必须
     public final boolean optional;
 
     public ParamEntry(final Class<?> clazz, final Const.ClassType type, final String name, final String desc, boolean optional) {

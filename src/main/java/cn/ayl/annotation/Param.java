@@ -13,10 +13,10 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 public @interface Param {
 
-    //参数备注
+    //注释
     String value() default "";
 
-    //可有可无
+    //是否必须
     boolean optional() default false;
 
 }

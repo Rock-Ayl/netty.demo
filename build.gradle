@@ -26,4 +26,7 @@ dependencies {
     compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
     //日志-slf4j
     compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.25'
+    //gitHub的 超轻量级的Java类路径和模块路径扫描器
+    compile group: 'io.github.lukehutch', name: 'fast-classpath-scanner', version: '2.18.1'
+
 }
