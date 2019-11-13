@@ -1,7 +1,10 @@
 package cn.ayl.entry;
 
+import cn.ayl.Server;
 import cn.ayl.intf.IMicroService;
 import cn.ayl.util.ScanClassUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,6 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * 所有服务的注册表
  */
 public class RegistryEntry {
+
+    protected static Logger logger = LoggerFactory.getLogger(RegistryEntry.class);
 
     //存放所有服务
     public static ConcurrentHashMap<String, ServiceEntry> serviceMap = new ConcurrentHashMap();
@@ -31,6 +36,7 @@ public class RegistryEntry {
                 serviceMap.put(className, serviceEntry);
             }
         }
+        logger.info(">>>>>> RegistryEntry Scan All Services >>>>>>");
     }
 
 }

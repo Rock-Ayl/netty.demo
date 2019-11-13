@@ -2,7 +2,6 @@ package cn.ayl;
 
 import cn.ayl.entry.RegistryEntry;
 import cn.ayl.socket.server.SocketServer;
-
 /**
  * created By Rock-Ayl on 2019-11-13
  * 🐖启动程序
