@@ -30,8 +30,12 @@ public class SocketServer {
      * 第二个被称作 worker，当 boss 接收到 connection 并把它注册到 worker 后，worker 就可以处理 connection 上的数据通信。
      * 要创建多少个线程，这些线程如何匹配到Channel上会随着EventLoopGroup实现的不同而改变，或者你可以通过构造器去配置他们。
      */
-    EventLoopGroup bossGroup = new NioEventLoopGroup();
-    EventLoopGroup workerGroup = new NioEventLoopGroup();
+    private EventLoopGroup bossGroup = new NioEventLoopGroup();
+    private EventLoopGroup workerGroup = new NioEventLoopGroup();
+
+    public static SocketServer VOID() {
+        return new SocketServer();
+    }
 
     /**
      * 创建一个默认配置的HttpServerBootstrap
