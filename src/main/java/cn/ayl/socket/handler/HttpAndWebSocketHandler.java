@@ -108,6 +108,7 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
     private JsonObject handleServiceFactory(String path, Map<String, Object> params) {
         //根据请求路径获得服务和方法名
         List<String> serviceAndMethod = getServiceAndMethod(path);
+        System.out.println(serviceAndMethod.toString());
         //获取服务
         ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceAndMethod.get(0));
         //如果服务存在
@@ -218,7 +219,7 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         //拆分
         String[] piecewise = path.split("/");
         //分别组装服务名和方法名
-        if (piecewise.length > 2) {
+        if (piecewise.length >= 2) {
             for (String info : piecewise) {
                 if (serviceName == null) {
                     serviceName = info;
