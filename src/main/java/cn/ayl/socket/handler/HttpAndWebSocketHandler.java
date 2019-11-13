@@ -22,10 +22,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.*;
 
+import static cn.ayl.config.Const.Json_No_Service;
 import static io.netty.buffer.Unpooled.copiedBuffer;
 
 /**
@@ -108,12 +108,14 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
     private JsonObject handleServiceFactory(String path, Map<String, Object> params) {
         //根据请求路径获得服务和方法名
         List<String> serviceAndMethod = getServiceAndMethod(path);
-        System.out.println(serviceAndMethod.toString());
+        if (serviceAndMethod.size() < 2) {
+            return Json_No_Service;
+        }
         //获取服务
         ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceAndMethod.get(0));
         //如果服务存在
         if (serviceEntry == null) {
-            return Const.Json_No_Service;
+            return Json_No_Service;
         }
         //获取服务中的方法
         MethodEntry methodEntry = serviceEntry.methodMap.get(serviceAndMethod.get(1));
