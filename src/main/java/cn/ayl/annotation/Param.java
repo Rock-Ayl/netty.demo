@@ -16,7 +16,7 @@ public @interface Param {
     //注释
     String value() default "";
 
-    //是否必须
+    //非必须 false:必须 true:不必须
     boolean optional() default false;
 
 }

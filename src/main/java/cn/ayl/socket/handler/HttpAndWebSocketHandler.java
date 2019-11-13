@@ -1,6 +1,7 @@
 package cn.ayl.socket.handler;
 
 import cn.ayl.entry.MethodEntry;
+import cn.ayl.entry.ParamEntry;
 import cn.ayl.entry.RegistryEntry;
 import cn.ayl.entry.ServiceEntry;
 import cn.ayl.util.json.JsonObject;
@@ -19,10 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static io.netty.buffer.Unpooled.copiedBuffer;
 
@@ -110,17 +108,28 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         //获取服务
         ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceAndMethod.get(0));
         //如果服务存在
-        if (serviceEntry != null) {
-            //获取服务中的方法
-            MethodEntry methodEntry = serviceEntry.methodMap.get(serviceAndMethod.get(1));
-            //如果方法存在
-            if (methodEntry != null) {
-                //todo 继续
-            } else {
-                return JsonObject.Fail("不存在该接口.");
-            }
-        } else {
+        if (serviceEntry == null) {
             return JsonObject.Fail("不存在该服务.");
+        }
+        //获取服务中的方法
+        MethodEntry methodEntry = serviceEntry.methodMap.get(serviceAndMethod.get(1));
+        //如果方法存在
+        if (methodEntry == null) {
+            return JsonObject.Fail("不存在该接口.");
+        }
+        //获取方法中的参数组
+        LinkedHashMap<String, ParamEntry> paramMap = methodEntry.paramMap;
+        List<String> paramList = methodEntry.paramList;
+        //根据List遍历处理请求
+        for (String paramKey : paramList) {
+            //是否非必须该参数 false:必须 true:不必须
+            Boolean optional = paramMap.get(paramKey).optional;
+            //是否存在该值
+            Boolean hasParam = params.containsKey(paramKey);
+            //如果必须传并且参数中没有对应Key,回手掏
+            if (optional == false && hasParam == false) {
+                return JsonObject.Fail("接口传参不正确.");
+            }
         }
         return JsonObject.Success();
     }

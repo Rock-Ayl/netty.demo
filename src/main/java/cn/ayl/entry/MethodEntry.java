@@ -9,7 +9,9 @@ import org.slf4j.LoggerFactory;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 
 /**
  * Created by Rock-Ayl on 2019-11-13
@@ -33,7 +35,8 @@ public class MethodEntry {
     public transient Const.ClassType resultType;
     public transient Method method;
     //参数组
-    public LinkedHashMap<String, ParamEntry> params = new LinkedHashMap();
+    public LinkedHashMap<String, ParamEntry> paramMap = new LinkedHashMap();
+    public List<String> paramList = new ArrayList<>();
 
     public MethodEntry(cn.ayl.annotation.Method method, String name) {
         this.command = method.command();
@@ -78,7 +81,8 @@ public class MethodEntry {
             //创建实体
             ParamEntry param = new ParamEntry(cls, type, paramName, paramDesc, paramAnnotation.optional());
             //组装
-            params.put(param.name, param);
+            paramMap.put(param.name, param);
+            paramList.add(param.name);
         }
     }
 
