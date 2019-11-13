@@ -15,7 +15,8 @@ public class RegistryEntry {
     //存放所有服务
     public static ConcurrentHashMap<String, ServiceEntry> serviceMap = new ConcurrentHashMap();
 
-    public static void init() {
+    //扫描所有服务
+    public static void scanServices() {
         //获取所有继承 IMicroService的接口路径
         List<String> names = ScanClassUtil.scan.getNamesOfSubinterfacesOf(IMicroService.class);
         if (names.size() > 0) {
@@ -32,7 +33,4 @@ public class RegistryEntry {
         }
     }
 
-    public static void main(String[] args) {
-        init();
-    }
 }

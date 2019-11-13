@@ -104,6 +104,7 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         //todo 根据path和params处理业务并返回
         //根据请求路径获得服务和方法名
         List<String> serviceAndMethod = getServiceAndMethod(path);
+
         return JsonObject.Success();
     }
 
