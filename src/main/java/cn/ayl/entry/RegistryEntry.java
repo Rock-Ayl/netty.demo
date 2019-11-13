@@ -1,6 +1,5 @@
 package cn.ayl.entry;
 
-import cn.ayl.Server;
 import cn.ayl.intf.IMicroService;
 import cn.ayl.util.ScanClassUtil;
 import org.slf4j.Logger;
