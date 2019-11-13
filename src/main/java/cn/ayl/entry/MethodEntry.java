@@ -37,6 +37,7 @@ public class MethodEntry {
     //参数组
     public LinkedHashMap<String, ParamEntry> paramMap = new LinkedHashMap();
     public List<String> paramList = new ArrayList<>();
+    public List<Class<?>> paramEntryList = new ArrayList<>();
 
     public MethodEntry(cn.ayl.annotation.Method method, String name) {
         this.command = method.command();
@@ -83,6 +84,7 @@ public class MethodEntry {
             //组装
             paramMap.put(param.name, param);
             paramList.add(param.name);
+            paramEntryList.add(param.clazz);
         }
     }
 

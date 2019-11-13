@@ -1,5 +1,6 @@
 package cn.ayl.socket.handler;
 
+import cn.ayl.config.Const;
 import cn.ayl.entry.MethodEntry;
 import cn.ayl.entry.ParamEntry;
 import cn.ayl.entry.RegistryEntry;
@@ -20,6 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.*;
 
@@ -109,13 +112,13 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceAndMethod.get(0));
         //如果服务存在
         if (serviceEntry == null) {
-            return JsonObject.Fail("不存在该服务.");
+            return Const.Json_No_Service;
         }
         //获取服务中的方法
         MethodEntry methodEntry = serviceEntry.methodMap.get(serviceAndMethod.get(1));
         //如果方法存在
         if (methodEntry == null) {
-            return JsonObject.Fail("不存在该接口.");
+            return Const.Json_No_InterFace;
         }
         //获取方法中的参数组
         LinkedHashMap<String, ParamEntry> paramMap = methodEntry.paramMap;
@@ -128,17 +131,37 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
             Boolean hasParam = params.containsKey(paramKey);
             //如果必须传并且参数中没有对应Key,回手掏
             if (optional == false && hasParam == false) {
-                return JsonObject.Fail("接口传参不正确.");
+                return Const.Json_Error_Param;
             }
         }
         //已确认服务接口参数均对应上,获取服务的实现类
         Class serviceClass = ScanClassUtil.findImplClass(serviceEntry.interFaceClass);
         //是否存在实现
         if (serviceClass == null) {
-            return JsonObject.Fail("该服务不存在具体实现.");
+            return Const.Json_No_Impl;
         }
-        //todo 继续关联
-        return JsonObject.Success();
+        //实现类
+        Object service;
+        JsonObject result = JsonObject.VOID();
+        try {
+            //调用构造函数
+            Constructor noArgConstructor = serviceClass.getDeclaredConstructor();
+            //构建
+            service = noArgConstructor.newInstance();
+
+
+            //todo 未完成部分
+            /*Method method = serviceClass.getMethod("login", String.class, Integer.class, Boolean.class);
+            Object a = method.invoke(service, "ayl", 123, false);
+            result = (JsonObject) a*/
+            ;
+
+
+        } catch (Exception e) {
+            logger.error("请求构建函数失败, error: [{}]", e);
+            return Const.Json_Find_Exception;
+        }
+        return result;
     }
 
     private void handleHttpRequest(final ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
