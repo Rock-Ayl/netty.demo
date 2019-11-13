@@ -60,19 +60,19 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
         //todo 连接打开时
-        logger.info(ctx.channel().localAddress().toString() + " handlerAdded！, channelId=" + ctx.channel().id().asLongText());
+        logger.info(ctx.channel().localAddress().toString() + " ,handlerAdded！, channelId=" + ctx.channel().id().asLongText());
     }
 
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
         //todo 连接关闭时
-        logger.info(ctx.channel().localAddress().toString() + " handlerRemoved！, channelId=" + ctx.channel().id().asLongText());
+        logger.info(ctx.channel().localAddress().toString() + " ,handlerRemoved！, channelId=" + ctx.channel().id().asLongText());
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         //todo 出现异常
-        logger.error("Client:" + ctx.channel().remoteAddress() + "error", cause.getMessage());
+        logger.error("Client:" + ctx.channel().remoteAddress() + " ,error", cause.getMessage());
         ctx.close();
     }
 
