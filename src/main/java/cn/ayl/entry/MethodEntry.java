@@ -60,7 +60,7 @@ public class MethodEntry {
             //获取参数类型
             Class<?> cls = paramTypes[i];
             if (paramAnnotations[i].length <= 0) {
-                logger.error("class[{}] method[{}] all params must have annotation", className, name);
+                logger.error("class[{}] method[{}] all methodMap must have annotation", className, name);
                 System.exit(-1);
             }
             //获取注解

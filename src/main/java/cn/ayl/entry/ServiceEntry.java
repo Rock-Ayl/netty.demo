@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -24,7 +25,7 @@ public class ServiceEntry {
     //注释
     public String desc = null;
     //该服务的方法组
-    public List<MethodEntry> methods = new ArrayList();
+    public LinkedHashMap<String, MethodEntry> methodMap = new LinkedHashMap();
 
     public ServiceEntry(Class<? extends IMicroService> interFaceClass) {
         this.interFaceClass = interFaceClass;
@@ -65,20 +66,14 @@ public class ServiceEntry {
                     //解析方法内的参数
                     mEntry.parseParams(method, this.interFaceClass.getName());
                     //方法实体组装
-                    this.methods.add(mEntry);
+                    this.methodMap.put(methodName, mEntry);
                 }
             }
         } catch (Exception e) {
             logger.error("Name[{}]", name, e);
             return false;
         }
-        //为方法根据请求类型(get/post)做个排序
-        sortMethods();
         return true;
-    }
-
-    private void sortMethods() {
-        methods.sort((o1, o2) -> o1.compareTo(o2));
     }
 
 }

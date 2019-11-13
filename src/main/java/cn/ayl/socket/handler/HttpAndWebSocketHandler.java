@@ -1,5 +1,8 @@
 package cn.ayl.socket.handler;
 
+import cn.ayl.entry.MethodEntry;
+import cn.ayl.entry.RegistryEntry;
+import cn.ayl.entry.ServiceEntry;
 import cn.ayl.util.json.JsonObject;
 import cn.ayl.util.json.JsonUtil;
 import io.netty.buffer.ByteBuf;
@@ -104,7 +107,21 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         //todo 根据path和params处理业务并返回
         //根据请求路径获得服务和方法名
         List<String> serviceAndMethod = getServiceAndMethod(path);
-
+        //获取服务
+        ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceAndMethod.get(0));
+        //如果服务存在
+        if (serviceEntry != null) {
+            //获取服务中的方法
+            MethodEntry methodEntry = serviceEntry.methodMap.get(serviceAndMethod.get(1));
+            //如果方法存在
+            if (methodEntry != null) {
+                //todo 继续
+            } else {
+                return JsonObject.Fail("不存在该接口.");
+            }
+        } else {
+            return JsonObject.Fail("不存在该服务.");
+        }
         return JsonObject.Success();
     }
 

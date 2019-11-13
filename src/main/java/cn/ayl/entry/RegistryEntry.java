@@ -32,7 +32,7 @@ public class RegistryEntry {
                 //初始化服务实体
                 serviceEntry.init();
                 //组装至List存放
-                serviceMap.put(className, serviceEntry);
+                serviceMap.put(cls.getSimpleName(), serviceEntry);
             }
         }
         logger.info(">>>>>> RegistryEntry Scan All Services >>>>>>");
