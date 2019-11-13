@@ -4,6 +4,7 @@ import cn.ayl.entry.MethodEntry;
 import cn.ayl.entry.ParamEntry;
 import cn.ayl.entry.RegistryEntry;
 import cn.ayl.entry.ServiceEntry;
+import cn.ayl.util.ScanClassUtil;
 import cn.ayl.util.json.JsonObject;
 import cn.ayl.util.json.JsonUtil;
 import io.netty.buffer.ByteBuf;
@@ -95,14 +96,13 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * 处理业务
+     * 根据path和params处理业务并返回
      *
      * @param path   eg:  /Organize/login
      * @param params eg:  user:root pwd:123456
      * @return
      */
     private JsonObject handleServiceFactory(String path, Map<String, Object> params) {
-        //todo 根据path和params处理业务并返回
         //根据请求路径获得服务和方法名
         List<String> serviceAndMethod = getServiceAndMethod(path);
         //获取服务
@@ -131,6 +131,13 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
                 return JsonObject.Fail("接口传参不正确.");
             }
         }
+        //已确认服务接口参数均对应上,获取服务的实现类
+        Class serviceClass = ScanClassUtil.findImplClass(serviceEntry.interFaceClass);
+        //是否存在实现
+        if (serviceClass == null) {
+            return JsonObject.Fail("该服务不存在具体实现.");
+        }
+        //todo 继续关联
         return JsonObject.Success();
     }
 
