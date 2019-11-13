@@ -10,11 +10,13 @@ import cn.ayl.util.json.JsonObject;
  * 用来测试
  */
 @Service(desc = "测试相关")
-public interface Test {
+public interface Organize extends IMicroService {
 
     @Method(desc = "方法相关", auth = true)
-    JsonObject test(
-            @Param("参数相关") String param
+    JsonObject login(
+            @Param("参数相关") String name,
+            @Param("密码") Integer pwd,
+            @Param("是否为角色") Boolean isRole
     );
 
 }

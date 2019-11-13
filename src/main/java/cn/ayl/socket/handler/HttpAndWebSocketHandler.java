@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,6 +102,8 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
      */
     private JsonObject handleServiceFactory(String path, Map<String, Object> params) {
         //todo 根据path和params处理业务并返回
+        //根据请求路径获得服务和方法名
+        List<String> serviceAndMethod = getServiceAndMethod(path);
         return JsonObject.Success();
     }
 
@@ -109,7 +112,12 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         handleService(ctx, req);
     }
 
-    //处理http服务请求
+    /**
+     * 处理http服务请求
+     *
+     * @param ctx
+     * @param req
+     */
     private void handleService(ChannelHandlerContext ctx, FullHttpRequest req) {
         FullHttpResponse response;
         JsonObject result;
@@ -134,6 +142,41 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         }
         // 发送响应并关闭连接
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+    }
+
+    /**
+     * 根据请求路径获得服务和方法名
+     *
+     * @param path
+     * @return
+     */
+    private List<String> getServiceAndMethod(String path) {
+        List<String> result = new ArrayList<>();
+        //服务名
+        String serviceName = null;
+        //方法名
+        String methodName = null;
+        //去掉第一个/
+        path = path.substring(1);
+        //拆分
+        String[] piecewise = path.split("/");
+        //分别组装服务名和方法名
+        if (piecewise.length > 2) {
+            for (String info : piecewise) {
+                if (serviceName == null) {
+                    serviceName = info;
+                } else {
+                    if (methodName == null) {
+                        methodName = info;
+                        break;
+                    }
+                }
+            }
+        }
+        //组装
+        result.add(serviceName);
+        result.add(methodName);
+        return result;
     }
 
     /**
