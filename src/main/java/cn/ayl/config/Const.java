@@ -31,18 +31,26 @@ public class Const {
      * 枚举组
      */
 
+    //上下文类型
     public enum ContentType {
         none, error, text, html, json, css, js, jpeg, jpg, png, gif, ico, mp3, mp4, data
     }
 
+    //请求类型
     public enum Command {
         get, post
     }
 
+    //对象类型
     public enum ClassType {
         void_, string_, integer_, long_, double_, float_, boolean_,
         strings_, integers_, longs_, doubles_, floats_, booleans_, enum_,
         json_, jsons_, class_,
+    }
+
+    //返回结果类型
+    public enum RequestType {
+        none, service, htmlPage, resource, upload, download, redirect, admin, websocket, stream, http
     }
 
     /**

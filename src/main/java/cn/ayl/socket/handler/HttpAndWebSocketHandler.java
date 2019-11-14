@@ -9,7 +9,6 @@ import cn.ayl.util.ScanClassUtil;
 import cn.ayl.util.TypeUtil;
 import cn.ayl.util.json.JsonObject;
 import cn.ayl.util.json.JsonUtil;
-import com.alibaba.fastjson.JSON;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -18,7 +17,6 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryAttribute;
 import io.netty.handler.codec.http.websocketx.*;
-import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +28,7 @@ import java.util.*;
 
 import static cn.ayl.config.Const.Json_Error_Param;
 import static cn.ayl.config.Const.Json_No_Service;
-import static io.netty.buffer.Unpooled.copiedBuffer;
+import static cn.ayl.config.Const.RequestType.*;
 
 /**
  * created by Rock-Ayl on 2019-11-7
@@ -40,6 +38,9 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
 
     protected static Logger logger = LoggerFactory.getLogger(HttpAndWebSocketHandler.class);
 
+    /**
+     * 用来关闭WebSocket
+     */
     private WebSocketServerHandshaker webSocketServerHandshaker;
 
     /**
@@ -110,37 +111,31 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
      * @return
      */
     private Object handleServiceFactory(String path, FullHttpRequest req) {
-
         //根据请求路径获得服务和方法名
         List<String> serviceAndMethod = getServiceAndMethod(path);
         if (serviceAndMethod.size() < 2) {
             return Json_No_Service;
         }
-
         //获取服务
         ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceAndMethod.get(0));
         //如果服务存在
         if (serviceEntry == null) {
             return Json_No_Service;
         }
-
         //获取服务中的方法
         MethodEntry methodEntry = serviceEntry.methodMap.get(serviceAndMethod.get(1));
         //如果方法存在
         if (methodEntry == null) {
             return Const.Json_No_InterFace;
         }
-
         //获取方法中的参数组
         LinkedHashMap<String, ParamEntry> paramMap = methodEntry.paramMap;
         List<String> paramList = methodEntry.paramList;
-
-        //todo 根据获取请求参数,(从这里开始做，让参数变得可选)
+        //根据获取请求参数
         Map<String, Object> params = getParamsFromChannelByService(req, paramMap, paramList);
         if (params == null) {
             return Json_Error_Param;
         }
-
         //根据List遍历处理请求
         for (String paramKey : paramList) {
             //是否非必须该参数 false:必须 true:不必须
@@ -152,14 +147,12 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
                 return Json_Error_Param;
             }
         }
-
         //已确认服务接口参数均对应上,获取服务的实现类
         Class serviceClass = ScanClassUtil.findImplClass(serviceEntry.interFaceClass);
         //是否存在实现
         if (serviceClass == null) {
             return Const.Json_No_Impl;
         }
-
         try {
             //调用构造函数
             Constructor noArgConstructor = serviceClass.getDeclaredConstructor();
@@ -188,12 +181,33 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
             logger.error("请求构建函数失败, error: [{}]", e);
             return Const.Json_Find_Exception;
         }
-
     }
 
     private void handleHttpRequest(final ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
-        //todo http请求内容分类进行细化,目前设定为全部为服务请求(可以存在页面,资源,上传等等)
-        handleService(ctx, req);
+        //todo http请求可以根据请求内容分类进行细化,目前默认为服务请求
+        Const.RequestType type = service;
+        switch (type) {
+            //重定向
+            case redirect:
+                break;
+            //请求静态资源
+            case resource:
+                break;
+            //请求页面
+            case htmlPage:
+                break;
+            //上传请求
+            case upload:
+                break;
+            //下载请求
+            case download:
+                break;
+            //服务请求
+            case service:
+            default:
+                handleService(ctx, req);
+                break;
+        }
     }
 
     /**
@@ -204,18 +218,17 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
      */
     private void handleService(ChannelHandlerContext ctx, FullHttpRequest req) {
         FullHttpResponse response;
-        Object result;
         //获得请求path
         String path = getPath(req);
         //根据请求类型处理请求 get post ...
         if (req.method() == HttpMethod.GET || req.method() == HttpMethod.POST) {
             //根据path和params处理业务并返回结果
-            result = handleServiceFactory(path, req);
+            Object result = handleServiceFactory(path, req);
             //组装结果并响应请求
-            response = responseOKAndJson(HttpResponseStatus.OK, result);
+            response = ResponseHandler.responseOKAndJson(HttpResponseStatus.OK, result);
         } else {
-            //todo 处理其他类型的请求
-            response = responseOKAndJson(HttpResponseStatus.INTERNAL_SERVER_ERROR, null);
+            //todo 处理其他请求类型的请求 eg: OPTIONS HEAD DELETE 等等
+            response = ResponseHandler.responseOKAndText(HttpResponseStatus.INTERNAL_SERVER_ERROR, "ok");
         }
         // 发送响应并关闭连接
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
@@ -227,13 +240,13 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
      * @param req
      * @return
      */
-    public Map<String, Object> getParamsFromChannelByService(FullHttpRequest req, LinkedHashMap<String, ParamEntry> paramMap, List<String> paramList) {
+    private Map<String, Object> getParamsFromChannelByService(FullHttpRequest req, LinkedHashMap<String, ParamEntry> paramMap, List<String> paramList) {
         Map<String, Object> params = null;
         if (req.method() == HttpMethod.GET) {
-            //获取请求参数
+            //获取get请求的参数
             params = getGetParamsFromChannel(req, paramMap);
         } else if (req.method() == HttpMethod.POST) {
-            //获取请求参数
+            //获取post请求的参数
             params = getPostParamsFromChannel(req, paramMap);
         }
         return params;
@@ -306,7 +319,9 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
             QueryStringDecoder decoder = new QueryStringDecoder(fullHttpRequest.uri());
             Map<String, List<String>> paramList = decoder.parameters();
             for (Map.Entry<String, List<String>> entry : paramList.entrySet()) {
+                //如果该参数是我需要的
                 if (paramMap.containsKey(entry.getKey())) {
+                    //强转并组装
                     params.put(entry.getKey(), TypeUtil.castObject(paramMap.get(entry.getKey()).clazz, entry.getValue().get(0)));
                 }
             }
@@ -329,14 +344,15 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         if (fullHttpRequest.method() == HttpMethod.POST) {
             // 处理POST请求
             String strContentType = fullHttpRequest.headers().get("Content-Type").trim();
+            //从from中获取
             if (strContentType.contains("x-www-form-urlencoded")) {
-                //从from中获取
                 params = getFormParams(fullHttpRequest, paramMap);
             } else if (strContentType.contains("application/json")) {
                 try {
                     //从body中获取
                     params = getJSONParams(fullHttpRequest, paramMap);
                 } catch (UnsupportedEncodingException e) {
+                    logger.error("从body中获取参数失败");
                     return null;
                 }
             } else {
@@ -362,7 +378,9 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
             if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
                 MemoryAttribute attribute = (MemoryAttribute) data;
                 String attributeName = attribute.getName();
+                //如果是所需参数
                 if (paramMap.containsKey(attributeName)) {
+                    //强转并组装
                     params.put(attributeName, TypeUtil.castObject(paramMap.get(attributeName).clazz, attribute.getValue()));
                 }
             }
@@ -385,45 +403,13 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         String strContent = new String(reqContent, "UTF-8");
         JsonObject jsonParams = JsonUtil.parse(strContent);
         for (Object key : jsonParams.keySet()) {
+            //如果是所需参数
             if (paramMap.containsKey(key.toString())) {
+                //强转并组装
                 params.put(key.toString(), TypeUtil.castObject(paramMap.get(key.toString()).clazz, jsonParams.get((String) key)));
             }
         }
         return params;
-    }
-
-    /**
-     * Http响应OK并返回Json
-     *
-     * @param status 状态
-     * @param result 返回值
-     * @return
-     */
-    private FullHttpResponse responseOKAndJson(HttpResponseStatus status, Object result) {
-        ByteBuf content = copiedBuffer(result.toString(), CharsetUtil.UTF_8);
-        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
-        if (content != null) {
-            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
-            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
-        }
-        return response;
-    }
-
-    /**
-     * Http响应OK并返回文本
-     *
-     * @param status 状态
-     * @param result 返回值
-     * @return
-     */
-    private FullHttpResponse responseOKAndText(HttpResponseStatus status, Object result) {
-        ByteBuf content = copiedBuffer(result.toString(), CharsetUtil.UTF_8);
-        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
-        if (content != null) {
-            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain;charset=UTF-8");
-            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
-        }
-        return response;
     }
 
 }

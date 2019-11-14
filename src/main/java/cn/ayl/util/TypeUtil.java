@@ -20,6 +20,7 @@ public class TypeUtil {
         if (null == o) {
             return null;
         }
+        //fastJson的强转,值得信赖
         return JSON.parseObject(JSON.toJSONString(o), clz);
     }
 }
