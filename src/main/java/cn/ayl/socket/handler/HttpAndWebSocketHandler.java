@@ -156,13 +156,17 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
             Object[] valueArr = new Object[paramList.size()];
             Class<?>[] valueTypeArr = new Class[paramList.size()];
             for (int i = 0; i < paramList.size(); i++) {
+                //参数类型
+                Class<?> parType = methodEntry.paramMap.get(paramList.get(i)).clazz;
+                String key = paramList.get(i);
                 //组装参数
-                valueArr[i] = params.get(paramList.get(i));
+                valueArr[i] = params.get(key);
                 //组装类型
-                valueTypeArr[i] = methodEntry.paramMap.get(paramList.get(i)).clazz;
+                valueTypeArr[i] = parType;
+
             }
             //定位服务的方法
-            Method method = serviceClass.getMethod("login", valueTypeArr);
+            Method method = serviceClass.getMethod(methodEntry.name, valueTypeArr);
             //加入参数并执行
             Object resultObject = method.invoke(service, valueArr);
             //获取返回值
