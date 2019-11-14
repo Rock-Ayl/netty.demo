@@ -19,4 +19,9 @@ public interface Organize extends IMicroService {
             @Param(value = "是否为角色,optional=true代表这个参数可以传可以不穿", optional = true) Boolean isRole
     );
 
+    @Method(desc = "获取用户", auth = true)
+    JsonObject getUser(
+            @Param("用户id") Integer userId
+    );
+
 }

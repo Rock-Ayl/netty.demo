@@ -10,4 +10,9 @@ public class OrganizeService implements Organize {
         return JsonObject.Success().append("name", name).append("pwd", pwd).append("isRole", isRole);
     }
 
+    @Override
+    public JsonObject getUser(Integer userId) {
+        return JsonObject.Success().append("userId", userId).append("userInfo", "用户信息");
+    }
+
 }
