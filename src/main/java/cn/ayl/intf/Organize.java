@@ -21,7 +21,7 @@ public interface Organize extends IMicroService {
 
     @Method(desc = "获取用户", auth = true)
     JsonObject getUser(
-            @Param("用户id") Integer userId
+            @Param("用户id") Long userId
     );
 
 }

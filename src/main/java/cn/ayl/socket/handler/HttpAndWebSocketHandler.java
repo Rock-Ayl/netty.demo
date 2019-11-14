@@ -6,8 +6,10 @@ import cn.ayl.entry.ParamEntry;
 import cn.ayl.entry.RegistryEntry;
 import cn.ayl.entry.ServiceEntry;
 import cn.ayl.util.ScanClassUtil;
+import cn.ayl.util.TypeUtil;
 import cn.ayl.util.json.JsonObject;
 import cn.ayl.util.json.JsonUtil;
+import com.alibaba.fastjson.JSON;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -133,8 +135,8 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         LinkedHashMap<String, ParamEntry> paramMap = methodEntry.paramMap;
         List<String> paramList = methodEntry.paramList;
 
-        //todo 获取请求参数,(从这里开始做，让参数变得可选)
-        Map<String, Object> params = getParamsFromChannel(req);
+        //todo 根据获取请求参数,(从这里开始做，让参数变得可选)
+        Map<String, Object> params = getParamsFromChannelByService(req, paramMap, paramList);
         if (params == null) {
             return Json_Error_Param;
         }
@@ -220,19 +222,19 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * 根据 get post 类型从请求中获取参数
+     * 根据 get、post 类型和已知参数组从请求中获取参数
      *
      * @param req
      * @return
      */
-    public Map<String, Object> getParamsFromChannel(FullHttpRequest req) {
+    public Map<String, Object> getParamsFromChannelByService(FullHttpRequest req, LinkedHashMap<String, ParamEntry> paramMap, List<String> paramList) {
         Map<String, Object> params = null;
         if (req.method() == HttpMethod.GET) {
             //获取请求参数
-            params = getGetParamsFromChannel(req);
+            params = getGetParamsFromChannel(req, paramMap);
         } else if (req.method() == HttpMethod.POST) {
             //获取请求参数
-            params = getPostParamsFromChannel(req);
+            params = getPostParamsFromChannel(req, paramMap);
         }
         return params;
     }
@@ -295,7 +297,7 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
      * @param fullHttpRequest
      * @return
      */
-    private Map<String, Object> getGetParamsFromChannel(FullHttpRequest fullHttpRequest) {
+    private Map<String, Object> getGetParamsFromChannel(FullHttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
         //参数组
         Map<String, Object> params = new HashMap<>();
         //如果请求为GET继续
@@ -304,22 +306,23 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
             QueryStringDecoder decoder = new QueryStringDecoder(fullHttpRequest.uri());
             Map<String, List<String>> paramList = decoder.parameters();
             for (Map.Entry<String, List<String>> entry : paramList.entrySet()) {
-                params.put(entry.getKey(), entry.getValue().get(0));
+                if (paramMap.containsKey(entry.getKey())) {
+                    params.put(entry.getKey(), TypeUtil.castObject(paramMap.get(entry.getKey()).clazz, entry.getValue().get(0)));
+                }
             }
             return params;
         } else {
             return null;
         }
-
     }
 
     /**
-     * Http获取POST方式传递的参数
+     * 根据已知参数 从POST方式的Http请求 获取传递的参数
      *
      * @param fullHttpRequest
      * @return
      */
-    private Map<String, Object> getPostParamsFromChannel(FullHttpRequest fullHttpRequest) {
+    private Map<String, Object> getPostParamsFromChannel(FullHttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
         //参数组
         Map<String, Object> params;
         //如果请求为POST
@@ -327,10 +330,12 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
             // 处理POST请求
             String strContentType = fullHttpRequest.headers().get("Content-Type").trim();
             if (strContentType.contains("x-www-form-urlencoded")) {
-                params = getFormParams(fullHttpRequest);
+                //从from中获取
+                params = getFormParams(fullHttpRequest, paramMap);
             } else if (strContentType.contains("application/json")) {
                 try {
-                    params = getJSONParams(fullHttpRequest);
+                    //从body中获取
+                    params = getJSONParams(fullHttpRequest, paramMap);
                 } catch (UnsupportedEncodingException e) {
                     return null;
                 }
@@ -344,19 +349,22 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * Http解析from表单数据（Content-Type = x-www-form-urlencoded）
+     * 根据已知参数组从Http解析from表单数据（Content-Type = x-www-form-urlencoded）
      *
      * @param fullHttpRequest
      * @return
      */
-    private Map<String, Object> getFormParams(FullHttpRequest fullHttpRequest) {
+    private Map<String, Object> getFormParams(FullHttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
         Map<String, Object> params = new HashMap<>();
         HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), fullHttpRequest);
         List<InterfaceHttpData> postData = decoder.getBodyHttpDatas();
         for (InterfaceHttpData data : postData) {
             if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
                 MemoryAttribute attribute = (MemoryAttribute) data;
-                params.put(attribute.getName(), attribute.getValue());
+                String attributeName = attribute.getName();
+                if (paramMap.containsKey(attributeName)) {
+                    params.put(attributeName, TypeUtil.castObject(paramMap.get(attributeName).clazz, attribute.getValue()));
+                }
             }
         }
         return params;
@@ -369,7 +377,7 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
      * @return
      * @throws UnsupportedEncodingException
      */
-    private Map<String, Object> getJSONParams(FullHttpRequest fullHttpRequest) throws UnsupportedEncodingException {
+    private Map<String, Object> getJSONParams(FullHttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) throws UnsupportedEncodingException {
         Map<String, Object> params = new HashMap<>();
         ByteBuf content = fullHttpRequest.content();
         byte[] reqContent = new byte[content.readableBytes()];
@@ -377,7 +385,9 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         String strContent = new String(reqContent, "UTF-8");
         JsonObject jsonParams = JsonUtil.parse(strContent);
         for (Object key : jsonParams.keySet()) {
-            params.put(key.toString(), jsonParams.get((String) key));
+            if (paramMap.containsKey(key.toString())) {
+                params.put(key.toString(), TypeUtil.castObject(paramMap.get(key.toString()).clazz, jsonParams.get((String) key)));
+            }
         }
         return params;
     }
@@ -415,4 +425,5 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         }
         return response;
     }
+
 }

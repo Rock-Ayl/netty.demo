@@ -11,7 +11,7 @@ public class OrganizeService implements Organize {
     }
 
     @Override
-    public JsonObject getUser(Integer userId) {
+    public JsonObject getUser(Long userId) {
         return JsonObject.Success().append("userId", userId).append("userInfo", "用户信息");
     }
 
