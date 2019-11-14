@@ -133,7 +133,7 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         LinkedHashMap<String, ParamEntry> paramMap = methodEntry.paramMap;
         List<String> paramList = methodEntry.paramList;
 
-        //获取请求参数
+        //todo 获取请求参数,(从这里开始做，让参数变得可选)
         Map<String, Object> params = getParamsFromChannel(req);
         if (params == null) {
             return Json_Error_Param;
