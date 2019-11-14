@@ -108,31 +108,37 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
      * @return
      */
     private Object handleServiceFactory(String path, FullHttpRequest req) {
+
         //根据请求路径获得服务和方法名
         List<String> serviceAndMethod = getServiceAndMethod(path);
         if (serviceAndMethod.size() < 2) {
             return Json_No_Service;
         }
+
         //获取服务
         ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceAndMethod.get(0));
         //如果服务存在
         if (serviceEntry == null) {
             return Json_No_Service;
         }
+
         //获取服务中的方法
         MethodEntry methodEntry = serviceEntry.methodMap.get(serviceAndMethod.get(1));
         //如果方法存在
         if (methodEntry == null) {
             return Const.Json_No_InterFace;
         }
+
         //获取方法中的参数组
         LinkedHashMap<String, ParamEntry> paramMap = methodEntry.paramMap;
         List<String> paramList = methodEntry.paramList;
+
         //获取请求参数
         Map<String, Object> params = getParamsFromChannel(req);
         if (params == null) {
             return Json_Error_Param;
         }
+
         //根据List遍历处理请求
         for (String paramKey : paramList) {
             //是否非必须该参数 false:必须 true:不必须
@@ -144,20 +150,19 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
                 return Json_Error_Param;
             }
         }
+
         //已确认服务接口参数均对应上,获取服务的实现类
         Class serviceClass = ScanClassUtil.findImplClass(serviceEntry.interFaceClass);
         //是否存在实现
         if (serviceClass == null) {
             return Const.Json_No_Impl;
         }
-        //实现类
-        Object service;
-        Object result;
+
         try {
             //调用构造函数
             Constructor noArgConstructor = serviceClass.getDeclaredConstructor();
-            //构建
-            service = noArgConstructor.newInstance();
+            //实现类
+            Object service = noArgConstructor.newInstance();
             //组装参数和参数类型
             Object[] valueArr = new Object[paramList.size()];
             Class<?>[] valueTypeArr = new Class[paramList.size()];
@@ -176,12 +181,12 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
             //加入参数并执行
             Object resultObject = method.invoke(service, valueArr);
             //获取返回值
-            result = resultObject;
+            return resultObject;
         } catch (Exception e) {
             logger.error("请求构建函数失败, error: [{}]", e);
             return Const.Json_Find_Exception;
         }
-        return result;
+
     }
 
     private void handleHttpRequest(final ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
