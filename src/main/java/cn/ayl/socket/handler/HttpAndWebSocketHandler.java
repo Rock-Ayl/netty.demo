@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.*;
 
+import static cn.ayl.config.Const.Json_Error_Param;
 import static cn.ayl.config.Const.Json_No_Service;
 import static io.netty.buffer.Unpooled.copiedBuffer;
 
@@ -100,13 +101,13 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * 根据path和params处理业务并返回
+     * 根据path和params处理业务并返回结果
      *
-     * @param path   eg:  /Organize/login
-     * @param params eg:  user:root pwd:123456
+     * @param path eg:  /Organize/login
+     * @param req
      * @return
      */
-    private Object handleServiceFactory(String path, Map<String, Object> params) {
+    private Object handleServiceFactory(String path, FullHttpRequest req) {
         //根据请求路径获得服务和方法名
         List<String> serviceAndMethod = getServiceAndMethod(path);
         if (serviceAndMethod.size() < 2) {
@@ -127,6 +128,11 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         //获取方法中的参数组
         LinkedHashMap<String, ParamEntry> paramMap = methodEntry.paramMap;
         List<String> paramList = methodEntry.paramList;
+        //获取请求参数
+        Map<String, Object> params = getParamsFromChannel(req);
+        if (params == null) {
+            return Json_Error_Param;
+        }
         //根据List遍历处理请求
         for (String paramKey : paramList) {
             //是否非必须该参数 false:必须 true:不必须
@@ -135,7 +141,7 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
             Boolean hasParam = params.containsKey(paramKey);
             //如果必须传并且参数中没有对应Key,回手掏
             if (optional == false && hasParam == false) {
-                return Const.Json_Error_Param;
+                return Json_Error_Param;
             }
         }
         //已确认服务接口参数均对应上,获取服务的实现类
@@ -195,17 +201,10 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         //获得请求path
         String path = getPath(req);
         //根据请求类型处理请求 get post ...
-        if (req.method() == HttpMethod.GET) {
-            //获取请求参数
-            Map<String, Object> params = getGetParamsFromChannel(req);
-            //业务
-            result = handleServiceFactory(path, params);
-            response = responseOKAndJson(HttpResponseStatus.OK, result);
-        } else if (req.method() == HttpMethod.POST) {
-            //获取请求参数
-            Map<String, Object> params = getPostParamsFromChannel(req);
-            //处理业务
-            result = handleServiceFactory(path, params);
+        if (req.method() == HttpMethod.GET || req.method() == HttpMethod.POST) {
+            //根据path和params处理业务并返回结果
+            result = handleServiceFactory(path, req);
+            //组装结果并响应请求
             response = responseOKAndJson(HttpResponseStatus.OK, result);
         } else {
             //todo 处理其他类型的请求
@@ -213,6 +212,24 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         }
         // 发送响应并关闭连接
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+    }
+
+    /**
+     * 根据 get post 类型从请求中获取参数
+     *
+     * @param req
+     * @return
+     */
+    public Map<String, Object> getParamsFromChannel(FullHttpRequest req) {
+        Map<String, Object> params = null;
+        if (req.method() == HttpMethod.GET) {
+            //获取请求参数
+            params = getGetParamsFromChannel(req);
+        } else if (req.method() == HttpMethod.POST) {
+            //获取请求参数
+            params = getPostParamsFromChannel(req);
+        }
+        return params;
     }
 
     /**
