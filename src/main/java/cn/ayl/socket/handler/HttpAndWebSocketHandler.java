@@ -6,6 +6,7 @@ import cn.ayl.entry.ParamEntry;
 import cn.ayl.entry.RegistryEntry;
 import cn.ayl.entry.ServiceEntry;
 import cn.ayl.util.ScanClassUtil;
+import cn.ayl.util.StringUtil;
 import cn.ayl.util.TypeUtil;
 import cn.ayl.util.json.JsonObject;
 import cn.ayl.util.json.JsonUtil;
@@ -17,6 +18,7 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryAttribute;
 import io.netty.handler.codec.http.websocketx.*;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -184,13 +186,44 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
+    /***
+     * 根据路径开头分配Http请求内容
+     *
+     * upload开头是上传
+     * download开头是下载
+     * htmlPage开头是请求静态资源
+     * 如果有文件后缀是资源
+     * 什么都不是，默认看做服务
+     * @param path
+     * @return
+     */
+    private Const.RequestType getHttpRequestType(String path) {
+        if (path.startsWith("/upload/")) {
+            return upload;
+        } else if (path.startsWith("/download/")) {
+            return download;
+        } else if (path.startsWith("/htmlPage/")) {
+            return htmlPage;
+        } else if (!StringUtil.isEmpty(FilenameUtils.getExtension(path))) {
+            return resource;
+        } else {
+            return service;
+        }
+    }
+
+    /**
+     * 分配各类http请求内容处理
+     *
+     * @param ctx
+     * @param req
+     * @throws Exception
+     */
     private void handleHttpRequest(final ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
-        //todo http请求可以根据请求内容分类进行细化,目前默认为服务请求
-        Const.RequestType type = service;
+        //获得请求path
+        String path = getPath(req);
+        //根据请求路径分配是哪一种请求
+        Const.RequestType type = getHttpRequestType(path);
         switch (type) {
-            //重定向
-            case redirect:
-                break;
             //请求静态资源
             case resource:
                 break;
@@ -199,6 +232,10 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
                 break;
             //上传请求
             case upload:
+                //创建一个上传请求处理器
+                UploadFileHandler uploadFileHandler = new UploadFileHandler(ctx, req, path);
+                //处理请求
+                uploadFileHandler.handleRequest();
                 break;
             //下载请求
             case download:
@@ -206,7 +243,7 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
             //服务请求
             case service:
             default:
-                handleService(ctx, req);
+                handleService(ctx, req, path);
                 break;
         }
     }
@@ -215,12 +252,11 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
      * 处理http服务请求
      *
      * @param ctx
-     * @param req
+     * @param req  请求
+     * @param path 请求路径
      */
-    private void handleService(ChannelHandlerContext ctx, FullHttpRequest req) {
+    private void handleService(ChannelHandlerContext ctx, FullHttpRequest req, String path) {
         FullHttpResponse response;
-        //获得请求path
-        String path = getPath(req);
         //根据请求类型处理请求 get post ...
         if (req.method() == HttpMethod.GET || req.method() == HttpMethod.POST) {
             //根据path和params处理业务并返回结果
