@@ -173,6 +173,7 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
             }
             //定位服务的方法
             Method method = serviceClass.getMethod(methodEntry.name, valueTypeArr);
+            logger.info("service:[{}] Method:[{}]", serviceClass, methodEntry.name);
             //加入参数并执行
             Object resultObject = method.invoke(service, valueArr);
             //获取返回值

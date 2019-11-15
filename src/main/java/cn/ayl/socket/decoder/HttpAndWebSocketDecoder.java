@@ -24,7 +24,7 @@ public class HttpAndWebSocketDecoder extends ChannelInitializer<SocketChannel> {
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-        logger.info("解析请求.");
+        logger.info("开始解析请求.");
         ChannelPipeline pipeline = ch.pipeline();
         //http解码
         initHttpChannel(pipeline);
