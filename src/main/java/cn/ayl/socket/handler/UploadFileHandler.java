@@ -25,6 +25,7 @@ public class UploadFileHandler {
     //处理上传请求
     public void handleRequest() {
         //todo 处理上传请求
+        System.out.println(req);
     }
 
 }

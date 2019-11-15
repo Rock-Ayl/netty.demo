@@ -198,11 +198,11 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
      * @return
      */
     private Const.RequestType getHttpRequestType(String path) {
-        if (path.startsWith("/upload/")) {
+        if (path.startsWith("/Upload")) {
             return upload;
-        } else if (path.startsWith("/download/")) {
+        } else if (path.startsWith("/Download")) {
             return download;
-        } else if (path.startsWith("/htmlPage/")) {
+        } else if (path.startsWith("/HtmlPage")) {
             return htmlPage;
         } else if (!StringUtil.isEmpty(FilenameUtils.getExtension(path))) {
             return resource;
