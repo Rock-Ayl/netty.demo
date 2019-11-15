@@ -45,6 +45,12 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
      */
     private WebSocketServerHandshaker webSocketServerHandshaker;
 
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) {
+        logger.info("正在执行channelActive()方法.....");
+    }
+
+
     /**
      * 通道，请求过来从这里分类
      */

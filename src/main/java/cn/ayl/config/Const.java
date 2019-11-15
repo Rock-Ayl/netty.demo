@@ -15,7 +15,7 @@ public class Const {
     //SocketPort
     public static int SocketPort = 8888;
     //http请求聚合字节最大长度
-    public static int MaxContentLength = 65535;
+    public static int MaxContentLength = 1024 * 1048576;
     //WebSocket读空闲时间闲置/秒
     public static int ReaderIdleTimeSeconds = 8;
     //WebSocket写空闲时间闲置/秒
