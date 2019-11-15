@@ -40,6 +40,8 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
 
     protected static Logger logger = LoggerFactory.getLogger(HttpAndWebSocketHandler.class);
 
+    UploadFileHandler uploadFileHandler;
+
     /**
      * 用来关闭WebSocket
      */
@@ -239,7 +241,7 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
             //上传请求
             case upload:
                 //创建一个上传请求处理器
-                UploadFileHandler uploadFileHandler = new UploadFileHandler(ctx, req, path);
+                uploadFileHandler = new UploadFileHandler(ctx, req, path);
                 //处理请求
                 uploadFileHandler.handleRequest();
                 break;
