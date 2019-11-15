@@ -1,12 +1,10 @@
 package cn.ayl.socket.handler;
 
 import cn.ayl.util.json.JsonObject;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
-import io.netty.util.CharsetUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,8 +12,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created By Rock-Ayl on 2019-11-15
@@ -33,6 +29,7 @@ public class UploadFileHandler {
     private String fileName;
     private FileChannel fileChannel;
     protected ByteBuffer fileBuffer;
+    InterfaceHttpData data = null;
 
     //通道处理器
     ChannelHandlerContext ctx;
@@ -50,7 +47,7 @@ public class UploadFileHandler {
     //处理上传请求
     public void handleRequest() {
         FullHttpResponse response = null;
-        //todo 处理上传请求
+        //todo 现在是超级简单处理短文件的上传请求
         FullHttpRequest request = req;
         if (request.method().equals(HttpMethod.GET)) {
             response = ResponseHandler.responseOKAndJson(HttpResponseStatus.OK, "upload must use post.");
@@ -67,7 +64,6 @@ public class UploadFileHandler {
         fileName = headers.get("fileName");
         fileExt = headers.get("fileExt");
         filePath = filePath + fileName + "." + fileExt;
-        InterfaceHttpData data = null;
         try {
             fileChannel = new RandomAccessFile(filePath, "rw").getChannel();
             fileBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileSize);
@@ -90,7 +86,6 @@ public class UploadFileHandler {
                     logger.info("upload FileName=[{}] success.", fileName);
                 }
             }
-
             response = ResponseHandler.responseOKAndJson(HttpResponseStatus.OK, JsonObject.Success());
         } catch (Exception e) {
             e.printStackTrace();
