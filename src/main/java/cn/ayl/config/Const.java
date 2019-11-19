@@ -24,7 +24,15 @@ public class Const {
     public static int AllIdleTimeSeconds = 12;
     //BACKLOG值用于构造服务端套接字ServerSocket对象，标识当服务器请求处理线程全满时，用于临时存放已完成三次握手的请求的队列的最大长度。如果未设置或所设置的值小于1，Java将使用默认值50。
     public static int ChannelOptionSoBacklogValue = 1024;
+
+    //WebSocket地址
     public static String WebSocketPath = "/WebSocket";
+    //上传地址
+    public static String UploadPath = "/Upload";
+    //下载地址
+    public static String DownloadPath = "/Download";
+    //HttpPage地址
+    public static String HttpPagePath = "/HtmlPage";
 
 
     /**

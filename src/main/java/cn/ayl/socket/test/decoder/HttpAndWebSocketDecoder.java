@@ -1,8 +1,7 @@
-package cn.ayl.socket.decoder;
+package cn.ayl.socket.test.decoder;
 
 import cn.ayl.config.Const;
 import cn.ayl.socket.handler.HeartBeatHandler;
-import cn.ayl.socket.handler.HttpAndWebSocketHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -32,8 +31,7 @@ public class HttpAndWebSocketDecoder extends ChannelInitializer<SocketChannel> {
         initHeartBeat(pipeline);
         //基于http的WebSocket
         initWebSocket(pipeline);
-        //处理器
-        pipeline.addLast(new HttpAndWebSocketHandler());
+        //处理器 pipeline.addLast(new HttpAndWebSocketHandler());
     }
 
     //Http部分

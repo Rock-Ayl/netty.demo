@@ -1,7 +1,7 @@
 package cn.ayl.socket.server;
 
 import cn.ayl.config.Const;
-import cn.ayl.socket.decoder.HttpAndWebSocketDecoder;
+import cn.ayl.socket.decoder.ProtocolDecoder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
@@ -94,7 +94,7 @@ public class SocketServer {
                  * 往 pipeline 添加一些 handler (例如DiscardServerHandler) 从而实现你的应用逻辑。
                  * 当你的应用变得复杂，你可能会向 pipeline 添加更多的 handler，并把这里的匿名类抽取出来作为一个单独的类。
                  */
-                bootstrap.childHandler(new HttpAndWebSocketDecoder());
+                bootstrap.childHandler(new ProtocolDecoder());
                 /**
                  * 剩下的事情就是绑定端口并启动服务器，这里我们绑定到机器的8080端口。你可以多次调用bind()(基于不同的地址)。
                  * Bind and start to accept incoming connections.(绑定并开始接受传入的连接)

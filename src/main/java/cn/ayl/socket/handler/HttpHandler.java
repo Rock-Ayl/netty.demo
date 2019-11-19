@@ -11,13 +11,14 @@ import cn.ayl.util.TypeUtil;
 import cn.ayl.util.json.JsonObject;
 import cn.ayl.util.json.JsonUtil;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryAttribute;
-import io.netty.handler.codec.http.websocketx.*;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,25 +34,20 @@ import static cn.ayl.config.Const.Json_No_Service;
 import static cn.ayl.config.Const.RequestType.*;
 
 /**
- * created by Rock-Ayl on 2019-11-7
- * Http请求和WebSocket请求的处理程序
+ * created by Rock-Ayl on 2019-11-18
+ * http请求处理器
  */
-public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
+public class HttpHandler extends ChannelInboundHandlerAdapter {
 
-    protected static Logger logger = LoggerFactory.getLogger(HttpAndWebSocketHandler.class);
+    protected static Logger logger = LoggerFactory.getLogger(HttpHandler.class);
 
     UploadFileHandler uploadFileHandler;
 
-    /**
-     * 用来关闭WebSocket
-     */
-    private WebSocketServerHandshaker webSocketServerHandshaker;
-
     @Override
-    public void channelActive(ChannelHandlerContext ctx) {
-        logger.info("正在执行channelActive()方法.....");
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        logger.info("通道不活跃的");
+        super.channelInactive(ctx);
     }
-
 
     /**
      * 通道，请求过来从这里分类
@@ -63,8 +59,6 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
             handleHttpRequest(ctx, (FullHttpRequest) msg);
         } else if (msg instanceof HttpContent) {
             //todo handleHttpContent
-        } else if (msg instanceof WebSocketFrame) {
-            handleWebSocketRequest(ctx, (WebSocketFrame) msg);
         }
     }
 
@@ -89,28 +83,6 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         //todo 出现异常
         logger.error("Client:" + ctx.channel().remoteAddress() + " ,error", cause.getMessage());
         ctx.close();
-    }
-
-    // 处理Websocket的代码
-    private void handleWebSocketRequest(ChannelHandlerContext ctx, WebSocketFrame frame) {
-        // 判断是否是关闭链路的指令
-        if (frame instanceof CloseWebSocketFrame) {
-            webSocketServerHandshaker.close(ctx.channel(), (CloseWebSocketFrame) frame.retain());
-            return;
-        }
-        // 判断是否是Ping消息
-        if (frame instanceof PingWebSocketFrame) {
-            ctx.channel().write(new PongWebSocketFrame(frame.content().retain()));
-            return;
-        }
-        // 文本消息，不支持二进制消息
-        if (frame instanceof TextWebSocketFrame) {
-            //请求text
-            String request = ((TextWebSocketFrame) frame).text();
-            logger.info("收到信息:" + request);
-            //返回
-            ctx.channel().writeAndFlush(new TextWebSocketFrame(JsonObject.Success().append("req", request).toString()));
-        }
     }
 
     /**
@@ -198,7 +170,6 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
      * 根据路径开头分配Http请求内容
      *
      * upload开头是上传
-     * download开头是下载
      * htmlPage开头是请求静态资源
      * 如果有文件后缀是资源
      * 什么都不是，默认看做服务
@@ -206,11 +177,9 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
      * @return
      */
     private Const.RequestType getHttpRequestType(String path) {
-        if (path.startsWith("/Upload")) {
+        if (path.startsWith(Const.UploadPath)) {
             return upload;
-        } else if (path.startsWith("/Download")) {
-            return download;
-        } else if (path.startsWith("/HtmlPage")) {
+        } else if (path.startsWith(Const.HttpPagePath)) {
             return htmlPage;
         } else if (!StringUtil.isEmpty(FilenameUtils.getExtension(path))) {
             return resource;
@@ -234,9 +203,11 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
         switch (type) {
             //请求静态资源
             case resource:
+                //todo
                 break;
             //请求页面
             case htmlPage:
+                //todo
                 break;
             //上传请求
             case upload:
@@ -244,9 +215,6 @@ public class HttpAndWebSocketHandler extends ChannelInboundHandlerAdapter {
                 uploadFileHandler = new UploadFileHandler(ctx, req, path);
                 //处理请求
                 uploadFileHandler.handleRequest();
-                break;
-            //下载请求
-            case download:
                 break;
             //服务请求
             case service:

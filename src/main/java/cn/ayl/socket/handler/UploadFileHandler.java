@@ -3,6 +3,7 @@ package cn.ayl.socket.handler;
 import cn.ayl.util.json.JsonObject;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import org.apache.commons.lang3.StringUtils;
@@ -15,15 +16,15 @@ import java.nio.channels.FileChannel;
 
 /**
  * Created By Rock-Ayl on 2019-11-15
- * 当Http请求为上传文件时,交给该处理器处理
+ * todo 上传处理器
  */
-public class UploadFileHandler {
+public class UploadFileHandler extends ChannelInboundHandlerAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(UploadFileHandler.class);
     private final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
     private HttpData partialContent;
     private HttpPostRequestDecoder decoder;
-    private String filePath = "C:\\Users\\Rocy-Ayl\\Desktop\\";
+    private String filePath = "/workspace/";
     private int fileSize;
     private String fileExt;
     private String fileName;
