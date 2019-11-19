@@ -146,8 +146,6 @@ public class ProtocolDecoder extends ByteToMessageDecoder {
             //netty是基于分段请求的，HttpObjectAggregator的作用是将HTTP消息的多个部分合成一条完整的HTTP消息,参数是聚合字节的最大长度
             p.addLast("http-chunk-aggregator", new HttpObjectAggregator(Const.MaxContentLength));
         }
-        //过滤器
-        p.addLast("http-auth-filter", new Filter());
         //响应编码
         p.addLast("http-response-encoder", new HttpResponseEncoder());
         //是否为下载请求
