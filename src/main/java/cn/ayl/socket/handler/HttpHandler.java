@@ -114,7 +114,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         LinkedHashMap<String, ParamEntry> paramMap = methodEntry.paramMap;
         List<String> paramList = methodEntry.paramList;
         //根据获取请求参数
-        Map<String, Object> params = getParamsFromChannelByService(req, paramMap, paramList);
+        Map<String, Object> params = getParamsFromChannelByService(req, paramMap);
         if (params == null) {
             return Json_Error_Param;
         }
@@ -253,7 +253,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @param req
      * @return
      */
-    private Map<String, Object> getParamsFromChannelByService(FullHttpRequest req, LinkedHashMap<String, ParamEntry> paramMap, List<String> paramList) {
+    public Map<String, Object> getParamsFromChannelByService(FullHttpRequest req, LinkedHashMap<String, ParamEntry> paramMap) {
         Map<String, Object> params = null;
         if (req.method() == HttpMethod.GET) {
             //获取get请求的参数
@@ -306,7 +306,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @param req
      * @return
      */
-    private String getPath(FullHttpRequest req) {
+    public String getPath(FullHttpRequest req) {
         String path = null;
         try {
             path = new URI(req.getUri()).getPath();

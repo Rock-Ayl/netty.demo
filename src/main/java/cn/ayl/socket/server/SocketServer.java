@@ -108,6 +108,8 @@ public class SocketServer {
                  */
                 channel = f.channel();
                 channel.closeFuture().sync();
+            } catch (Exception e) {
+                logger.error("Error :{}",e);
             } finally {
                 workerGroup.shutdownGracefully();
                 bossGroup.shutdownGracefully();
