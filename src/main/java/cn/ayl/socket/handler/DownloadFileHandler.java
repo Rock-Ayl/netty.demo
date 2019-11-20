@@ -30,7 +30,6 @@ import static io.netty.handler.codec.http.HttpResponseStatus.*;
  * created by Rock-Ayl on 2019-11-18
  * todo 下载处理器
  */
-@ChannelHandler.Sharable
 public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     protected static Logger logger = LoggerFactory.getLogger(DownloadFileHandler.class);
