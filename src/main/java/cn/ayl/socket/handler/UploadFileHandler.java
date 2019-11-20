@@ -51,7 +51,7 @@ public class UploadFileHandler extends ChannelInboundHandlerAdapter {
         //todo 现在是超级简单处理短文件的上传请求
         FullHttpRequest request = req;
         if (request.method().equals(HttpMethod.GET)) {
-            response = ResponseHandler.responseOKAndJson(HttpResponseStatus.OK, "upload must use post.");
+            response = ResponseHandler.getResponseOKAndJson(HttpResponseStatus.OK, "upload must use post.");
         }
         try {
             decoder = new HttpPostRequestDecoder(factory, request);
@@ -87,7 +87,7 @@ public class UploadFileHandler extends ChannelInboundHandlerAdapter {
                     logger.info("upload FileName=[{}] success.", fileName);
                 }
             }
-            response = ResponseHandler.responseOKAndJson(HttpResponseStatus.OK, JsonObject.Success());
+            response = ResponseHandler.getResponseOKAndJson(HttpResponseStatus.OK, JsonObject.Success());
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

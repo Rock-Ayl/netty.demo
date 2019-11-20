@@ -238,10 +238,10 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             //根据path和params处理业务并返回结果
             Object result = handleServiceFactory(path, req);
             //组装结果并响应请求
-            response = ResponseHandler.responseOKAndJson(HttpResponseStatus.OK, result);
+            response = ResponseHandler.getResponseOKAndJson(HttpResponseStatus.OK, result);
         } else {
             //todo 处理其他请求类型的请求 eg: OPTIONS HEAD DELETE 等等
-            response = ResponseHandler.responseOKAndText(HttpResponseStatus.INTERNAL_SERVER_ERROR, "ok");
+            response = ResponseHandler.getResponseOKAndText(HttpResponseStatus.INTERNAL_SERVER_ERROR, "ok");
         }
         // 发送响应并关闭连接
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
