@@ -24,13 +24,13 @@ import java.util.List;
 import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
-import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
+import static io.netty.handler.codec.http.HttpResponseStatus.*;
 
 /**
  * created by Rock-Ayl on 2019-11-18
  * todo 下载处理器
  */
+@ChannelHandler.Sharable
 public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     protected static Logger logger = LoggerFactory.getLogger(DownloadFileHandler.class);
@@ -184,18 +184,18 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
             ctx.write(response);
             ChannelFuture sendFuture = ctx.write(new HttpChunkedInput(new ChunkedStream(stream, 8 * 1024)), ctx.newProgressivePromise());
             sendFuture.addListener(new ChannelProgressiveFutureListener() {
+
                 @Override
-                public void operationComplete(ChannelProgressiveFuture future)
-                        throws Exception {
+                public void operationComplete(ChannelProgressiveFuture future) throws Exception {
                     stream.close();
                 }
 
                 @Override
-                public void operationProgressed(ChannelProgressiveFuture future,
-                                                long progress, long total) {
+                public void operationProgressed(ChannelProgressiveFuture future, long progress, long total) {
+
                 }
             });
-            ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
+            ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
         } catch (Exception e) {
             logger.error("type=" + type + "&fileId=" + fileId, e);
         }
@@ -225,7 +225,7 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
             Map<String, List<String>> paramList = decoder.parameters();
             for (Map.Entry<String, List<String>> entry : paramList.entrySet()) {
                 //强转并组装
-                params.put(entry.getKey(), entry.getValue().toString());
+                params.put(entry.getKey(), entry.getValue().get(0));
             }
             return params;
         } else {
