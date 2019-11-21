@@ -19,6 +19,7 @@ import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryAttribute;
+import io.netty.util.ReferenceCountUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,9 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         logger.info("通道不活跃的");
         super.channelInactive(ctx);
+        if (uploadFileHandler != null) {
+            uploadFileHandler.clear();
+        }
     }
 
     /**
@@ -54,11 +58,20 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        //处理Http请求和WebSocket请求的分别处理
-        if (msg instanceof FullHttpRequest) {
-            handleHttpRequest(ctx, (FullHttpRequest) msg);
-        } else if (msg instanceof HttpContent) {
-            //todo handleHttpContent
+        //处理Http请求的分别处理
+        try {
+            if (msg instanceof HttpRequest) {
+                final HttpRequest req = (HttpRequest) msg;
+                handleHttpRequest(ctx, req);
+            } else if (msg instanceof HttpContent && uploadFileHandler != null) {
+                uploadFileHandler.handleHttpContent(ctx, (HttpContent) msg);
+            } else if (msg instanceof HttpContent) {
+                ResponseHandler.sendMessage(ctx, HttpResponseStatus.OK, "OK");
+            }
+        } catch (Exception e) {
+            logger.error("channelRead", e);
+        } finally {
+            ReferenceCountUtil.safeRelease(msg);
         }
     }
 
@@ -92,7 +105,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @param req
      * @return
      */
-    private Object handleServiceFactory(String path, FullHttpRequest req) {
+    private Object handleServiceFactory(String path, HttpRequest req) {
         //根据请求路径获得服务和方法名
         List<String> serviceAndMethod = getServiceAndMethod(path);
         if (serviceAndMethod.size() < 2) {
@@ -195,7 +208,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @param req
      * @throws Exception
      */
-    private void handleHttpRequest(final ChannelHandlerContext ctx, FullHttpRequest req) throws Exception {
+    private void handleHttpRequest(final ChannelHandlerContext ctx, HttpRequest req) throws Exception {
         //获得请求path
         String path = getPath(req);
         //根据请求路径分配是哪一种请求
@@ -211,10 +224,13 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 break;
             //上传请求
             case upload:
+                if (uploadFileHandler != null) {
+                    uploadFileHandler.clear();
+                }
                 //创建一个上传请求处理器
-                uploadFileHandler = new UploadFileHandler(ctx, req, path);
+                uploadFileHandler = new UploadFileHandler();
                 //处理请求
-                uploadFileHandler.handleRequest();
+                uploadFileHandler.handleRequest(ctx, req);
                 break;
             //服务请求
             case service:
@@ -231,7 +247,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @param req  请求
      * @param path 请求路径
      */
-    private void handleService(ChannelHandlerContext ctx, FullHttpRequest req, String path) {
+    private void handleService(ChannelHandlerContext ctx, HttpRequest req, String path) {
         FullHttpResponse response;
         //根据请求类型处理请求 get post ...
         if (req.method() == HttpMethod.GET || req.method() == HttpMethod.POST) {
@@ -253,7 +269,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @param req
      * @return
      */
-    public Map<String, Object> getParamsFromChannelByService(FullHttpRequest req, LinkedHashMap<String, ParamEntry> paramMap) {
+    public Map<String, Object> getParamsFromChannelByService(HttpRequest req, LinkedHashMap<String, ParamEntry> paramMap) {
         Map<String, Object> params = null;
         if (req.method() == HttpMethod.GET) {
             //获取get请求的参数
@@ -306,7 +322,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @param req
      * @return
      */
-    public String getPath(FullHttpRequest req) {
+    public String getPath(HttpRequest req) {
         String path = null;
         try {
             path = new URI(req.getUri()).getPath();
@@ -323,7 +339,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @param fullHttpRequest
      * @return
      */
-    private Map<String, Object> getGetParamsFromChannel(FullHttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
+    private Map<String, Object> getGetParamsFromChannel(HttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
         //参数组
         Map<String, Object> params = new HashMap<>();
         //如果请求为GET继续
@@ -350,7 +366,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @param fullHttpRequest
      * @return
      */
-    private Map<String, Object> getPostParamsFromChannel(FullHttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
+    private Map<String, Object> getPostParamsFromChannel(HttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
         //参数组
         Map<String, Object> params;
         //如果请求为POST
@@ -383,7 +399,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @param fullHttpRequest
      * @return
      */
-    private Map<String, Object> getFormParams(FullHttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
+    private Map<String, Object> getFormParams(HttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
         Map<String, Object> params = new HashMap<>();
         HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), fullHttpRequest);
         List<InterfaceHttpData> postData = decoder.getBodyHttpDatas();
@@ -404,13 +420,14 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     /**
      * Http解析json数据（Content-Type = application/json）
      *
-     * @param fullHttpRequest
+     * @param httpRequest
      * @return
      * @throws UnsupportedEncodingException
      */
-    private Map<String, Object> getJSONParams(FullHttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) throws UnsupportedEncodingException {
+    private Map<String, Object> getJSONParams(HttpRequest httpRequest, LinkedHashMap<String, ParamEntry> paramMap) throws UnsupportedEncodingException {
+        FullHttpRequest fullReq = (FullHttpRequest) httpRequest;
         Map<String, Object> params = new HashMap<>();
-        ByteBuf content = fullHttpRequest.content();
+        ByteBuf content = fullReq.content();
         byte[] reqContent = new byte[content.readableBytes()];
         content.readBytes(reqContent);
         String strContent = new String(reqContent, "UTF-8");
