@@ -109,6 +109,7 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
                 String disposition = "attachment; filename*=UTF-8''" + URLEncoder.encode(fileName, "utf-8");
                 response.headers().add("Content-Disposition", disposition);
             }
+            //组装一些需要然前端知道的参数
             response.headers().add("access-control-allow-origin", "*");
             response.headers().add("access-control-allow-credentials", true);
             response.headers().add("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
