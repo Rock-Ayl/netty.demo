@@ -36,14 +36,20 @@ public class UploadFileHandler {
     private HttpData partialContent;
     private HttpPostRequestDecoder decoder;
     private Map<String, String> attrs = new ConcurrentHashMap<>();
+    //是否为 multipart 请求
     protected boolean isMultipart = true;
+    //文件大小
     private int fileSize = 0;
     private int fileBufferSize = 0;
     private String fileName;
+    //文件名
+    private String filePath;
+    //文件后缀
     private String fileExt;
     private FileChannel fileChannel;
     private String fileId;
     protected ByteBuffer fileBuffer;
+    //用来存放处理业务的文件属性
     private JsonObject fileObject;
 
     static {
@@ -62,17 +68,16 @@ public class UploadFileHandler {
         headerFilters.add("Cache-Control");
         headerFilters.add("Postman-Token");
         headerFilters.add("Cookie");
-
     }
 
-    public void clear() {
-        if (decoder != null) {
-            decoder.cleanFiles();
-        }
+    //todo 上传业务逻辑
+    public void handleUpload(String fileId, String fileExt, JsonObject fileObject) {
+
     }
 
     public void handleRequest(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
         if (msg instanceof HttpRequest) {
+            fileObject = new JsonObject();
             HttpRequest request = (HttpRequest) msg;
             if (request.method().equals(HttpMethod.GET)) {
                 ResponseHandler.sendMessage(ctx, HttpResponseStatus.OK, "upload must use post.");
@@ -85,30 +90,39 @@ public class UploadFileHandler {
                 ResponseHandler.sendMessage(ctx, HttpResponseStatus.OK, e1.getMessage());
                 return;
             }
+            //请求头
             HttpHeaders headers = request.headers();
+            //是否为Multipart请求
             isMultipart = decoder.isMultipart();
-
+            //文件大小
             String v = headers.get("FileSize", "0");
             if (v.equals("0")) {
                 v = headers.get("content-length");
             }
             fileSize = Integer.parseInt(v);
-
+            fileObject.append("fileSize", fileSize);
+            //文件名
             fileName = headers.get("FileName", "");
+            //如果是中文，用base64解码一下
             if (fileName.indexOf(".") <= 0) {
+                //解码
                 fileName = Base64Convert.decode64(fileName);
             }
-
-            fileExt = FilenameUtils.getExtension(fileName);
-            fileObject = new JsonObject();
-            fileId = StringUtil.newId();
-            fileChannel = new RandomAccessFile("/workspace" + "/" + fileId + "." + fileExt, "rw").getChannel();
-            fileObject.append("fileId", fileId);
-            fileBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileSize);
             fileObject.append("fileName", fileName);
+            //文件后缀
+            fileExt = FilenameUtils.getExtension(fileName);
             fileObject.append("fileExt", fileExt);
-            fileObject.append("fileSize", fileSize);
-            fileObject.append("fileType", headers.get("FileType", ""));
+            //生成一个文件唯一id
+            fileId = StringUtil.newId();
+            fileObject.append("fileId", fileId);
+            //文件地址
+            filePath = "/workspace" + "/" + fileId + "." + fileExt;
+            fileObject.append("filePath", filePath);
+            //文件通道，创建一个空的0K文件
+            fileChannel = new RandomAccessFile(filePath, "rw").getChannel();
+            //文件流，写入文件大小，没有文件内容
+            fileBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileSize);
+            //文件创建时间
             fileObject.append("fileDate", Long.parseLong(headers.get("FileDate", "0")));
             for (Iterator<Map.Entry<String, String>> i = request.headers().iteratorAsString(); i.hasNext(); ) {
                 Map.Entry<String, String> entry = i.next();
@@ -120,7 +134,15 @@ public class UploadFileHandler {
         }
     }
 
+    /**
+     * 处理upload时的文件分块
+     *
+     * @param ctx
+     * @param chunk
+     * @throws Exception
+     */
     public void handleHttpContent(ChannelHandlerContext ctx, HttpContent chunk) throws Exception {
+        //
         if (this.isMultipart == false) {
             ByteBuffer buffer = chunk.content().nioBuffer();
             while (buffer.hasRemaining()) {
@@ -138,29 +160,30 @@ public class UploadFileHandler {
         try {
             decoder.offer(chunk);
         } catch (HttpPostRequestDecoder.ErrorDataDecoderException e1) {
+            //返回错误消息
             ResponseHandler.sendMessage(ctx, HttpResponseStatus.OK, e1.getMessage());
             ctx.channel().close();
             return;
         }
+        //根据文件分块读取请求数据
         readHttpDataChunkByChunk(ctx);
+        //最后一个分快
         if (chunk instanceof LastHttpContent) {
             readingChunks = false;
             reset();
+            //发送消息
             ResponseHandler.sendMessage(ctx, HttpResponseStatus.OK, "OK");
+            //关闭
             ctx.channel().close();
+            return;
         }
     }
 
-    //todo 上传业务逻辑
-    public void handleUpload(String fileId, String fileExt, JsonObject fileObject) {
-
-    }
-
-    private void reset() {
-        decoder.destroy();
-        decoder = null;
-    }
-
+    /**
+     * 根据文件分块读取请求数据
+     *
+     * @param ctx
+     */
     private void readHttpDataChunkByChunk(ChannelHandlerContext ctx) {
         try {
             while (decoder.hasNext()) {
@@ -170,6 +193,7 @@ public class UploadFileHandler {
                         partialContent = null;
                     }
                     try {
+                        //写数据
                         writeHttpData(ctx, data);
                     } catch (Exception e) {
                     } finally {
@@ -188,6 +212,13 @@ public class UploadFileHandler {
         }
     }
 
+    /**
+     * 写入文件
+     *
+     * @param ctx
+     * @param data
+     * @throws IOException
+     */
     private void writeHttpData(ChannelHandlerContext ctx, InterfaceHttpData data) throws IOException {
         if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
             Attribute attribute = (Attribute) data;
@@ -219,6 +250,17 @@ public class UploadFileHandler {
 
     private void doUploadService() {
         handleUpload(fileId, fileExt, fileObject);
+    }
+
+    public void clear() {
+        if (decoder != null) {
+            decoder.cleanFiles();
+        }
+    }
+
+    private void reset() {
+        decoder.destroy();
+        decoder = null;
     }
 
 }

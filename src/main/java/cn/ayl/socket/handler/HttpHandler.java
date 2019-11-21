@@ -60,17 +60,21 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         //处理Http请求的分别处理
         try {
+            //处理service和upload请求的基础处理
             if (msg instanceof HttpRequest) {
                 final HttpRequest req = (HttpRequest) msg;
                 handleHttpRequest(ctx, req);
             } else if (msg instanceof HttpContent && uploadFileHandler != null) {
+                //处理接受来的upload文件块
                 uploadFileHandler.handleHttpContent(ctx, (HttpContent) msg);
             } else if (msg instanceof HttpContent) {
-                ResponseHandler.sendMessage(ctx, HttpResponseStatus.OK, "OK");
+                //没有upload处理器的文件块
+                ResponseHandler.sendMessage(ctx, HttpResponseStatus.OK, "失败的上传请求.");
             }
         } catch (Exception e) {
             logger.error("channelRead", e);
         } finally {
+            //释放
             ReferenceCountUtil.safeRelease(msg);
         }
     }
