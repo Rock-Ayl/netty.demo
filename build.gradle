@@ -35,7 +35,13 @@ dependencies {
     compile group: 'com.alibaba', name: 'fastjson', version: '1.2.58'
     //定时器 quartz
     compile group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.0'
-
+    //mongo-Bson
+    compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.8.2'
+    //mysql-jdbc
+    compile group: 'mysql', name: 'mysql-connector-java', version: '6.0.6'
+    //redis,redisson
+    compile group: 'redis.clients', name: 'jedis', version: '2.9.0'
+    compile group: 'org.redisson', name: 'redisson', version: '3.5.4'
 }
 
 //jar包设置

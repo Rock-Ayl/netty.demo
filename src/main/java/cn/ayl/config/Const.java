@@ -12,6 +12,26 @@ public class Const {
      * 参数/字段组
      */
 
+    // Redis-pool Redisson-pool
+    public static String RedisHost = "16.16.11.1";
+    public static int RedisPort = 6379;
+    public static int RedisTimeOut = 10000;
+    public static String RedisAuth = "";
+    public static int RedisDatabase = 0;
+
+    // jdbc-mysql && MariaDB
+    public static String JdbcDriver = "com.mysql.cj.jdbc.Driver";
+    public static String JdbcHost = "16.16.11.2";
+    public static String JdbcPort = "3306";
+    public static String JdbcUser = "root";
+    public static String JdbcDBName = "file";
+    public static String JdbcPassword = "123456";
+    public static String SPACE = " ";
+
+    // mongoDB
+    public static String MongoHost = "16.16.11.1:27017";
+    public static String MongoDBName = "file";
+
     //SocketPort
     public static int SocketPort = 8888;
     //http请求聚合字节最大长度
