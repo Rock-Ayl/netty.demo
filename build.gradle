@@ -30,5 +30,6 @@ dependencies {
     compile group: 'io.github.lukehutch', name: 'fast-classpath-scanner', version: '2.18.1'
     //阿里的fastJson，这里仅仅用来做类型强转
     compile group: 'com.alibaba', name: 'fastjson', version: '1.2.58'
-
+    //定时器 quartz
+    compile group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.0'
 }

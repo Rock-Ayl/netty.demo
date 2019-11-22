@@ -1,6 +1,7 @@
 package cn.ayl;
 
 import cn.ayl.entry.RegistryEntry;
+import cn.ayl.job.Scheduler;
 import cn.ayl.socket.server.SocketServer;
 
 /**
@@ -10,6 +11,8 @@ import cn.ayl.socket.server.SocketServer;
 public class Server {
 
     public static void main(String[] args) {
+        //启动定时器线程
+        Scheduler.startup();
         //扫描所有服务已存在
         RegistryEntry.scanServices();
         //启动netty监听
