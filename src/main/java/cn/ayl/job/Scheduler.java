@@ -32,6 +32,7 @@ public class Scheduler {
 
     //Task类,存放job和trigger
     static class ScheduleTask {
+
         public JobDetail job;
         public Trigger trigger;
 

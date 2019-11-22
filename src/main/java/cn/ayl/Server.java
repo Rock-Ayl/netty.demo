@@ -15,8 +15,8 @@ public class Server {
         Scheduler.startup();
         //扫描所有服务已存在
         RegistryEntry.scanServices();
-        //启动netty监听
-        SocketServer.VOID().startup();
+        //扫描之后，可以启动netty监听
+        SocketServer.startup();
     }
 
 }

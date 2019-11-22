@@ -18,7 +18,8 @@ public class SocketServer {
 
     protected static Logger logger = LoggerFactory.getLogger(SocketServer.class);
 
-    private Channel channel;
+    public static SocketServer socketServer = new SocketServer();
+
     /**
      * NioEventLoopGroup是一个处理I/O操作的事件循环器 (其实是个线程池)。
      * netty为不同类型的传输协议提供了多种NioEventLoopGroup的实现。
@@ -27,12 +28,9 @@ public class SocketServer {
      * 第二个被称作 worker，当 boss 接收到 connection 并把它注册到 worker 后，worker 就可以处理 connection 上的数据通信。
      * 要创建多少个线程，这些线程如何匹配到Channel上会随着EventLoopGroup实现的不同而改变，或者你可以通过构造器去配置他们。
      */
-    private EventLoopGroup bossGroup = new NioEventLoopGroup();
-    private EventLoopGroup workerGroup = new NioEventLoopGroup();
-
-    public static SocketServer VOID() {
-        return new SocketServer();
-    }
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
+    private Channel channel;
 
     /**
      * 创建一个默认配置的HttpServerBootstrap
@@ -76,14 +74,16 @@ public class SocketServer {
     /**
      * 开启Http与WebSocket
      */
-    public void startup() {
+    public static void startup() {
+        socketServer.bossGroup=new NioEventLoopGroup();
+        socketServer.workerGroup=new NioEventLoopGroup();
         try {
             try {
                 /**
                  * ServerBootstrap是用来搭建 server 的协助类。
                  * 你也可以直接使用Channel搭建 server，然而这样做步骤冗长，不是一个好的实践，大多数情况下建议使用ServerBootstrap。
                  */
-                ServerBootstrap bootstrap = SocketServer.createDefaultServerBootstrap(bossGroup, workerGroup);
+                ServerBootstrap bootstrap = SocketServer.createDefaultServerBootstrap(socketServer.bossGroup, socketServer.workerGroup);
                 /**
                  * 这里的 handler 会被用来处理新接收的Channel。
                  * ChannelInitializer是一个特殊的 handler，
@@ -103,13 +103,13 @@ public class SocketServer {
                  * In this example, this does not happen, but you can do that to gracefully(在本例中，这种情况不会发生，但是您可以优雅地这样做)
                  * shut down your server.(关闭你的服务)
                  */
-                channel = f.channel();
-                channel.closeFuture().sync();
+                socketServer.channel = f.channel();
+                socketServer.channel.closeFuture().sync();
             } catch (Exception e) {
                 logger.error("Error :{}", e);
             } finally {
-                workerGroup.shutdownGracefully();
-                bossGroup.shutdownGracefully();
+                socketServer.workerGroup.shutdownGracefully();
+                socketServer.bossGroup.shutdownGracefully();
             }
         } catch (Exception e) {
             logger.error("Run Socket Fail!");
