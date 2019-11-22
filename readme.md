@@ -44,3 +44,20 @@ P`S:习惯真是很可怕的事情。
 
 更新：已解决上一个固定参数的bug
 新bug:上传处理器，下载处理器，虽然能够成功，但都存在不小的问题
+
+=================
+
+上传，下载趋于稳定
+
+下载链接eg:127.0.0.1:8888/Download?fileId=1&fileName=ayl.doc&type=p
+
+上传eg：http://127.0.0.1:8888/Upload
+
+header：
+FileSize：178940269
+FileType：application/msword
+FileName：MDc26IOW5aKp5q+N5a2Q5aSn572i5belLm1rdg==
+Content-Type：application/x-www-form-urlencoded
+
+form-data：选择一个文件
+
