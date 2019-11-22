@@ -61,3 +61,14 @@ Content-Type：application/x-www-form-urlencoded
 
 form-data：选择一个文件
 
+==================
+
+2019-11-22
+
+目前已经趋于成熟
+
+拥有基础的service服务、下载，、上传、websocket处理。
+
+DB三件套：mysql,redis,mongo
+
+前后端完全分离。
