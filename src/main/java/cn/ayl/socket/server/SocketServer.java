@@ -75,44 +75,40 @@ public class SocketServer {
      * 开启Http与WebSocket
      */
     public static void startup() {
-        socketServer.bossGroup=new NioEventLoopGroup();
-        socketServer.workerGroup=new NioEventLoopGroup();
+        socketServer.bossGroup = new NioEventLoopGroup();
+        socketServer.workerGroup = new NioEventLoopGroup();
         try {
-            try {
-                /**
-                 * ServerBootstrap是用来搭建 server 的协助类。
-                 * 你也可以直接使用Channel搭建 server，然而这样做步骤冗长，不是一个好的实践，大多数情况下建议使用ServerBootstrap。
-                 */
-                ServerBootstrap bootstrap = SocketServer.createDefaultServerBootstrap(socketServer.bossGroup, socketServer.workerGroup);
-                /**
-                 * 这里的 handler 会被用来处理新接收的Channel。
-                 * ChannelInitializer是一个特殊的 handler，
-                 * 帮助开发者配置Channel，而多数情况下你会配置Channel下的ChannelPipeline，
-                 * 往 pipeline 添加一些 handler (例如DiscardServerHandler) 从而实现你的应用逻辑。
-                 * 当你的应用变得复杂，你可能会向 pipeline 添加更多的 handler，并把这里的匿名类抽取出来作为一个单独的类。
-                 */
-                bootstrap.childHandler(new ProtocolDecoder());
-                /**
-                 * 剩下的事情就是绑定端口并启动服务器，这里我们绑定到机器的8080端口。你可以多次调用bind()(基于不同的地址)。
-                 * Bind and start to accept incoming connections.(绑定并开始接受传入的连接)
-                 */
-                ChannelFuture f = bootstrap.bind(Const.SocketPort).sync();
-                logger.info(" >>>>>> Netty Socket server started >>>>>>");
-                /**
-                 * Wait until the server socket is closed.(等待，直到服务器套接字关闭)
-                 * In this example, this does not happen, but you can do that to gracefully(在本例中，这种情况不会发生，但是您可以优雅地这样做)
-                 * shut down your server.(关闭你的服务)
-                 */
-                socketServer.channel = f.channel();
-                socketServer.channel.closeFuture().sync();
-            } catch (Exception e) {
-                logger.error("Error :{}", e);
-            } finally {
-                socketServer.workerGroup.shutdownGracefully();
-                socketServer.bossGroup.shutdownGracefully();
-            }
+            /**
+             * ServerBootstrap是用来搭建 server 的协助类。
+             * 你也可以直接使用Channel搭建 server，然而这样做步骤冗长，不是一个好的实践，大多数情况下建议使用ServerBootstrap。
+             */
+            ServerBootstrap bootstrap = SocketServer.createDefaultServerBootstrap(socketServer.bossGroup, socketServer.workerGroup);
+            /**
+             * 这里的 handler 会被用来处理新接收的Channel。
+             * ChannelInitializer是一个特殊的 handler，
+             * 帮助开发者配置Channel，而多数情况下你会配置Channel下的ChannelPipeline，
+             * 往 pipeline 添加一些 handler (例如DiscardServerHandler) 从而实现你的应用逻辑。
+             * 当你的应用变得复杂，你可能会向 pipeline 添加更多的 handler，并把这里的匿名类抽取出来作为一个单独的类。
+             */
+            bootstrap.childHandler(new ProtocolDecoder());
+            /**
+             * 剩下的事情就是绑定端口并启动服务器，这里我们绑定到机器的8080端口。你可以多次调用bind()(基于不同的地址)。
+             * Bind and start to accept incoming connections.(绑定并开始接受传入的连接)
+             */
+            ChannelFuture f = bootstrap.bind(Const.SocketPort).sync();
+            logger.info(" >>>>>> Netty Socket server started >>>>>>");
+            /**
+             * Wait until the server socket is closed.(等待，直到服务器套接字关闭)
+             * In this example, this does not happen, but you can do that to gracefully(在本例中，这种情况不会发生，但是您可以优雅地这样做)
+             * shut down your server.(关闭你的服务)
+             */
+            socketServer.channel = f.channel();
+            socketServer.channel.closeFuture().sync();
         } catch (Exception e) {
-            logger.error("Run Socket Fail!");
+            logger.error("Socket startup Error, maybe Address already in use ", e);
+        } finally {
+            socketServer.workerGroup.shutdownGracefully();
+            socketServer.bossGroup.shutdownGracefully();
         }
     }
 
