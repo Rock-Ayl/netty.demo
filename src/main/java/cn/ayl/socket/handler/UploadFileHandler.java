@@ -42,7 +42,7 @@ public class UploadFileHandler {
     private int fileSize = 0;
     private int fileBufferSize = 0;
     private String fileName;
-    //文件名
+    //文件路径
     private String filePath;
     //文件后缀
     private String fileExt;
