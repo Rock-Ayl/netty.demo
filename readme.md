@@ -72,3 +72,7 @@ form-data：选择一个文件
 DB三件套：mysql,redis,mongo
 
 前后端完全分离。
+
+已知问题：上传文件时特定情况会出现文件多出4组二进制byte[]的问题，暂时没解决。
+
+但不用content-length请求headers就可以规避，具体原因不明。。。
