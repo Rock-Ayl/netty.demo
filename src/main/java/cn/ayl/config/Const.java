@@ -3,11 +3,43 @@ package cn.ayl.config;
 import cn.ayl.util.json.JsonObject;
 import jodd.io.FileNameUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * created by Rock-Ayl 2019-11-5
  * 常量
  */
 public class Const {
+
+    //WebSocket地址
+    public static String WebSocketPath;
+    //上传地址
+    public static String UploadPath;
+    //下载地址
+    public static String DownloadPath;
+    //HttpPage地址
+    public static String HttpPagePath;
+    //默认的服务初始化
+    public static List<String> DefaultService;
+
+    //初始化除了Service外的其他几个服务
+    static {
+        //WebSocket地址
+        WebSocketPath = "/WebSocket";
+        //上传地址
+        UploadPath = "/Upload";
+        //下载地址
+        DownloadPath = "/Download";
+        //HttpPage地址
+        HttpPagePath = "/HtmlPage";
+        List<String> defaultService = new ArrayList<>();
+        defaultService.add(WebSocketPath.replace('/', '.'));
+        defaultService.add(UploadPath.replace('/', '.'));
+        defaultService.add(DownloadPath.replace('/', '.'));
+        defaultService.add(HttpPagePath.replace('/', '.'));
+        DefaultService = defaultService;
+    }
 
     /**
      * 参数/字段组
@@ -33,6 +65,8 @@ public class Const {
     public static String MongoHost = "16.16.11.1:27017";
     public static String MongoDBName = "file";
 
+    //服务器-静态资源路径
+    public static String ResourcePath = "/workspace/resource";
     //SocketPort
     public static int SocketPort = 8888;
     //http请求聚合字节最大长度
@@ -47,17 +81,6 @@ public class Const {
     public static int ChannelOptionSoBacklogValue = 1024;
     //处理下载请求响应文件流块大小
     public static int ChunkSize = 8 * 1024;
-
-    //WebSocket地址
-    public static String WebSocketPath = "/WebSocket";
-    //上传地址
-    public static String UploadPath = "/Upload";
-    //下载地址
-    public static String DownloadPath = "/Download";
-    //HttpPage地址
-    public static String HttpPagePath = "/HtmlPage";
-    //服务器-静态资源路径
-    public static String ResourcePath = "/workspace/resource";
 
     /**
      * 枚举组
@@ -100,7 +123,6 @@ public class Const {
     public static JsonObject Json_No_InterFace = JsonObject.Fail("不存在该接口.");
     public static JsonObject Json_No_Service = JsonObject.Fail("不存在该服务.");
 
-
     /**
      * 方法组
      */
@@ -135,4 +157,5 @@ public class Const {
                 return "application/octet-stream";
         }
     }
+
 }
