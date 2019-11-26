@@ -70,6 +70,9 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             } else if (msg instanceof HttpContent) {
                 //没有upload处理器的文件块
                 ResponseHandler.sendMessage(ctx, HttpResponseStatus.OK, "失败的上传请求.");
+            } else {
+                //没有upload处理器的文件块
+                ResponseHandler.sendMessage(ctx, HttpResponseStatus.OK, "失败的请求.");
             }
         } catch (Exception e) {
             logger.error("channelRead", e);

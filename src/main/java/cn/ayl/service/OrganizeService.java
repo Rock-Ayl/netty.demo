@@ -3,6 +3,10 @@ package cn.ayl.service;
 import cn.ayl.intf.Organize;
 import cn.ayl.util.json.JsonObject;
 
+/**
+ * created by Rock-Ayl 2019-11-26
+ * 接口的实现类
+ */
 public class OrganizeService implements Organize {
 
     @Override
