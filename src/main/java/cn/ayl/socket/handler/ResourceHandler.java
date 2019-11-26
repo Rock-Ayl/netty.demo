@@ -50,20 +50,20 @@ public class ResourceHandler {
         if (hasFile) {
             try {
                 //处理文件
-                handleFile(ctx, req, file, uri);
+                handleFile(ctx, req, file);
             } catch (Exception e) {
                 logger.error("Resource HandleFile Exception.", e);
                 return;
             }
         } else {
             //不存在文件，直接返回 not found
-            ResponseHandler.sendMessage(ctx, NOT_FOUND, uri);
+            ResponseHandler.sendMessage(ctx, NOT_FOUND, "没有发现文件.");
         }
     }
 
-    private void handleFile(ChannelHandlerContext ctx, HttpRequest req, File file, String uri) throws Exception {
+    private void handleFile(ChannelHandlerContext ctx, HttpRequest req, File file) throws Exception {
         //如果文件不需要修改，返回
-        if (!isModified(ctx, req, file, uri)) {
+        if (!isModified(ctx, req, file)) {
             return;
         }
         //需要修改，响应请求文件流
@@ -75,11 +75,10 @@ public class ResourceHandler {
      *
      * @param ctx
      * @param req
-     * @param f
-     * @param uri
+     * @param file
      * @return
      */
-    private boolean isModified(ChannelHandlerContext ctx, HttpRequest req, File f, String uri) {
+    private boolean isModified(ChannelHandlerContext ctx, HttpRequest req, File file) {
         //获取文件最后修改时间
         String ifModifiedSince = req.headers().get(IF_MODIFIED_SINCE);
         try {
@@ -88,10 +87,11 @@ public class ResourceHandler {
                 //转化为时间戳并变为秒
                 long ifModifiedSinceDateSeconds = HTTP_DATE_FORMATTER.parse(ifModifiedSince).getTime() / 1000;
                 //获取服务器文件最后修改时间
-                long fileLastModifiedSeconds = f.lastModified() / 1000;
+                long fileLastModifiedSeconds = file.lastModified() / 1000;
                 //如果相同，告诉浏览器不需要修改
                 if (ifModifiedSinceDateSeconds == fileLastModifiedSeconds) {
-                    ResponseHandler.sendMessage(ctx, NOT_MODIFIED, uri);
+                    //不需要修改
+                    ResponseHandler.sendMessage(ctx, NOT_MODIFIED, "Modified false.");
                     return false;
                 }
             }
