@@ -120,7 +120,7 @@ public class UploadFileHandler {
             fileObject.append("filePath", filePath);
             //文件通道，创建一个空的0K文件
             fileChannel = new RandomAccessFile(filePath, "rw").getChannel();
-            //文件流，写入文件大小，没有文件内容
+            //文件流(内存)，写入文件大小，没有文件内容
             fileBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileSize);
             //文件创建时间
             fileObject.append("fileDate", Long.parseLong(headers.get("FileDate", "0")));

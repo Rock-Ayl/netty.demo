@@ -43,6 +43,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     protected static Logger logger = LoggerFactory.getLogger(HttpHandler.class);
 
     UploadFileHandler uploadFileHandler;
+    ResourceHandler responseHandler;
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
@@ -223,7 +224,10 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         switch (type) {
             //请求静态资源
             case resource:
-                //todo
+                //创建一个静态资源处理器
+                responseHandler = new ResourceHandler();
+                //处理请求
+                responseHandler.handleResource(ctx, req);
                 break;
             //请求页面
             case htmlPage:

@@ -1,6 +1,7 @@
 package cn.ayl.config;
 
 import cn.ayl.util.json.JsonObject;
+import jodd.io.FileNameUtil;
 
 /**
  * created by Rock-Ayl 2019-11-5
@@ -55,7 +56,8 @@ public class Const {
     public static String DownloadPath = "/Download";
     //HttpPage地址
     public static String HttpPagePath = "/HtmlPage";
-
+    //服务器-静态资源路径
+    public static String ResourcePath = "/workspace/resource";
 
     /**
      * 枚举组
@@ -64,6 +66,11 @@ public class Const {
     //上下文类型
     public enum ContentType {
         none, error, text, html, json, css, js, jpeg, jpg, png, gif, ico, mp3, mp4, data
+    }
+
+    //文件类型
+    public enum FileType {
+        other, txt, html, json, css, js, jpeg, jpg, png, gif, ico, mp3, mp4, mkv, data, folder
     }
 
     //请求类型
@@ -92,4 +99,40 @@ public class Const {
     public static JsonObject Json_Error_Param = JsonObject.Fail("接口传参不正确.");
     public static JsonObject Json_No_InterFace = JsonObject.Fail("不存在该接口.");
     public static JsonObject Json_No_Service = JsonObject.Fail("不存在该服务.");
+
+
+    /**
+     * 方法组
+     */
+
+    //根据文件路径检测handlers
+    public static String parseHttpResponseContentType(String filePath) {
+        //获取文件后缀
+        String fileExt = FileNameUtil.getExtension(filePath);
+        switch (fileExt) {
+            case "html":
+                return "text/html; charset=UTF-8";
+            case "text":
+                return "text/plain; charset=UTF-8";
+            case "json":
+                return "application/json; charset=UTF-8";
+            case "css":
+                return "text/css; charset=UTF-8";
+            case "js":
+                return "application/x-javascript; charset=UTF-8";
+            case "jpeg":
+            case "jpg":
+                return "image/jpeg";
+            case "png":
+                return "image/png";
+            case "pdf":
+                return "application/pdf; charset=utf-8";
+            case "gif":
+                return "image/gif";
+            case "ico":
+                return "image/x-ico";
+            default:
+                return "application/octet-stream";
+        }
+    }
 }
