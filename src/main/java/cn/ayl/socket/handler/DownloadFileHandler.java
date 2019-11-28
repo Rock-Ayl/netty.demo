@@ -86,11 +86,11 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
             HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
             //设置content-length
             HttpUtil.setContentLength(response, fileLength);
-            //如果为preview(浏览)，则告诉浏览器，这个是PDF文件,让其用自带插件浏览而非下载PDF(文件主要是PDF为浏览)
+            //todo 如果为preview(浏览),则告诉浏览器,这个是PDF文件或其他文件,看业务,让其用自带插件浏览而非下载PDF(文件主要是PDF为浏览)
             if (type.equals("preview")) {
                 response.headers().set(CONTENT_TYPE, "application/pdf; charset=utf-8");
             } else {
-                //处理非浏览类文件
+                //todo 处理非浏览类文件
                 switch (type) {
                     //svg格式文件
                     case "svg":
@@ -109,7 +109,7 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
                 String disposition = "attachment; filename*=UTF-8''" + URLEncoder.encode(fileName, "utf-8");
                 response.headers().add("Content-Disposition", disposition);
             }
-            //组装一些需要然前端知道的参数
+            //todo 组装一些需要然前端知道的参数
             response.headers().add("access-control-allow-origin", "*");
             response.headers().add("access-control-allow-credentials", true);
             response.headers().add("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");

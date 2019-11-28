@@ -23,8 +23,11 @@ public class Const {
     //默认的服务初始化
     public static List<String> DefaultService;
 
-    //初始化除了Service外的其他几个服务
+    /**
+     * 初始化除了Service外的其他几个服务
+     */
     static {
+
         //WebSocket地址
         WebSocketPath = "/WebSocket";
         //上传地址
@@ -39,6 +42,7 @@ public class Const {
         defaultService.add(DownloadPath.replace('/', '.'));
         defaultService.add(HttpPagePath.replace('/', '.'));
         DefaultService = defaultService;
+
     }
 
     /**

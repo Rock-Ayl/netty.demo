@@ -140,7 +140,7 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
         }
 
         /**
-         * 分发WebSocket
+         * 分发WebSocket请求解析器
          *
          * @param p
          */
@@ -159,7 +159,7 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
         }
 
         /**
-         * 分发http请求处理器 eg: upload download service
+         * 分发http请求解析器 eg: upload download service
          *
          * @param p
          */
@@ -185,6 +185,12 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
             }
         }
 
+        /**
+         * 异常
+         *
+         * @param ctx
+         * @param cause
+         */
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             logger.error("ProtocolDecoderExecute Exception Channel=[{}]&Error=[{}]", ctx.channel().toString(), cause.getLocalizedMessage());
