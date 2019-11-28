@@ -70,7 +70,9 @@ public class Const {
     public static String MongoDBName = "file";
 
     //服务器-静态资源路径
-    public static String ResourcePath = "/workspace/resource";
+    public static String ResourcePath = "/workspace/resource/";
+    //服务器-上传时临时文件路径
+    public static String UploadFilePath = "/workspace/upload/";
     //SocketPort
     public static int SocketPort = 8888;
     //http请求聚合字节最大长度

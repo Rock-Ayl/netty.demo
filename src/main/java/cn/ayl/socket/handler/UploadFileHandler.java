@@ -1,5 +1,7 @@
 package cn.ayl.socket.handler;
 
+import cn.ayl.config.Const;
+import cn.ayl.entry.FileEntry;
 import cn.ayl.util.Base64Convert;
 import cn.ayl.util.StringUtil;
 import cn.ayl.util.json.JsonObject;
@@ -38,19 +40,11 @@ public class UploadFileHandler {
     private Map<String, String> attrs = new ConcurrentHashMap<>();
     //是否为 multipart 请求
     protected boolean isMultipart = true;
-    //文件大小
-    private int fileSize = 0;
     private int fileBufferSize = 0;
-    private String fileName;
-    //文件路径
-    private String filePath;
-    //文件后缀
-    private String fileExt;
     private FileChannel fileChannel;
-    private String fileId;
     protected ByteBuffer fileBuffer;
-    //用来存放处理业务的文件属性
-    private JsonObject fileObject;
+    //文件实体
+    private FileEntry file;
 
     static {
         DiskFileUpload.deleteOnExitTemporaryFile = true;
@@ -70,14 +64,15 @@ public class UploadFileHandler {
         headerFilters.add("Cookie");
     }
 
-    //todo 上传业务逻辑
-    public void handleUpload(String fileId, String fileExt, JsonObject fileObject) {
+    //todo 上传业务逻辑,根据fileEntry去处理
+    public void handleUpload() {
 
     }
 
     public void handleRequest(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
         if (msg instanceof HttpRequest) {
-            fileObject = new JsonObject();
+            file = new FileEntry();
+            JsonObject fileObject = new JsonObject();
             HttpRequest request = (HttpRequest) msg;
             if (request.method().equals(HttpMethod.GET)) {
                 ResponseHandler.sendMessage(ctx, HttpResponseStatus.OK, "upload must use post.");
@@ -99,37 +94,38 @@ public class UploadFileHandler {
             if (v.equals("0")) {
                 v = headers.get("content-length");
             }
-            fileSize = Integer.parseInt(v);
-            fileObject.append("fileSize", fileSize);
+            file.setFileSize(Integer.parseInt(v));
             //文件名
-            fileName = headers.get("FileName", "");
+            String fileName = headers.get("FileName", "");
             //如果是中文，用base64解码一下
             if (fileName.indexOf(".") <= 0) {
                 //解码
                 fileName = Base64Convert.decode64(fileName);
             }
-            fileObject.append("fileName", fileName);
+            file.setFileName(fileName);
             //文件后缀
-            fileExt = FilenameUtils.getExtension(fileName);
-            fileObject.append("fileExt", fileExt);
+            file.setFileExt(FilenameUtils.getExtension(fileName));
             //生成一个文件唯一id
-            fileId = StringUtil.newId();
-            fileObject.append("fileId", fileId);
+            file.setFileId(StringUtil.newId());
             //文件地址
-            filePath = "/workspace" + "/" + fileId + "." + fileExt;
-            fileObject.append("filePath", filePath);
+            file.setFilePath(Const.UploadFilePath + file.getFileId() + "." + file.getFileExt());
             //文件通道，创建一个空的0K文件
-            fileChannel = new RandomAccessFile(filePath, "rw").getChannel();
+            fileChannel = new RandomAccessFile(file.getFilePath(), "rw").getChannel();
             //文件流(内存)，写入文件大小，没有文件内容
-            fileBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileSize);
+            fileBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, file.getFileSize());
             //文件创建时间
             fileObject.append("fileDate", Long.parseLong(headers.get("FileDate", "0")));
             for (Iterator<Map.Entry<String, String>> i = request.headers().iteratorAsString(); i.hasNext(); ) {
                 Map.Entry<String, String> entry = i.next();
                 String key = entry.getKey();
-                if (key.startsWith("File") || headerFilters.contains(key)) continue;
+                //过滤一些不需要添加的参数
+                if (key.startsWith("File") || headerFilters.contains(key)) {
+                    continue;
+                }
                 fileObject.append(key, entry.getValue());
             }
+            //组装文件对象参数
+            file.setFileObject(fileObject);
             readingChunks = HttpUtil.isTransferEncodingChunked(request);
         }
     }
@@ -149,8 +145,8 @@ public class UploadFileHandler {
                 fileBufferSize += buffer.remaining();
                 fileBuffer.put(buffer);
             }
-            if (fileBufferSize == fileSize) {
-                logger.info("upload File[{}] Success", fileName);
+            if (fileBufferSize == file.getFileSize()) {
+                logger.info("upload File[{}] Success", file.getFileName());
                 fileChannel.close();
                 fileBuffer.clear();
                 doUploadService();
@@ -233,23 +229,23 @@ public class UploadFileHandler {
             if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
                 FileUpload fileUpload = (FileUpload) data;
                 if (fileUpload.isCompleted()) {
-                    fileName = fileUpload.getFilename();
-                    if (StringUtils.isEmpty(fileName)) {
-                        fileName = fileUpload.getName();
+                    file.setFileName(fileUpload.getFilename());
+                    if (StringUtils.isEmpty(file.getFileName())) {
+                        file.setFileName(fileUpload.getName());
                     }
                     fileBuffer.put(fileUpload.getByteBuf().array());
                     fileChannel.close();
                     fileBuffer.clear();
                     doUploadService();
-                    ctx.writeAndFlush(ResponseHandler.getResponseOKAndJson(HttpResponseStatus.OK, fileObject)).addListener(ChannelFutureListener.CLOSE);
-                    logger.info("upload FileName=[{}] success.", fileName);
+                    ctx.writeAndFlush(ResponseHandler.getResponseOKAndJson(HttpResponseStatus.OK, file.toJson())).addListener(ChannelFutureListener.CLOSE);
+                    logger.info("upload FileName=[{}] success.", file.getFileName());
                 }
             }
         }
     }
 
     private void doUploadService() {
-        handleUpload(fileId, fileExt, fileObject);
+        handleUpload();
     }
 
     public void clear() {
