@@ -1,5 +1,6 @@
 package cn.ayl.entry;
 
+import cn.ayl.config.Const;
 import cn.ayl.util.json.JsonObject;
 
 /**
@@ -20,15 +21,17 @@ public class FileEntry {
     private int fileSize = 0;
     //文件其他额外对象
     private JsonObject fileObject;
+    //文件创建时间
+    private String fileDate;
 
     public JsonObject toJson() {
         JsonObject result = JsonObject.VOID();
-        result.append("fileId", getFileId());
-        result.append("fileName", getFileName());
-        result.append("fileExt", getFileExt());
-        result.append("filePath", getFilePath());
-        result.append("fileSize", getFileSize());
-        result.append("fileObject", getFileObject());
+        result.append(Const.FileId, getFileId());
+        result.append(Const.FileName, getFileName());
+        result.append(Const.FileExt, getFileExt());
+        result.append(Const.FilePath, getFilePath());
+        result.append(Const.FileSize, getFileSize());
+        result.append(Const.FileObject, getFileObject());
         return result;
     }
 
@@ -78,5 +81,13 @@ public class FileEntry {
 
     public void setFileObject(JsonObject fileObject) {
         this.fileObject = fileObject;
+    }
+
+    public String getFileDate() {
+        return fileDate;
+    }
+
+    public void setFileDate(String fileDate) {
+        this.fileDate = fileDate;
     }
 }

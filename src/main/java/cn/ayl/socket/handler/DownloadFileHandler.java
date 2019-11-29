@@ -39,7 +39,7 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
      * @return
      */
     protected InputStream readDownloadStream(String type, String fileId, String fileName) {
-        File file = new File("/Volumes/本机机械硬盘/世界欠我一个初恋-24.mp4");
+        File file = new File(Const.DownloadFilePath + fileName);
         InputStream stream = null;
         try {
             stream = FileUtils.openInputStream(file);
@@ -62,9 +62,9 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
         //获取get请求路径的参数
         Map map = getGetParamsFromChannel(request);
         //todo 根据请求路径抽取参数，可以更多
-        String type = (String) map.get("type");
-        String fileId = (String) map.get("fileId");
-        String fileName = (String) map.get("fileName");
+        String type = (String) map.get(Const.Type);
+        String fileId = (String) map.get(Const.FileId);
+        String fileName = (String) map.get(Const.FileName);
         //todo 这里可以补充逻辑判定
         if (StringUtils.isEmpty(type) || StringUtils.isEmpty(fileId) || StringUtil.isEmpty(fileName)) {
             logger.error("下载请求失败.");
