@@ -9,6 +9,21 @@
     var socket;
     //如果浏览器支持WebSocket
     if (window.WebSocket) {
+        //打开WebSocket
+        openWebSocket();
+    } else {
+        alert("浏览器不支持WebSocket！");
+    }
+
+    //打开链接
+    function openWebSocket() {
+
+        //当websocket状态打开,返回
+        if (socket != null && socket.readyState == WebSocket.OPEN) {
+            alert("连接已经开启");
+            return;
+        }
+
         //参数就是与服务器连接的地址
         socket = new WebSocket("ws://127.0.0.1:8888/WebSocket");
 
@@ -29,8 +44,6 @@
             var ta = document.getElementById("responseText");
             ta.value = ta.value + "\n" + "连接关闭";
         }
-    } else {
-        alert("浏览器不支持WebSocket！");
     }
 
     //发送数据
@@ -45,6 +58,20 @@
             alert("连接没有开启");
         }
     }
+
+    //关闭链接
+    function closeWebSocket() {
+        if (!window.WebSocket) {
+            return;
+        }
+        //当websocket状态打开
+        if (socket.readyState == WebSocket.OPEN) {
+            socket.close();
+        } else {
+            alert("连接没有开启");
+        }
+    }
+
 </script>
 <form onsubmit="return false">
     <textarea name="message" style="width: 400px;height: 200px"></textarea>
@@ -52,6 +79,8 @@
     <h3>服务器输出：</h3>
     <textarea id="responseText" style="width: 400px;height: 300px;"></textarea>
     <input type="button" onclick="javascript:document.getElementById('responseText').value=''" value="清空数据">
+    <input type="button" value="关闭链接" onclick="closeWebSocket();">
+    <input type="button" value="打开链接" onclick="openWebSocket();">
 </form>
 </body>
 </html>
