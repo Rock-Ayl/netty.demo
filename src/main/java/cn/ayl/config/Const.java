@@ -1,5 +1,6 @@
 package cn.ayl.config;
 
+import cn.ayl.util.PropertyFileUtil;
 import cn.ayl.util.json.JsonObject;
 import jodd.io.FileNameUtil;
 
@@ -13,8 +14,14 @@ import java.util.List;
 public class Const {
 
     /**
+     * 配置文件对象
+     */
+    public static PropertyFileUtil properties = new PropertyFileUtil().use("setting.properties");
+
+    /**
      * 常用字段
      */
+    public static String SPACE = " ";
     public static String Message = "message";
     public static String IsSuccess = "isSuccess";
     public static String Type = "type";
@@ -65,24 +72,24 @@ public class Const {
      */
 
     // Redis-pool Redisson-pool
-    public static String RedisHost = "16.16.11.1";
-    public static int RedisPort = 6379;
-    public static int RedisTimeOut = 10000;
-    public static String RedisAuth = "";
-    public static int RedisDatabase = 0;
+    public static String RedisHost = properties.getProperty("RedisHost");
+    public static int RedisPort = Integer.parseInt(properties.getProperty("RedisPort"));
+    public static int RedisTimeOut = Integer.parseInt(properties.getProperty("RedisTimeOut"));
+    public static String RedisAuth = properties.getProperty("RedisAuth", "");
+    public static int RedisDatabase = Integer.parseInt(properties.getProperty("RedisDatabase"));
 
     // jdbc-mysql && MariaDB
     public static String JdbcDriver = "com.mysql.cj.jdbc.Driver";
-    public static String JdbcHost = "16.16.11.2";
-    public static String JdbcPort = "3306";
-    public static String JdbcUser = "root";
-    public static String JdbcDBName = "file";
-    public static String JdbcPassword = "123456";
-    public static String SPACE = " ";
+    public static String JdbcHost = properties.getProperty("JdbcHost");
+    public static String JdbcPort = properties.getProperty("JdbcPort");
+    public static String JdbcUser = properties.getProperty("JdbcUser");
+    public static String JdbcDBName = properties.getProperty("JdbcDBName");
+    public static String JdbcPassword = properties.getProperty("JdbcPassword");
 
     // mongoDB
-    public static String MongoHost = "16.16.11.1:27017";
-    public static String MongoDBName = "file";
+    public static String MongoHost = properties.getProperty("MongoHost");
+    public static String MongoPort = properties.getProperty("MongoPort");
+    public static String MongoDBName = properties.getProperty("MongoDBName");
 
     //服务器-静态资源路径
     public static String ResourcePath = "/workspace/resource/";

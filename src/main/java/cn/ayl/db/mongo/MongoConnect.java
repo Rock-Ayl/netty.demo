@@ -53,7 +53,7 @@ public class MongoConnect {
     public static MongoConnect by(String database) {
         try {
 
-            MongoClient client = new MongoClient(Const.MongoHost, options);
+            MongoClient client = new MongoClient(Const.MongoHost + ":" + Const.MongoPort, options);
             return new MongoConnect(client, database);
         } catch (Exception e) {
             System.out.println("错误.");
