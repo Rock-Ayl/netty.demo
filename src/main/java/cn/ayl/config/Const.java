@@ -19,7 +19,8 @@ public class Const {
     public static String IsSuccess = "isSuccess";
     public static String Type = "type";
     public static String FileId = "fileId";
-    public static String FileDate = "fileDate";
+    public static String FileCreateTime = "fileCreateTime";
+    public static String FileUpdateTime = "FileUpdateTime";
     public static String FileName = "fileName";
     public static String FileExt = "fileExt";
     public static String FilePath = "filePath";

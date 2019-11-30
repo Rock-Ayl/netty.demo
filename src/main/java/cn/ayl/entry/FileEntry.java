@@ -22,8 +22,10 @@ public class FileEntry {
     //文件其他额外对象
     private JsonObject fileObject;
     //文件创建时间
-    private String fileDate;
-
+    private String fileCreateTime;
+    //文件修改时间
+    private String fileUpdateTime;
+    
     public JsonObject toJson() {
         JsonObject result = JsonObject.VOID();
         result.append(Const.FileId, getFileId());
@@ -32,6 +34,8 @@ public class FileEntry {
         result.append(Const.FilePath, getFilePath());
         result.append(Const.FileSize, getFileSize());
         result.append(Const.FileObject, getFileObject());
+        result.append(Const.FileCreateTime, getFileCreateTime());
+        result.append(Const.FileUpdateTime, getFileUpdateTime());
         return result;
     }
 
@@ -83,11 +87,20 @@ public class FileEntry {
         this.fileObject = fileObject;
     }
 
-    public String getFileDate() {
-        return fileDate;
+    public String getFileCreateTime() {
+        return fileCreateTime;
     }
 
-    public void setFileDate(String fileDate) {
-        this.fileDate = fileDate;
+    public void setFileCreateTime(String fileCreateTime) {
+        this.fileCreateTime = fileCreateTime;
     }
+
+    public String getFileUpdateTime() {
+        return fileUpdateTime;
+    }
+
+    public void setFileUpdateTime(String fileUpdateTime) {
+        this.fileUpdateTime = fileUpdateTime;
+    }
+
 }

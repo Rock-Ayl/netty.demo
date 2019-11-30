@@ -108,7 +108,9 @@ public class UploadFileHandler {
             //生成一个文件唯一id
             file.setFileId(StringUtil.newId());
             //文件创建时间
-            file.setFileDate(headers.get(Const.FileDate, "0"));
+            file.setFileCreateTime(headers.get(Const.FileCreateTime, "0"));
+            //文件修改时间
+            file.setFileUpdateTime(headers.get(Const.FileUpdateTime, "0"));
             //文件地址
             file.setFilePath(Const.UploadFilePath + file.getFileId() + "." + file.getFileExt());
             //指定文件本身对象，模式rw为：以读取、写入方式打开指定文件。如果该文件不存在，则尝试创建文件
@@ -116,7 +118,7 @@ public class UploadFileHandler {
             //文件流(内存)，写入文件长度
             fileBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, file.getFileSize());
             //文件创建时间
-            fileObject.append(Const.FileDate, Long.parseLong(headers.get(Const.FileDate, "0")));
+            fileObject.append(Const.FileCreateTime, Long.parseLong(headers.get(Const.FileCreateTime, "0")));
             for (Iterator<Map.Entry<String, String>> i = request.headers().iteratorAsString(); i.hasNext(); ) {
                 Map.Entry<String, String> entry = i.next();
                 String key = entry.getKey();
