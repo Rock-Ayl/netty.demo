@@ -33,6 +33,7 @@ public class UploadFileHandler {
     private static final Logger logger = LoggerFactory.getLogger(UploadFileHandler.class);
 
     private final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
+    //上传文件时请求header中不需要组装到fileObject对象的信息
     private static final HashSet<String> headerFilters = new HashSet();
     private boolean readingChunks;
     private HttpData partialContent;
@@ -47,8 +48,16 @@ public class UploadFileHandler {
     private FileEntry file;
 
     static {
+        //设置结束时删除临时文件
         DiskFileUpload.deleteOnExitTemporaryFile = true;
+        //置空系统临时目录
         DiskFileUpload.baseDirectory = null;
+        //初始化headerFilters
+        initHeaderFilters();
+    }
+
+    //初始化headerFilters
+    private static void initHeaderFilters() {
         headerFilters.add("Referer");
         headerFilters.add("Host");
         headerFilters.add("Connection");
@@ -70,18 +79,26 @@ public class UploadFileHandler {
     }
 
     public void handleRequest(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
+        //如果是http请求
         if (msg instanceof HttpRequest) {
+            //创建文件实体
             file = new FileEntry();
-            JsonObject fileObject = new JsonObject();
+            //创建文件其他参数对象
+            JsonObject fileObject = JsonObject.VOID();
+            //转化为http请求
             HttpRequest request = (HttpRequest) msg;
+            //如果是get请求，返回
             if (request.method().equals(HttpMethod.GET)) {
                 ResponseHandler.sendMessage(ctx, HttpResponseStatus.OK, "upload must use post.");
                 return;
             }
+            //Post解码
             try {
                 decoder = new HttpPostRequestDecoder(factory, request);
+                //禁用丢弃字节
                 decoder.setDiscardThreshold(0);
             } catch (HttpPostRequestDecoder.ErrorDataDecoderException e1) {
+                //返回错误
                 ResponseHandler.sendMessage(ctx, HttpResponseStatus.OK, e1.getMessage());
                 return;
             }
@@ -119,13 +136,16 @@ public class UploadFileHandler {
             fileBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, file.getFileSize());
             //文件创建时间
             fileObject.append(Const.FileCreateTime, Long.parseLong(headers.get(Const.FileCreateTime, "0")));
+            //将文件的附属信息全部存入文件其他信息对象中
             for (Iterator<Map.Entry<String, String>> i = request.headers().iteratorAsString(); i.hasNext(); ) {
                 Map.Entry<String, String> entry = i.next();
+                //该headers的key
                 String key = entry.getKey();
                 //过滤一些不需要添加的参数
                 if (key.startsWith("File") || headerFilters.contains(key)) {
                     continue;
                 }
+                //组装
                 fileObject.append(key, entry.getValue());
             }
             //组装文件对象参数
