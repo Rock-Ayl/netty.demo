@@ -1,11 +1,13 @@
 package cn.ayl.socket.decoder;
 
 import cn.ayl.config.Const;
+import cn.ayl.rpc.Context;
 import cn.ayl.socket.handler.DownloadFileHandler;
 import cn.ayl.socket.handler.HeartBeatHandler;
 import cn.ayl.socket.handler.HttpHandler;
 import cn.ayl.socket.handler.WebSocketHandler;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -31,6 +33,9 @@ import java.util.List;
 public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
 
     protected static Logger logger = LoggerFactory.getLogger(ProtocolDecoder.class);
+
+    //每一个通道都有一个上下文，上下文给与通道
+    private Context context;
 
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
@@ -66,25 +71,31 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
                 return;
             }
             ChannelPipeline p = channelCtx.pipeline();
-            Const.RequestType requestType;
+            Channel channel = p.channel();
+            //断点续传检查一下
+            context = channel.attr(Const.AttrContext).get();
+            //如果上下文存在空，直接返回
+            if (context != null) {
+                return;
+            }
             String header = this.readHeader(buffer);
             /*过滤chrome的跨越访问*/
             if (header.startsWith("GET /favicon.ico")) {
                 return;
-                /*识别为WebSocket*/
+                /*识别为WebSocket并绑定上下文*/
             } else if (header.startsWith("<policy") || header.indexOf("Connection: Upgrade") > 0) {
-                requestType = Const.RequestType.websocket;
-                /*如下为Http请求,进行upload,download,service归类*/
+                context = Context.createContext(Const.RequestType.websocket, channel);
+                /*如下为Http请求,进行upload,download,service归类并绑定上下文*/
             } else if (header.startsWith("POST " + Const.UploadPath)) {
-                requestType = Const.RequestType.upload;
+                context = Context.createContext(Const.RequestType.upload, channel);
             } else if (header.startsWith("GET " + Const.DownloadPath)) {
-                requestType = Const.RequestType.download;
+                context = Context.createContext(Const.RequestType.download, channel);
             } else {
-                requestType = Const.RequestType.http;
+                context = Context.createContext(Const.RequestType.http, channel);
             }
-            logger.info("decode header={}&contextType={}", header, requestType.name());
+            logger.info("decode header={}&contextType={}", header, context.requestType.name());
             //分发协议
-            switchProtocol(p, requestType);
+            switchProtocol(p);
         }
 
         /**
@@ -123,9 +134,9 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
          *
          * @param p
          */
-        protected void switchProtocol(ChannelPipeline p, Const.RequestType requestType) {
-            /*remove all handle for keep-alive*/
-            switch (requestType) {
+        protected void switchProtocol(ChannelPipeline p) {
+            //根据请求类型分发
+            switch (context.requestType) {
                 //WebSocket协议
                 case websocket:
                     switchWebSocket(p);
@@ -133,10 +144,12 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
                 //http协议及默认
                 case http:
                 default:
-                    this.switchHttp(p, requestType);
+                    this.switchHttp(p, context.requestType);
                     break;
             }
             p.remove(this);
+            //通道绑定上下文
+            p.channel().attr(Const.AttrContext).set(context);
         }
 
         /**

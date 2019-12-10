@@ -1,7 +1,9 @@
 package cn.ayl.config;
 
+import cn.ayl.rpc.Context;
 import cn.ayl.util.PropertyFileUtil;
 import cn.ayl.util.json.JsonObject;
+import io.netty.util.AttributeKey;
 import jodd.io.FileNameUtil;
 
 import java.util.ArrayList;
@@ -12,6 +14,9 @@ import java.util.List;
  * 常量
  */
 public class Const {
+
+    //上下文 AttributeKey
+    public static AttributeKey<Context> AttrContext = AttributeKey.valueOf("Context");
 
     /**
      * 配置文件对象
@@ -24,7 +29,7 @@ public class Const {
     public static String SPACE = " ";
     public static String Message = "message";
     public static String IsSuccess = "isSuccess";
-    public static String Type = "type";
+    public static String Type = "requestType";
     public static String FileId = "fileId";
     public static String FileCreateTime = "fileCreateTime";
     public static String FileUpdateTime = "FileUpdateTime";
