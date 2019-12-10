@@ -144,11 +144,11 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
                 //http协议及默认
                 case http:
                 default:
-                    this.switchHttp(p, context.requestType);
+                    this.switchHttp(p);
                     break;
             }
             p.remove(this);
-            //通道绑定上下文
+            //通道绑定上下文,以后用get获取
             p.channel().attr(Const.AttrContext).set(context);
         }
 
@@ -176,18 +176,18 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
          *
          * @param p
          */
-        protected void switchHttp(ChannelPipeline p, Const.RequestType requestType) {
+        protected void switchHttp(ChannelPipeline p) {
             //http基本解码
             p.addLast("http-request-decoder", new HttpRequestDecoder());
             //如果请求类型为上传，整合文件
-            if (requestType != Const.RequestType.upload) {
+            if (context.requestType != Const.RequestType.upload) {
                 //netty是基于分段请求的，HttpObjectAggregator的作用是将HTTP消息的多个部分合成一条完整的HTTP消息,参数是聚合字节的最大长度
                 p.addLast("http-chunk-aggregator", new HttpObjectAggregator(Const.MaxContentLength));
             }
             //响应编码
             p.addLast("http-response-encoder", new HttpResponseEncoder());
             //是否为下载请求
-            if (requestType == Const.RequestType.download) {
+            if (context.requestType == Const.RequestType.download) {
                 //以块的方式来写的处理器，解决大码流的问题，ChunkedWriteHandler：可以向客户端发送HTML5文件
                 p.addLast("http-chunk-write", new ChunkedWriteHandler());
                 //下载处理器

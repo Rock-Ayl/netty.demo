@@ -5,7 +5,8 @@ import cn.ayl.util.json.JsonObject;
 import io.netty.channel.Channel;
 
 /**
- * 一个Context对应一个物理的数据链路(一个当前的会话)
+ * created by Rock-Ayl 2019-12-10
+ * 一个Context对应一个物理的数据链路(就是一个当前的会话)
  */
 public class Context {
 

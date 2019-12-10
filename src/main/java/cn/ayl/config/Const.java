@@ -15,7 +15,9 @@ import java.util.List;
  */
 public class Const {
 
-    //上下文 AttributeKey
+    /**
+     * netty channel的上下文 AttributeKey
+     */
     public static AttributeKey<Context> AttrContext = AttributeKey.valueOf("Context");
 
     /**
