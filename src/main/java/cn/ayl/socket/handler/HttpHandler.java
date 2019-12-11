@@ -81,10 +81,10 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 uploadFileHandler.handleHttpContent(ctx, (HttpContent) msg);
             } else if (msg instanceof HttpContent) {
                 //没有upload处理器的文件块
-                ResponseHandler.sendMessage(ctx, HttpResponseStatus.OK, "失败的上传请求.");
+                ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.OK, "失败的上传请求.");
             } else {
                 //没有upload处理器的文件块
-                ResponseHandler.sendMessage(ctx, HttpResponseStatus.OK, "失败的请求.");
+                ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.OK, "失败的请求.");
             }
         } catch (Exception e) {
             logger.error("channelRead", e);
@@ -272,14 +272,12 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         if (req.method() == HttpMethod.GET || req.method() == HttpMethod.POST) {
             //根据path和params处理业务并返回结果
             Object result = handleServiceFactory(req);
-            //组装结果并响应请求
-            response = ResponseHandler.getResponseOKAndJson(HttpResponseStatus.OK, result);
+            //组装、响应并返回
+            ResponseHandler.sendForJson(ctx, HttpResponseStatus.OK, result);
         } else {
             //todo 处理其他请求类型的请求 eg: OPTIONS HEAD DELETE 等等
-            response = ResponseHandler.getResponseOKAndText(HttpResponseStatus.INTERNAL_SERVER_ERROR, "ok");
+            ResponseHandler.sendForText(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, "ok");
         }
-        // 发送响应并关闭连接
-        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
     /**

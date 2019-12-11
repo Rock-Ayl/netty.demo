@@ -1,5 +1,7 @@
 package cn.ayl.socket.handler;
 
+import cn.ayl.config.Const;
+import cn.ayl.rpc.Context;
 import cn.ayl.util.json.JsonObject;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -14,6 +16,8 @@ import org.slf4j.LoggerFactory;
 public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 
     protected static Logger logger = LoggerFactory.getLogger(WebSocketHandler.class);
+
+    private Context context;
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
@@ -36,6 +40,12 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        //获取上下文
+        context = ctx.channel().attr(Const.AttrContext).get();
+        //无上下文，返回
+        if (context == null) {
+            return;
+        }
         //处理WebSocket请求的分别处理
         if (msg instanceof WebSocketFrame) {
             handleWebSocketRequest(ctx, (WebSocketFrame) msg);

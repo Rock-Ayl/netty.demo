@@ -1,6 +1,7 @@
 package cn.ayl.socket.handler;
 
 import cn.ayl.config.Const;
+import cn.ayl.util.StringUtil;
 import cn.ayl.util.json.JsonObject;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -19,61 +20,63 @@ import static io.netty.buffer.Unpooled.copiedBuffer;
 public class ResponseHandler {
 
     /**
-     * 生成Http响应OK并返回Response-Json
+     * 响应并返回text
      *
      * @param status 状态
      * @param result 返回值
      * @return
      */
-    public static FullHttpResponse getResponseOKAndJson(HttpResponseStatus status, Object result) {
-        ByteBuf content = copiedBuffer(result.toString(), CharsetUtil.UTF_8);
-        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
-        if (content != null) {
-            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
-            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
-        }
-        return response;
-    }
-
-    /**
-     * 生成Http响应OK并返回Response-Text
-     *
-     * @param status 状态
-     * @param result 返回值
-     * @return
-     */
-    public static FullHttpResponse getResponseOKAndText(HttpResponseStatus status, Object result) {
+    public static void sendForText(ChannelHandlerContext ctx, HttpResponseStatus status, Object result) {
         ByteBuf content = copiedBuffer(result.toString(), CharsetUtil.UTF_8);
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
         if (content != null) {
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain;charset=UTF-8");
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         }
-        return response;
+        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
     /**
-     * 接受文本，直接用ctx直接发送消息
+     * 响应并返回json
+     *
+     * @param status 状态
+     * @param result 返回值
+     * @return
+     */
+    public static void sendForJson(ChannelHandlerContext ctx, HttpResponseStatus status, Object result) {
+        ByteBuf content = copiedBuffer(result.toString(), CharsetUtil.UTF_8);
+        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
+        if (content != null) {
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
+            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
+        }
+        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+    }
+
+    /**
+     * 响应并返回Json,包含Message
      *
      * @param ctx
      * @param status
      * @param content
      */
-    public static void sendMessage(ChannelHandlerContext ctx, HttpResponseStatus status, String content) {
-        JsonObject result = JsonObject.Success();
-        result.append("message", content);
+    public static void sendMessageForJson(ChannelHandlerContext ctx, HttpResponseStatus status, String content) {
+        JsonObject result = JsonObject.Success().append(Const.Message, content);
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer(result.toJson(), CharsetUtil.UTF_8));
-        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
+        if (!StringUtil.isEmpty(content)) {
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
+            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
+        }
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
     /**
-     * 接受文件，直接用ctx发送流
+     * 响应并返回文件流
      *
      * @param ctx
      * @throws IOException
      */
-    public static void sendStream(ChannelHandlerContext ctx, HttpRequest req, File file) throws IOException {
+    public static void sendForStream(ChannelHandlerContext ctx, HttpRequest req, File file) throws IOException {
         //一个基础的OK请求
         HttpResponse response = new DefaultHttpResponse(req.protocolVersion(), HttpResponseStatus.OK);
         //添加响应流类型

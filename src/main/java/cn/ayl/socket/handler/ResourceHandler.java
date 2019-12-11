@@ -57,7 +57,7 @@ public class ResourceHandler {
             }
         } else {
             //不存在文件，直接返回 not found
-            ResponseHandler.sendMessage(ctx, NOT_FOUND, "没有发现文件.");
+            ResponseHandler.sendMessageForJson(ctx, NOT_FOUND, "没有发现文件.");
         }
     }
 
@@ -67,7 +67,7 @@ public class ResourceHandler {
             return;
         }
         //需要修改，响应请求文件流
-        ResponseHandler.sendStream(ctx, req, file);
+        ResponseHandler.sendForStream(ctx, req, file);
     }
 
     /**
@@ -91,7 +91,7 @@ public class ResourceHandler {
                 //如果相同，告诉浏览器不需要修改
                 if (ifModifiedSinceDateSeconds == fileLastModifiedSeconds) {
                     //不需要修改
-                    ResponseHandler.sendMessage(ctx, NOT_MODIFIED, "Modified false.");
+                    ResponseHandler.sendMessageForJson(ctx, NOT_MODIFIED, "Modified false.");
                     return false;
                 }
             }

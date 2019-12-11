@@ -68,7 +68,7 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
         //todo 这里可以补充逻辑判定
         if (StringUtils.isEmpty(type) || StringUtils.isEmpty(fileId) || StringUtil.isEmpty(fileName)) {
             logger.error("下载请求失败.");
-            ResponseHandler.sendMessage(ctx, NOT_FOUND, "下载文件参数必须同时包含type&fileId&fileName");
+            ResponseHandler.sendMessageForJson(ctx, NOT_FOUND, "下载文件参数必须同时包含type&fileId&fileName");
             return;
         }
         //从业务中读取文件
@@ -76,7 +76,7 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
         //读取失败，返回
         if (stream == null) {
             logger.error("下载请求失败,文件不存在.");
-            ResponseHandler.sendMessage(ctx, NOT_FOUND, "下载请求失败,文件不存在.");
+            ResponseHandler.sendMessageForJson(ctx, NOT_FOUND, "下载请求失败,文件不存在.");
             return;
         }
         try {
@@ -148,7 +148,7 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         if (ctx.channel().isActive()) {
-            ResponseHandler.sendMessage(ctx, INTERNAL_SERVER_ERROR, "下载请求异常，连接断开.");
+            ResponseHandler.sendMessageForJson(ctx, INTERNAL_SERVER_ERROR, "下载请求异常，连接断开.");
             logger.error("下载请求异常，连接断开.");
         }
     }
