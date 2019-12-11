@@ -45,16 +45,6 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
         //每一个通道都有一个上下文，上下文给与通道
         private Context context;
 
-        private HttpHandler httpHandler;
-        private DownloadFileHandler downloadFileHandler;
-        private WebSocketHandler webSocketHandler;
-
-        public ProtocolDecoderExecute() {
-            this.httpHandler = new HttpHandler();
-            this.downloadFileHandler = new DownloadFileHandler();
-            this.webSocketHandler = new WebSocketHandler();
-        }
-
         /**
          * 请求先从这里走，识别各类协议请求
          *
@@ -155,19 +145,14 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
          * @param p
          */
         protected void switchWebSocket(ChannelPipeline p) {
-            //http基础套件(WebSocket底层是Http)
-            p.addLast("http-request-decoder", new HttpRequestDecoder());
-            //过滤器
-            p.addLast("http-auth", new FilterHandler());
-            p.addLast("http-chunk-aggregator", new HttpObjectAggregator(Const.MaxContentLength));
-            p.addLast("http-response-encoder", new HttpResponseEncoder());
-            //心跳(防止资源浪费)
-            p.addLast(new IdleStateHandler(Const.ReaderIdleTimeSeconds, Const.WriterIdleTimeSeconds, Const.AllIdleTimeSeconds));
-            p.addLast("webSocket-heartBeat", new HeartBeatHandler());
-            //升级为WebSocket
-            p.addLast("http-WebSocketServer-protocolHandler", new WebSocketServerProtocolHandler(Const.WebSocketPath));
-            //webSocket处理器
-            p.addLast("webSocket-handler", webSocketHandler);
+            //基础套件
+            httpAddLast(p);
+            //上传套件
+            uploadAddLast(p);
+            //心跳套件
+            heartAddLast(p);
+            //升级WebSocket套件及处理器
+            webSocketAddLast(p);
         }
 
         /**
@@ -176,26 +161,20 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
          * @param p
          */
         protected void switchHttp(ChannelPipeline p) {
-            //http基本解码
-            p.addLast("http-request-decoder", new HttpRequestDecoder());
-            //过滤器
-            p.addLast("http-auth", new FilterHandler());
+            //基础套件
+            httpAddLast(p);
             //如果请求类型为上传，整合文件
             if (context.requestType != Const.RequestType.upload) {
-                //netty是基于分段请求的，HttpObjectAggregator的作用是将HTTP消息的多个部分合成一条完整的HTTP消息,参数是聚合字节的最大长度
-                p.addLast("http-chunk-aggregator", new HttpObjectAggregator(Const.MaxContentLength));
+                //上传套件
+                uploadAddLast(p);
             }
-            //响应编码
-            p.addLast("http-response-encoder", new HttpResponseEncoder());
             //是否为下载请求
             if (context.requestType == Const.RequestType.download) {
-                //以块的方式来写的处理器，解决大码流的问题，ChunkedWriteHandler：可以向客户端发送HTML5文件
-                p.addLast("http-chunk-write", new ChunkedWriteHandler());
-                //下载处理器
-                p.addLast("http-download-handler", downloadFileHandler);
+                //下载套件及处理器
+                downloadAddLast(p);
             } else {
-                //默认为Http处理器
-                p.addLast("http-handler", httpHandler);
+                //默认都用http处理器
+                httpHandlerAddLast(p);
             }
         }
 
@@ -209,6 +188,71 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             logger.error("ProtocolDecoderExecute Exception Channel=[{}]&Error=[{}]", ctx.channel().toString(), cause.getLocalizedMessage());
         }
+    }
 
+    //所有http必须要用到的套件
+    public static void httpAddLast(ChannelPipeline p) {
+        //http基本解码
+        p.addLast("http-request-decoder", new HttpRequestDecoder());
+        //过滤器
+        p.addLast("http-auth", new FilterHandler());
+        //响应编码
+        p.addLast("http-response-encoder", new HttpResponseEncoder());
+    }
+
+    //上传套件
+    public static void uploadAddLast(ChannelPipeline p) {
+        //netty是基于分段请求的，HttpObjectAggregator的作用是将HTTP消息的多个部分合成一条完整的HTTP消息,参数是聚合字节的最大长度
+        p.addLast("http-chunk-aggregator", new HttpObjectAggregator(Const.MaxContentLength));
+    }
+
+    //心跳套件及处理器
+    public static void heartAddLast(ChannelPipeline p) {
+        //心跳(防止资源浪费)
+        p.addLast(new IdleStateHandler(Const.ReaderIdleTimeSeconds, Const.WriterIdleTimeSeconds, Const.AllIdleTimeSeconds));
+        p.addLast("webSocket-heartBeat", new HeartBeatHandler());
+    }
+
+    //升级WebSocket套件及处理器
+    public static void webSocketAddLast(ChannelPipeline p) {
+        //升级为WebSocket
+        p.addLast("http-WebSocketServer-protocolHandler", new WebSocketServerProtocolHandler(Const.WebSocketPath));
+        //webSocket处理器
+        p.addLast("webSocket-handler", new WebSocketHandler());
+    }
+
+    //下载套件及处理器
+    public static void downloadAddLast(ChannelPipeline p) {
+        //以块的方式来写的处理器，解决大码流的问题，ChunkedWriteHandler：可以向客户端发送HTML5文件
+        if (p.get("http-download-handler") == null) {
+            p.addLast("http-chunk-write", new ChunkedWriteHandler());
+            //下载处理器
+            p.addLast("http-download-handler", new DownloadFileHandler());
+        }
+    }
+
+    //http处理器
+    public static void httpHandlerAddLast(ChannelPipeline p) {
+        if (p.get("http-handler") == null) {
+            p.addLast("http-handler", new HttpHandler());
+        }
+    }
+
+    //清除下载套件及处理器
+    public static void clearDownloadAddLast(ChannelPipeline p) {
+        clearPipe(p, "http-chunk-write");
+        clearPipe(p, "http-download-handler");
+    }
+
+    //清除http处理器
+    public static void clearHttpHandlerAddLast(ChannelPipeline p) {
+        clearPipe(p, "http-handler");
+    }
+
+    //清除解码器
+    private static void clearPipe(ChannelPipeline p, String name) {
+        if (p.get(name) != null) {
+            p.remove(name);
+        }
     }
 }

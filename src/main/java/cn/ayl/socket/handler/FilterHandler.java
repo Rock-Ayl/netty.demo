@@ -2,9 +2,11 @@ package cn.ayl.socket.handler;
 
 import cn.ayl.config.Const;
 import cn.ayl.rpc.Context;
+import cn.ayl.socket.decoder.ProtocolDecoder;
 import cn.ayl.util.StringUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.ChannelPipeline;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.ReferenceCountUtil;
@@ -65,6 +67,8 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             context.uriPath = getPath(req);
             //分配请求类型
             getHttpRequestType();
+            //解决长连接重用与短连接404问题
+            checkChanelPipe(ctx);
             //身份效验
             if (!auth()) {
                 ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.OK, "身份验证失败.");
@@ -72,6 +76,29 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             }
         }
         return true;
+    }
+
+    /**
+     * 当有多个长链接和短连接时,netty会只调用一次解码器,造成请求解码重用,导致各种类型的请求404,这里会处理重用问题
+     */
+    private void checkChanelPipe(ChannelHandlerContext ctx) {
+        ChannelPipeline p = ctx.pipeline();
+        switch (context.requestType) {
+            case download:
+                logger.error("Filter. checkChanelPipe download ctx.type={}", context.requestType);
+                //清除http处理器
+                ProtocolDecoder.clearHttpHandlerAddLast(p);
+                //增加下载套件及处理器
+                ProtocolDecoder.downloadAddLast(p);
+                break;
+            case service:
+                logger.info("Filter. checkChanelPipe service ctx.type={}", context.requestType);
+                //清除下载套件及处理器
+                ProtocolDecoder.clearDownloadAddLast(p);
+                //增加http处理器
+                ProtocolDecoder.httpHandlerAddLast(p);
+                break;
+        }
     }
 
     //身份效验
