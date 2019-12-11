@@ -112,13 +112,13 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
                 needAuth = true;
                 break;
             case service:
+                //service的得拿到 auth
                 needAuth = HttpHandler.hasNeedAuth(req);
-                //todo service的得拿到 auth
                 break;
         }
         //如果Cookie需要认证(auto = true)
         if (needAuth) {
-            //todo 验证失败
+            //todo 验证失败条件
             if (true) {
                 return false;
             }
