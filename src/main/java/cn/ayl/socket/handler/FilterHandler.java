@@ -70,8 +70,8 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             //解决长连接重用与短连接404问题
             checkChanelPipe(ctx);
             //身份效验
-            if (!auth()) {
-                ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.OK, "身份验证失败.");
+            if (!auth(req)) {
+                ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.UNAUTHORIZED, "身份验证失败.");
                 return false;
             }
         }
@@ -102,7 +102,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
     }
 
     //身份效验
-    private boolean auth() {
+    private boolean auth(HttpRequest req) {
         //是否需要验证
         boolean needAuth = false;
         //根据请求类型分类是否需要验证身份
@@ -112,13 +112,14 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
                 needAuth = true;
                 break;
             case service:
+                needAuth = HttpHandler.hasNeedAuth(req);
                 //todo service的得拿到 auth
                 break;
         }
         //如果Cookie需要认证(auto = true)
         if (needAuth) {
             //todo 验证失败
-            if (false) {
+            if (true) {
                 return false;
             }
         }

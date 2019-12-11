@@ -42,7 +42,7 @@ public class ResponseHandler {
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain;charset=UTF-8");
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         }
-        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+        ctx.channel().writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
     /**
@@ -59,7 +59,7 @@ public class ResponseHandler {
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         }
-        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+        ctx.channel().writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
     /**
@@ -76,7 +76,7 @@ public class ResponseHandler {
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         }
-        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+        ctx.channel().writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
     /**
@@ -97,7 +97,7 @@ public class ResponseHandler {
         //写入只读的文件流 (FileChannel放入Netty的FileRegion中)
         ctx.write(new DefaultFileRegion(new RandomAccessFile(file, "r").getChannel(), 0, file.length()));
         //ctx响应并关闭
-        ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+        ctx.channel().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
     }
 
 }

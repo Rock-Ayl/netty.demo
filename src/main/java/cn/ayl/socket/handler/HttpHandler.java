@@ -110,6 +110,30 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
+     * 根据service请求判断是否需要验证身份
+     *
+     * @return
+     */
+    public static boolean hasNeedAuth(HttpRequest req) {
+        //根据请求路径获得服务和方法名
+        List<String> serviceAndMethod = getServiceAndMethod(req.getUri());
+        if (serviceAndMethod.size() >= 2) {
+            //获取服务
+            ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceAndMethod.get(0));
+            //如果服务存在
+            if (serviceEntry != null) {
+                //获取服务中的方法
+                MethodEntry methodEntry = serviceEntry.methodMap.get(serviceAndMethod.get(1));
+                //如果方法存在
+                if (methodEntry != null) {
+                    return methodEntry.auth;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * 根据path和params处理业务并返回结果
      *
      * @param req
@@ -117,7 +141,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      */
     private Object handleServiceFactory(HttpRequest req) {
         //根据请求路径获得服务和方法名
-        List<String> serviceAndMethod = getServiceAndMethod();
+        List<String> serviceAndMethod = getServiceAndMethod(context.uriPath);
         if (serviceAndMethod.size() < 2) {
             return Const.Json_No_Service;
         }
@@ -266,11 +290,10 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     /**
      * 根据请求路径获得服务和方法名
      *
+     * @param path eg:/Organize/login
      * @return
      */
-    private List<String> getServiceAndMethod() {
-        //eg:/Organize/login
-        String path = context.uriPath;
+    private static List<String> getServiceAndMethod(String path) {
         List<String> result = new ArrayList<>();
         //服务名
         String serviceName = null;
