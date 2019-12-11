@@ -233,7 +233,6 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @param req 请求
      */
     private void handleService(ChannelHandlerContext ctx, HttpRequest req) {
-        FullHttpResponse response;
         //根据请求类型处理请求 get post ...
         if (req.method() == HttpMethod.GET || req.method() == HttpMethod.POST) {
             //根据path和params处理业务并返回结果
