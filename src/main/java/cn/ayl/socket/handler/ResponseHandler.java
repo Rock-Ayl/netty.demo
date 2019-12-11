@@ -20,7 +20,16 @@ import static io.netty.buffer.Unpooled.copiedBuffer;
 public class ResponseHandler {
 
     /**
-     * 响应并返回text
+     * 响应预检请求
+     *
+     * @param ctx
+     */
+    public static void sendOption(ChannelHandlerContext ctx) {
+        sendForText(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, "ok");
+    }
+
+    /**
+     * 响应http并返回text
      *
      * @param status 状态
      * @param result 返回值
@@ -37,7 +46,7 @@ public class ResponseHandler {
     }
 
     /**
-     * 响应并返回json
+     * 响应http并返回json
      *
      * @param status 状态
      * @param result 返回值
@@ -54,7 +63,7 @@ public class ResponseHandler {
     }
 
     /**
-     * 响应并返回Json,包含Message
+     * 响应http并返回Json,包含Message
      *
      * @param ctx
      * @param status

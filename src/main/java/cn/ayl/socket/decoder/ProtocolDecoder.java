@@ -2,10 +2,7 @@ package cn.ayl.socket.decoder;
 
 import cn.ayl.config.Const;
 import cn.ayl.rpc.Context;
-import cn.ayl.socket.handler.DownloadFileHandler;
-import cn.ayl.socket.handler.HeartBeatHandler;
-import cn.ayl.socket.handler.HttpHandler;
-import cn.ayl.socket.handler.WebSocketHandler;
+import cn.ayl.socket.handler.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -160,6 +157,8 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
         protected void switchWebSocket(ChannelPipeline p) {
             //http基础套件(WebSocket底层是Http)
             p.addLast("http-request-decoder", new HttpRequestDecoder());
+            //过滤器
+            p.addLast("http-auth", new FilterHandler());
             p.addLast("http-chunk-aggregator", new HttpObjectAggregator(Const.MaxContentLength));
             p.addLast("http-response-encoder", new HttpResponseEncoder());
             //心跳(防止资源浪费)
@@ -179,6 +178,8 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
         protected void switchHttp(ChannelPipeline p) {
             //http基本解码
             p.addLast("http-request-decoder", new HttpRequestDecoder());
+            //过滤器
+            p.addLast("http-auth", new FilterHandler());
             //如果请求类型为上传，整合文件
             if (context.requestType != Const.RequestType.upload) {
                 //netty是基于分段请求的，HttpObjectAggregator的作用是将HTTP消息的多个部分合成一条完整的HTTP消息,参数是聚合字节的最大长度

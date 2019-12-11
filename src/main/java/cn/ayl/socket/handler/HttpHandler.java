@@ -7,12 +7,10 @@ import cn.ayl.entry.RegistryEntry;
 import cn.ayl.entry.ServiceEntry;
 import cn.ayl.rpc.Context;
 import cn.ayl.util.ScanClassUtil;
-import cn.ayl.util.StringUtil;
 import cn.ayl.util.TypeUtil;
 import cn.ayl.util.json.JsonObject;
 import cn.ayl.util.json.JsonUtil;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
@@ -21,19 +19,13 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryAttribute;
 import io.netty.util.ReferenceCountUtil;
-import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.util.*;
-
-import static cn.ayl.config.Const.Json_Error_Param;
-import static cn.ayl.config.Const.Json_No_Service;
-import static cn.ayl.config.Const.RequestType.*;
 
 /**
  * created by Rock-Ayl on 2019-11-18
@@ -127,13 +119,13 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         //根据请求路径获得服务和方法名
         List<String> serviceAndMethod = getServiceAndMethod();
         if (serviceAndMethod.size() < 2) {
-            return Json_No_Service;
+            return Const.Json_No_Service;
         }
         //获取服务
         ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceAndMethod.get(0));
         //如果服务存在
         if (serviceEntry == null) {
-            return Json_No_Service;
+            return Const.Json_No_Service;
         }
         //获取服务中的方法
         MethodEntry methodEntry = serviceEntry.methodMap.get(serviceAndMethod.get(1));
@@ -147,7 +139,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         //根据获取请求参数
         Map<String, Object> params = getParamsFromChannelByService(req, paramMap);
         if (params == null) {
-            return Json_Error_Param;
+            return Const.Json_Error_Param;
         }
         //根据List遍历处理请求
         for (String paramKey : paramList) {
@@ -157,7 +149,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             Boolean hasParam = params.containsKey(paramKey);
             //如果必须传并且参数中没有对应Key,回手掏
             if (optional == false && hasParam == false) {
-                return Json_Error_Param;
+                return Const.Json_Error_Param;
             }
         }
         //已确认服务接口参数均对应上,获取服务的实现类
@@ -196,28 +188,6 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    /***
-     * 根据路径开头分配Http请求内容
-     *
-     * upload开头是上传
-     * htmlPage开头是请求静态资源
-     * 如果有文件后缀是资源
-     * 什么都不是，默认看做服务
-     * @return
-     */
-    private void getHttpRequestType() {
-        String path = context.uriPath;
-        if (path.startsWith(Const.UploadPath)) {
-            context.requestType = upload;
-        } else if (path.startsWith(Const.HttpPagePath)) {
-            context.requestType = htmlPage;
-        } else if (!StringUtil.isEmpty(FilenameUtils.getExtension(path))) {
-            context.requestType = resource;
-        } else {
-            context.requestType = service;
-        }
-    }
-
     /**
      * 分配各类http请求内容处理
      *
@@ -226,10 +196,6 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @throws Exception
      */
     private void handleHttpRequest(final ChannelHandlerContext ctx, HttpRequest req) throws Exception {
-        //获得请求path
-        context.uriPath = getPath(req);
-        //根据请求路径具体分配是哪一种请求
-        getHttpRequestType();
         switch (context.requestType) {
             //请求静态资源
             case resource:
@@ -332,23 +298,6 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         result.add(serviceName);
         result.add(methodName);
         return result;
-    }
-
-    /**
-     * Http获取请求Path
-     *
-     * @param req
-     * @return
-     */
-    private String getPath(HttpRequest req) {
-        String path = null;
-        try {
-            path = new URI(req.getUri()).getPath();
-        } catch (Exception e) {
-            logger.error("接口解析错误.");
-        } finally {
-            return path;
-        }
     }
 
     /**
