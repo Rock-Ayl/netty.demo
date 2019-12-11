@@ -5,7 +5,6 @@ import cn.ayl.entry.FileEntry;
 import cn.ayl.util.Base64Convert;
 import cn.ayl.util.StringUtil;
 import cn.ayl.util.json.JsonObject;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
