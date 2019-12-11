@@ -5,6 +5,7 @@ import cn.ayl.entry.MethodEntry;
 import cn.ayl.entry.ParamEntry;
 import cn.ayl.entry.RegistryEntry;
 import cn.ayl.entry.ServiceEntry;
+import cn.ayl.rpc.Context;
 import cn.ayl.util.ScanClassUtil;
 import cn.ayl.util.StringUtil;
 import cn.ayl.util.TypeUtil;
@@ -42,8 +43,12 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
 
     protected static Logger logger = LoggerFactory.getLogger(HttpHandler.class);
 
-    UploadFileHandler uploadFileHandler;
-    ResourceHandler responseHandler;
+    //请求上下文
+    Context context;
+    //上传处理器
+    private UploadFileHandler uploadFileHandler;
+    //静态资源处理器
+    private ResourceHandler responseHandler;
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
@@ -59,6 +64,12 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        //获取上下文
+        context = ctx.channel().attr(Const.AttrContext).get();
+        //获取失败，返回
+        if (context == null) {
+            return;
+        }
         //处理Http请求的分别处理
         try {
             //处理service和upload请求的基础处理
@@ -109,13 +120,12 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     /**
      * 根据path和params处理业务并返回结果
      *
-     * @param path eg:  /Organize/login
      * @param req
      * @return
      */
-    private Object handleServiceFactory(String path, HttpRequest req) {
+    private Object handleServiceFactory(HttpRequest req) {
         //根据请求路径获得服务和方法名
-        List<String> serviceAndMethod = getServiceAndMethod(path);
+        List<String> serviceAndMethod = getServiceAndMethod();
         if (serviceAndMethod.size() < 2) {
             return Json_No_Service;
         }
@@ -172,7 +182,6 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 valueArr[i] = params.get(key);
                 //组装类型
                 valueTypeArr[i] = parType;
-
             }
             //定位服务的方法
             Method method = serviceClass.getMethod(methodEntry.name, valueTypeArr);
@@ -194,18 +203,18 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * htmlPage开头是请求静态资源
      * 如果有文件后缀是资源
      * 什么都不是，默认看做服务
-     * @param path
      * @return
      */
-    private Const.RequestType getHttpRequestType(String path) {
+    private void getHttpRequestType() {
+        String path = context.uriPath;
         if (path.startsWith(Const.UploadPath)) {
-            return upload;
+            context.requestType = upload;
         } else if (path.startsWith(Const.HttpPagePath)) {
-            return htmlPage;
+            context.requestType = htmlPage;
         } else if (!StringUtil.isEmpty(FilenameUtils.getExtension(path))) {
-            return resource;
+            context.requestType = resource;
         } else {
-            return service;
+            context.requestType = service;
         }
     }
 
@@ -218,10 +227,10 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      */
     private void handleHttpRequest(final ChannelHandlerContext ctx, HttpRequest req) throws Exception {
         //获得请求path
-        String path = getPath(req);
-        //根据请求路径分配是哪一种请求
-        Const.RequestType type = getHttpRequestType(path);
-        switch (type) {
+        context.uriPath = getPath(req);
+        //根据请求路径具体分配是哪一种请求
+        getHttpRequestType();
+        switch (context.requestType) {
             //请求静态资源
             case resource:
                 //创建一个静态资源处理器
@@ -246,7 +255,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             //服务请求
             case service:
             default:
-                handleService(ctx, req, path);
+                handleService(ctx, req);
                 break;
         }
     }
@@ -255,15 +264,14 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * 处理http服务请求
      *
      * @param ctx
-     * @param req  请求
-     * @param path 请求路径
+     * @param req 请求
      */
-    private void handleService(ChannelHandlerContext ctx, HttpRequest req, String path) {
+    private void handleService(ChannelHandlerContext ctx, HttpRequest req) {
         FullHttpResponse response;
         //根据请求类型处理请求 get post ...
         if (req.method() == HttpMethod.GET || req.method() == HttpMethod.POST) {
             //根据path和params处理业务并返回结果
-            Object result = handleServiceFactory(path, req);
+            Object result = handleServiceFactory(req);
             //组装结果并响应请求
             response = ResponseHandler.getResponseOKAndJson(HttpResponseStatus.OK, result);
         } else {
@@ -280,7 +288,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @param req
      * @return
      */
-    public Map<String, Object> getParamsFromChannelByService(HttpRequest req, LinkedHashMap<String, ParamEntry> paramMap) {
+    private Map<String, Object> getParamsFromChannelByService(HttpRequest req, LinkedHashMap<String, ParamEntry> paramMap) {
         Map<String, Object> params = null;
         if (req.method() == HttpMethod.GET) {
             //获取get请求的参数
@@ -295,10 +303,11 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     /**
      * 根据请求路径获得服务和方法名
      *
-     * @param path
      * @return
      */
-    private List<String> getServiceAndMethod(String path) {
+    private List<String> getServiceAndMethod() {
+        //eg:/Organize/login
+        String path = context.uriPath;
         List<String> result = new ArrayList<>();
         //服务名
         String serviceName = null;
@@ -333,7 +342,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @param req
      * @return
      */
-    public String getPath(HttpRequest req) {
+    private String getPath(HttpRequest req) {
         String path = null;
         try {
             path = new URI(req.getUri()).getPath();

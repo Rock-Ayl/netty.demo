@@ -3,6 +3,7 @@ package cn.ayl.rpc;
 import cn.ayl.config.Const;
 import cn.ayl.util.json.JsonObject;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelId;
 
 /**
  * created by Rock-Ayl 2019-12-10
@@ -14,15 +15,29 @@ public class Context {
     public Const.RequestType requestType;
     //请求者ip
     public String ip;
-    //请求Channel
+    //UriPath
+    public String uriPath;
+
+    //ChannelId
+    public ChannelId channelId;
+    //Channel
     public Channel channel;
+
+    //cookieId
+    public String cookieid = null;
     //会话参数
     public JsonObject parameterObject = JsonObject.VOID();
 
-    //创建上下文
-    public static Context createContext(Const.RequestType type, Channel channel) {
+    public Context() {
+        //默认为none
+        requestType = Const.RequestType.none;
+    }
+
+    //创建基础上下文
+    public static Context createInitContext(Const.RequestType type, Channel channel) {
         Context context = new Context();
         context.requestType = type;
+        context.channelId = channel.id();
         context.channel = channel;
         context.ip = channel.remoteAddress().toString();
         return context;

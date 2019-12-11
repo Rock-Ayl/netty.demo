@@ -84,14 +84,14 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
                 return;
                 /*识别为WebSocket并绑定上下文*/
             } else if (header.startsWith("<policy") || header.indexOf("Connection: Upgrade") > 0) {
-                context = Context.createContext(Const.RequestType.websocket, channel);
+                context = Context.createInitContext(Const.RequestType.websocket, channel);
                 /*如下为Http请求,进行upload,download,service归类并绑定上下文*/
             } else if (header.startsWith("POST " + Const.UploadPath)) {
-                context = Context.createContext(Const.RequestType.upload, channel);
+                context = Context.createInitContext(Const.RequestType.upload, channel);
             } else if (header.startsWith("GET " + Const.DownloadPath)) {
-                context = Context.createContext(Const.RequestType.download, channel);
+                context = Context.createInitContext(Const.RequestType.download, channel);
             } else {
-                context = Context.createContext(Const.RequestType.http, channel);
+                context = Context.createInitContext(Const.RequestType.http, channel);
             }
             logger.info("decode header={}&contextType={}", header, context.requestType.name());
             //分发协议并绑定上下文
