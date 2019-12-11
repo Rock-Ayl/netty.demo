@@ -34,9 +34,6 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
 
     protected static Logger logger = LoggerFactory.getLogger(ProtocolDecoder.class);
 
-    //每一个通道都有一个上下文，上下文给与通道
-    private Context context;
-
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         //组装实现类
@@ -47,6 +44,9 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
      * 协议解码实现类
      */
     public class ProtocolDecoderExecute extends ByteToMessageDecoder {
+
+        //每一个通道都有一个上下文，上下文给与通道
+        private Context context;
 
         private HttpHandler httpHandler;
         private DownloadFileHandler downloadFileHandler;
@@ -94,7 +94,7 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
                 context = Context.createContext(Const.RequestType.http, channel);
             }
             logger.info("decode header={}&contextType={}", header, context.requestType.name());
-            //分发协议
+            //分发协议并绑定上下文
             switchProtocol(p);
         }
 
@@ -130,7 +130,7 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
         }
 
         /**
-         * 协议分发器
+         * 协议分发器并绑定上下文
          *
          * @param p
          */
