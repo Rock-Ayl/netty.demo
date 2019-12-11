@@ -127,7 +127,7 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
         }
 
         /**
-         * 协议分发器并绑定上下文
+         * 简单判断请求并分发协议、绑定上下文
          *
          * @param p
          */
