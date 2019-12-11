@@ -17,26 +17,14 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 
     protected static Logger logger = LoggerFactory.getLogger(WebSocketHandler.class);
 
+    //上下文
     private Context context;
 
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        logger.info("通道不活跃的");
-        super.channelInactive(ctx);
-    }
-
-    /**
-     * 用来关闭WebSocket
-     */
+    //用来关闭WebSocket
     private WebSocketServerHandshaker webSocketServerHandshaker;
 
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) {
-        logger.info("正在执行channelActive()方法.....");
-    }
-
     /**
-     * 通道，请求过来从这里分类
+     * 通道，webSocket读取请求从这里过来
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -63,16 +51,20 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        //todo 连接关闭时
-        logger.info(ctx.channel().localAddress().toString() + " ,handlerRemoved！, channelId=" + ctx.channel().id().asLongText());
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        logger.info("通道不活跃的");
+        super.channelInactive(ctx);
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        //todo 出现异常
-        logger.error("Client:" + ctx.channel().remoteAddress() + " ,error", cause.getMessage());
-        ctx.close();
+    public void channelActive(ChannelHandlerContext ctx) {
+        logger.info("正在执行channelActive()方法.....");
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        //todo 连接关闭时
+        logger.info(ctx.channel().localAddress().toString() + " ,handlerRemoved！, channelId=" + ctx.channel().id().asLongText());
     }
 
     // 处理Websocket的代码
@@ -95,6 +87,13 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
             //返回
             ctx.channel().writeAndFlush(new TextWebSocketFrame(JsonObject.Success().append("req", request).toString()));
         }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        //todo 出现异常
+        logger.error("Client:" + ctx.channel().remoteAddress() + " ,error", cause.getMessage());
+        ctx.close();
     }
 
 }
