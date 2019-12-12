@@ -18,7 +18,7 @@ import java.net.URI;
 
 /**
  * created by Rock-Ayl 2019-12-11
- * 过滤器,用来处理一些基础的东西，如请求类型分配、验证身份等
+ * 过滤器,用来处理一些基础的东西，如请求类型分配、验证身份、解决连接重用bug等
  */
 public class FilterHandler extends ChannelInboundHandlerAdapter {
 
