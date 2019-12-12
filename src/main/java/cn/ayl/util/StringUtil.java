@@ -3,6 +3,7 @@ package cn.ayl.util;
 
 import cn.ayl.util.json.JsonObject;
 import cn.ayl.util.json.JsonObjects;
+import cn.ayl.util.json.JsonUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +26,16 @@ public class StringUtil {
     public static final Pattern EmailPattern = Pattern.compile("^[_A-Za-z0-9-]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
     private static String delims = " +-*=/!:;{}(),.?'\"\\\t\n\r";
     public static final char SPLITCHAR = '☉';
+
+    //判断是否为Json
+    public static boolean isJson(String content) {
+        try {
+            JsonUtil.parse(content);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
     public static String append(String... values) {
         StringBuilder builder = new StringBuilder();

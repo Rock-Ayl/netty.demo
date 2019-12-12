@@ -2,7 +2,9 @@ package cn.ayl.socket.handler;
 
 import cn.ayl.config.Const;
 import cn.ayl.rpc.Context;
+import cn.ayl.util.StringUtil;
 import cn.ayl.util.json.JsonObject;
+import cn.ayl.util.json.JsonUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.websocketx.*;
@@ -84,8 +86,14 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
             //请求text
             String request = ((TextWebSocketFrame) frame).text();
             logger.info("收到信息:" + request);
-            //返回
-            ctx.channel().writeAndFlush(new TextWebSocketFrame(JsonObject.Success().append("req", request).toString()));
+            //todo 写Json和text处理器
+            if (StringUtil.isJson(request)) {
+                //返回
+                ctx.channel().writeAndFlush(new TextWebSocketFrame(JsonUtil.parse(request).success().toString()));
+            } else {
+                //返回
+                ctx.channel().writeAndFlush(new TextWebSocketFrame(JsonObject.Success().append("req", request).toString()));
+            }
         }
     }
 
