@@ -4,7 +4,7 @@ import cn.ayl.config.Const;
 import cn.ayl.util.json.JsonObject;
 
 /**
- * created by Rock-Ayl 2019-
+ * created by Rock-Ayl 2019-12-12
  * 一个文件实体
  */
 public class FileEntry {
