@@ -109,11 +109,11 @@ public class Const {
     //http请求聚合字节最大长度
     public static int MaxContentLength = 1024 * 1048576;
     //WebSocket读空闲时间闲置/秒
-    public static int ReaderIdleTimeSeconds = 8;
+    public static int ReaderIdleTimeSeconds = 80;
     //WebSocket写空闲时间闲置/秒
-    public static int WriterIdleTimeSeconds = 10;
+    public static int WriterIdleTimeSeconds = 100;
     //WebSocket所有空闲时间闲置/秒
-    public static int AllIdleTimeSeconds = 12;
+    public static int AllIdleTimeSeconds = 120;
     //BACKLOG值用于构造服务端套接字ServerSocket对象，标识当服务器请求处理线程全满时，用于临时存放已完成三次握手的请求的队列的最大长度。如果未设置或所设置的值小于1，Java将使用默认值50。
     public static int ChannelOptionSoBacklogValue = 1024;
     //处理下载请求响应文件流块大小

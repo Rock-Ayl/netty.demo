@@ -2,12 +2,13 @@ package cn.ayl.socket.handler;
 
 import cn.ayl.config.Const;
 import cn.ayl.rpc.Context;
-import cn.ayl.util.StringUtil;
-import cn.ayl.util.json.JsonObject;
-import cn.ayl.util.json.JsonUtil;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.handler.codec.http.websocketx.*;
+import io.netty.util.concurrent.GlobalEventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +26,9 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
     //用来关闭WebSocket
     private WebSocketServerHandshaker webSocketServerHandshaker;
 
+    //一个群聊所有的人
+    public static ChannelGroup channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+
     /**
      * 通道，webSocket读取请求从这里过来
      */
@@ -40,33 +44,6 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
         if (msg instanceof WebSocketFrame) {
             handleWebSocketRequest(ctx, (WebSocketFrame) msg);
         }
-    }
-
-    /**
-     * 每个channel都有一个唯一的id值
-     * asLongText方法是channel的id的全名
-     */
-    @Override
-    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-        //todo 连接打开时
-        logger.info(ctx.channel().localAddress().toString() + " ,handlerAdded！, channelId=" + ctx.channel().id().asLongText());
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        logger.info("通道不活跃的");
-        super.channelInactive(ctx);
-    }
-
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) {
-        logger.info("正在执行channelActive()方法.....");
-    }
-
-    @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        //todo 连接关闭时
-        logger.info(ctx.channel().localAddress().toString() + " ,handlerRemoved！, channelId=" + ctx.channel().id().asLongText());
     }
 
     // 处理Websocket的代码
@@ -86,21 +63,55 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
             //请求text
             String request = ((TextWebSocketFrame) frame).text();
             logger.info("收到信息:" + request);
-            //todo 写Json和text处理器
-            if (StringUtil.isJson(request)) {
-                //返回
-                ctx.channel().writeAndFlush(new TextWebSocketFrame(JsonUtil.parse(request).success().toString()));
-            } else {
-                //返回
-                ctx.channel().writeAndFlush(new TextWebSocketFrame(JsonObject.Success().append("req", request).toString()));
+            Channel incoming = ctx.channel();
+            for (Channel channel : channels) {
+                if (channel != incoming) {
+                    channel.writeAndFlush(new TextWebSocketFrame("[" + incoming.remoteAddress() + "]" + request));
+                } else {
+                    channel.writeAndFlush(new TextWebSocketFrame("[you]" + request));
+                }
             }
         }
     }
 
     @Override
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {  // (2)
+        Channel incoming = ctx.channel();
+        for (Channel channel : channels) {
+            channel.writeAndFlush(new TextWebSocketFrame("[SERVER] - " + incoming.remoteAddress() + " 加入"));
+        }
+        channels.add(ctx.channel());
+        logger.info("Client:" + incoming.remoteAddress() + "加入");
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {  // (3)
+        Channel incoming = ctx.channel();
+        for (Channel channel : channels) {
+            channel.writeAndFlush(new TextWebSocketFrame("[SERVER] - " + incoming.remoteAddress() + " 离开"));
+        }
+        logger.info("Client:" + incoming.remoteAddress() + "离开");
+        channels.remove(ctx.channel());
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception { // (5)
+        Channel incoming = ctx.channel();
+        logger.info("Client:" + incoming.remoteAddress() + "在线");
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception { // (6)
+        Channel incoming = ctx.channel();
+        logger.info("Client:" + incoming.remoteAddress() + "掉线");
+    }
+
+    @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        //todo 出现异常
-        logger.error("Client:" + ctx.channel().remoteAddress() + " ,error", cause.getMessage());
+        Channel incoming = ctx.channel();
+        logger.error("Client:" + incoming.remoteAddress() + "异常");
+        // 当出现异常就关闭连接
+        cause.printStackTrace();
         ctx.close();
     }
 

@@ -115,20 +115,24 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @return
      */
     public static boolean hasNeedAuth(HttpRequest req) {
-        //根据请求路径获得服务和方法名
-        List<String> serviceAndMethod = getServiceAndMethod(req.getUri());
-        if (serviceAndMethod.size() >= 2) {
-            //获取服务
-            ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceAndMethod.get(0));
-            //如果服务存在
-            if (serviceEntry != null) {
-                //获取服务中的方法
-                MethodEntry methodEntry = serviceEntry.methodMap.get(serviceAndMethod.get(1));
-                //如果方法存在
-                if (methodEntry != null) {
-                    return methodEntry.auth;
+        try {
+            //根据请求路径获得服务和方法名
+            List<String> serviceAndMethod = getServiceAndMethod(req.getUri());
+            if (serviceAndMethod.size() >= 2) {
+                //获取服务
+                ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceAndMethod.get(0));
+                //如果服务存在
+                if (serviceEntry != null) {
+                    //获取服务中的方法
+                    MethodEntry methodEntry = serviceEntry.methodMap.get(serviceAndMethod.get(1));
+                    //如果方法存在
+                    if (methodEntry != null) {
+                        return methodEntry.auth;
+                    }
                 }
             }
+        } catch (Exception e) {
+            return false;
         }
         return false;
     }
