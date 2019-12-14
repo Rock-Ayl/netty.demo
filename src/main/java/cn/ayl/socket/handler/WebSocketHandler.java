@@ -66,9 +66,9 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
             Channel incoming = ctx.channel();
             for (Channel channel : channels) {
                 if (channel != incoming) {
-                    channel.writeAndFlush(new TextWebSocketFrame("[" + incoming.remoteAddress() + "]" + request));
+                    channel.writeAndFlush(new TextWebSocketFrame("[" + incoming.remoteAddress() + "]:" + request));
                 } else {
-                    channel.writeAndFlush(new TextWebSocketFrame("[you]" + request));
+                    channel.writeAndFlush(new TextWebSocketFrame("[you]:" + request));
                 }
             }
         }
@@ -78,7 +78,7 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {  // (2)
         Channel incoming = ctx.channel();
         for (Channel channel : channels) {
-            channel.writeAndFlush(new TextWebSocketFrame("[SERVER] - " + incoming.remoteAddress() + " 加入"));
+            channel.writeAndFlush(new TextWebSocketFrame("[SERVER] - " + incoming.remoteAddress() + " 加入房间"));
         }
         channels.add(ctx.channel());
         logger.info("Client:" + incoming.remoteAddress() + "加入");
@@ -88,7 +88,7 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {  // (3)
         Channel incoming = ctx.channel();
         for (Channel channel : channels) {
-            channel.writeAndFlush(new TextWebSocketFrame("[SERVER] - " + incoming.remoteAddress() + " 离开"));
+            channel.writeAndFlush(new TextWebSocketFrame("[SERVER] - " + incoming.remoteAddress() + " 离开房间"));
         }
         logger.info("Client:" + incoming.remoteAddress() + "离开");
         channels.remove(ctx.channel());
