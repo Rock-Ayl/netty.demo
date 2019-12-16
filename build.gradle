@@ -42,6 +42,9 @@ dependencies {
     //redis,redisson
     compile group: 'redis.clients', name: 'jedis', version: '2.9.0'
     compile group: 'org.redisson', name: 'redisson', version: '3.5.4'
+    //etcd连接池
+    compile group: 'org.mousio', name: 'etcd4j', version: '2.17.0'
+
 }
 
 //jar包设置
