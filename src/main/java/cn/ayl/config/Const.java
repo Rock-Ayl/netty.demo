@@ -31,7 +31,7 @@ public class Const {
     public static String SPACE = " ";
     public static String Message = "message";
     public static String IsSuccess = "isSuccess";
-    public static String Type = "requestType";
+    public static String Type = "type";
     public static String FileId = "fileId";
     public static String FileCreateTime = "fileCreateTime";
     public static String FileUpdateTime = "FileUpdateTime";

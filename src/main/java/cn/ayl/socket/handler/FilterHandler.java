@@ -118,9 +118,9 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
         }
         //如果Cookie需要认证(auto = true)
         if (needAuth) {
-            //todo 验证失败条件
+            //todo 验证失败条件,然后修改成返回false
             if (true) {
-                return false;
+                return true;
             }
         }
         return true;
@@ -141,6 +141,8 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             context.requestType = Const.RequestType.upload;
         } else if (path.startsWith(Const.HttpPagePath)) {
             context.requestType = Const.RequestType.htmlPage;
+        } else if (path.startsWith(Const.DownloadPath)) {
+            context.requestType = Const.RequestType.download;
         } else if (!StringUtil.isEmpty(FilenameUtils.getExtension(path))) {
             context.requestType = Const.RequestType.resource;
         } else {
