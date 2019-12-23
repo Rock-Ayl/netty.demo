@@ -99,11 +99,11 @@ public class Const {
     public static String MongoDBName = properties.getProperty("MongoDBName");
 
     //服务器-静态资源路径
-    public static String ResourcePath = "/workspace/resource/";
+    public static String ResourcePath = "/Users/ayl/workspace/resource/";
     //服务器-上传时临时文件路径
-    public static String UploadFilePath = "/workspace/upload/";
+    public static String UploadFilePath = "/Users/ayl/workspace/upload/";
     //服务器-下载文件路径
-    public static String DownloadFilePath = "/workspace/download/";
+    public static String DownloadFilePath = "/Users/ayl/workspace/download/";
     //SocketPort
     public static int SocketPort = 8888;
     //http请求聚合字节最大长度
