@@ -67,8 +67,11 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
             }
             //区分下网络协议并创建上下文
             distinguishNetworkProtocol(buffer, channel);
-            //根据网络协议分发
+            //根据网络协议分发解析器
             switchProtocol(p);
+            p.remove(this);
+            //通道绑定上下文,以后用get获取
+            p.channel().attr(Const.AttrContext).set(context);
         }
 
         /**
@@ -137,9 +140,6 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
                     this.switchHttp(p);
                     break;
             }
-            p.remove(this);
-            //通道绑定上下文,以后用get获取
-            p.channel().attr(Const.AttrContext).set(context);
         }
 
         /**
