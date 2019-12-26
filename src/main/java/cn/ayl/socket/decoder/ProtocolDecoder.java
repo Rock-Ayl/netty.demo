@@ -65,6 +65,16 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
             if (context != null) {
                 return;
             }
+            //区分下网络协议并创建上下文
+            distinguishNetworkProtocol(buffer, channel);
+            //根据网络协议分发
+            switchProtocol(p);
+        }
+
+        /**
+         * 区分网络协议，目前仅仅识别http和websocket
+         */
+        private void distinguishNetworkProtocol(ByteBuf buffer, Channel channel) {
             String header = this.readHeader(buffer);
             /*过滤chrome的跨越访问*/
             if (header.startsWith("GET /favicon.ico")) {
@@ -81,15 +91,10 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
                 context = Context.createInitContext(Const.RequestType.http, channel);
             }
             logger.info("decode header={}&contextType={}", header, context.requestType.name());
-            //分发协议并绑定上下文
-            switchProtocol(p);
         }
 
         /**
          * 读取请求Header
-         *
-         * @param buffer
-         * @return
          */
         private String readHeader(ByteBuf buffer) {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
@@ -118,10 +123,8 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
 
         /**
          * 简单判断请求并分发协议、绑定上下文
-         *
-         * @param p
          */
-        protected void switchProtocol(ChannelPipeline p) {
+        private void switchProtocol(ChannelPipeline p) {
             //根据请求类型分发
             switch (context.requestType) {
                 //WebSocket协议
@@ -144,7 +147,7 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
          *
          * @param p
          */
-        protected void switchWebSocket(ChannelPipeline p) {
+        private void switchWebSocket(ChannelPipeline p) {
             //基础套件
             httpAddLast(p);
             //上传套件
@@ -160,7 +163,7 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
          *
          * @param p
          */
-        protected void switchHttp(ChannelPipeline p) {
+        private void switchHttp(ChannelPipeline p) {
             //基础套件
             httpAddLast(p);
             //如果请求类型为上传，整合文件
