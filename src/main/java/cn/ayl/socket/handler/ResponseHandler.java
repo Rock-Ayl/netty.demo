@@ -10,8 +10,10 @@ import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
 
 import java.io.*;
+import java.net.URLEncoder;
 
 import static io.netty.buffer.Unpooled.copiedBuffer;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 
 /**
  * Created By Rock-Ayl 2019-11-14
@@ -80,18 +82,66 @@ public class ResponseHandler {
     }
 
     /**
-     * 响应并返回文件流
+     * 响应并返回请求静态资源的文件流
      *
      * @param ctx
      * @throws IOException
      */
-    public static void sendForStream(ChannelHandlerContext ctx, HttpRequest req, File file) throws IOException {
+    public static void sendForResourceStream(ChannelHandlerContext ctx, File file) throws IOException {
         //一个基础的OK请求
-        HttpResponse response = new DefaultHttpResponse(req.protocolVersion(), HttpResponseStatus.OK);
+        HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         //添加响应流类型
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, Const.parseHttpResponseContentType(file.getPath()));
         //handlers添加文件长度
         response.headers().set(HttpHeaderNames.CONTENT_LENGTH, file.length());
+        //写入响应及对应handlers
+        ctx.write(response);
+        //写入只读的文件流 (FileChannel放入Netty的FileRegion中)
+        ctx.write(new DefaultFileRegion(new RandomAccessFile(file, "r").getChannel(), 0, file.length()));
+        //ctx响应并关闭
+        ctx.channel().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+    }
+
+    /**
+     * 响应并返回请求下载文件的文件流
+     *
+     * @param ctx
+     * @throws IOException
+     */
+    public static void sendForDownloadStream(ChannelHandlerContext ctx, File file, String type, String fileName) throws IOException {
+        //一个基础的OK请求
+        HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+        //handlers添加文件长度
+        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, file.length());
+        //todo 如果为preview(浏览),则告诉浏览器,这个是PDF文件或其他文件,看业务,让其用自带插件浏览而非下载PDF(文件主要是PDF为浏览)
+        if (type.equals("preview")) {
+            response.headers().set(CONTENT_TYPE, "application/pdf; charset=utf-8");
+        } else {
+            //todo 处理非浏览类文件
+            switch (type) {
+                //svg格式文件
+                case "svg":
+                    response.headers().set(CONTENT_TYPE, " Image/svg+xml; charset=utf-8");
+                    break;
+                //视频
+                case "video":
+                    response.headers().set(CONTENT_TYPE, " video/mp4; charset=utf-8");
+                    break;
+                //剩下的，默认下载流
+                default:
+                    response.headers().set(CONTENT_TYPE, " application/octet-stream; charset=utf-8");
+                    break;
+            }
+            //设定为： 以附件的形式下载， 文件名是UTF-8，作为转换
+            String disposition = "attachment; filename*=UTF-8''" + URLEncoder.encode(fileName, "utf-8");
+            response.headers().add("Content-Disposition", disposition);
+        }
+        //todo 组装一些需要然前端知道的参数
+        response.headers().add("access-control-allow-origin", "*");
+        response.headers().add("access-control-allow-credentials", true);
+        response.headers().add("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+        response.headers().add("Access-Control-Allow-Headers", "X-Requested-With, Content-Type,Content-Length,cookieId,fileName,fileId,type");
+        response.headers().add("Access-Control-Max-Age", 86400);
         //写入响应及对应handlers
         ctx.write(response);
         //写入只读的文件流 (FileChannel放入Netty的FileRegion中)

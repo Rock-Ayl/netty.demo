@@ -67,7 +67,7 @@ public class ResourceHandler {
             return;
         }
         //需要修改，响应请求文件流
-        ResponseHandler.sendForStream(ctx, req, file);
+        ResponseHandler.sendForResourceStream(ctx, file);
     }
 
     /**

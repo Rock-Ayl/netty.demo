@@ -4,21 +4,15 @@ import cn.ayl.config.Const;
 import cn.ayl.util.StringUtil;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.stream.ChunkedStream;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
 
 /**
@@ -31,30 +25,25 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
 
     /**
      * todo 读取下载流逻辑,现在没有业务，随意写了一个，以后可以添加身份
-     * 读取业务中的文件流
+     * 读取业务中的文件
      *
      * @param type
      * @param fileId
      * @param fileName
      * @return
      */
-    protected InputStream readDownloadStream(String type, String fileId, String fileName) {
+    protected File readDownloadFile(String type, String fileId, String fileName) {
         File file = new File(Const.DownloadFilePath + fileName);
-        InputStream stream = null;
-        try {
-            stream = FileUtils.openInputStream(file);
-        } catch (IOException e) {
-            logger.error("文件不存在,Error:{}", e);
-        } finally {
-            return stream;
+        if (file.exists()) {
+            return file;
+        } else {
+            return null;
         }
     }
 
     /**
-     * 请求接入点
+     * 请求进入点
      *
-     * @param ctx
-     * @param request
      * @throws Exception
      */
     @Override
@@ -72,84 +61,18 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
             return;
         }
         //从业务中读取文件
-        InputStream stream = readDownloadStream(type, fileId, fileName);
+        File file = readDownloadFile(type, fileId, fileName);
         //读取失败，返回
-        if (stream == null) {
+        if (file == null) {
             logger.error("下载请求失败,文件不存在.");
             ResponseHandler.sendMessageForJson(ctx, NOT_FOUND, "下载请求失败,文件不存在.");
             return;
         }
         try {
-            //文件流大小
-            long fileLength = stream.available();
-            //创建响应成功
-            HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-            //设置content-length
-            HttpUtil.setContentLength(response, fileLength);
-            //todo 如果为preview(浏览),则告诉浏览器,这个是PDF文件或其他文件,看业务,让其用自带插件浏览而非下载PDF(文件主要是PDF为浏览)
-            if (type.equals("preview")) {
-                response.headers().set(CONTENT_TYPE, "application/pdf; charset=utf-8");
-            } else {
-                //todo 处理非浏览类文件
-                switch (type) {
-                    //svg格式文件
-                    case "svg":
-                        response.headers().set(CONTENT_TYPE, " Image/svg+xml; charset=utf-8");
-                        break;
-                    //视频
-                    case "video":
-                        response.headers().set(CONTENT_TYPE, " video/mp4; charset=utf-8");
-                        break;
-                    //剩下的，默认下载流
-                    default:
-                        response.headers().set(CONTENT_TYPE, " application/octet-stream; charset=utf-8");
-                        break;
-                }
-                //设定为： 以附件的形式下载， 文件名是UTF-8，作为转换
-                String disposition = "attachment; filename*=UTF-8''" + URLEncoder.encode(fileName, "utf-8");
-                response.headers().add("Content-Disposition", disposition);
-            }
-            //todo 组装一些需要然前端知道的参数
-            response.headers().add("access-control-allow-origin", "*");
-            response.headers().add("access-control-allow-credentials", true);
-            response.headers().add("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-            response.headers().add("Access-Control-Allow-Headers", "X-Requested-With, Content-Type,Content-Length,cookieId,fileName,fileId,type");
-            response.headers().add("Access-Control-Max-Age", 86400);
-            //请求写入ctx
-            ctx.write(response);
-            //写入文件流
-            ChannelFuture sendFuture = ctx.write(new HttpChunkedInput(new ChunkedStream(stream, Const.ChunkSize)), ctx.newProgressivePromise());
-            sendFuture.addListener(new ChannelProgressiveFutureListener() {
-                @Override
-                public void operationComplete(ChannelProgressiveFuture future) throws Exception {
-                    //操作完成后干掉文件内存
-                    stream.close();
-                }
-
-                @Override
-                public void operationProgressed(ChannelProgressiveFuture future, long progress, long total) {
-
-                }
-            });
-            //响应并关闭
-            ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+            //响应成功
+            ResponseHandler.sendForDownloadStream(ctx, file, type, fileName);
         } catch (Exception e) {
             logger.error("type=" + type + "&fileId=" + fileId, e);
-        }
-    }
-
-    /**
-     * 异常抓取
-     *
-     * @param ctx
-     * @param cause
-     * @throws Exception
-     */
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (ctx.channel().isActive()) {
-            ResponseHandler.sendMessageForJson(ctx, INTERNAL_SERVER_ERROR, "下载请求异常，连接断开.");
-            logger.error("下载请求异常，连接断开.");
         }
     }
 
@@ -174,6 +97,21 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
             return params;
         } else {
             return null;
+        }
+    }
+
+    /**
+     * 异常抓取
+     *
+     * @param ctx
+     * @param cause
+     * @throws Exception
+     */
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        if (ctx.channel().isActive()) {
+            ResponseHandler.sendMessageForJson(ctx, INTERNAL_SERVER_ERROR, "下载请求异常，连接断开.");
+            logger.error("下载请求异常，连接断开.");
         }
     }
 
