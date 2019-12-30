@@ -8,6 +8,8 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URLEncoder;
@@ -20,6 +22,8 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
  * 请求响应处理程序
  */
 public class ResponseHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(ResponseHandler.class);
 
     /**
      * 响应预检请求
@@ -96,9 +100,25 @@ public class ResponseHandler {
         response.headers().set(HttpHeaderNames.CONTENT_LENGTH, file.length());
         //写入响应及对应handlers
         ctx.write(response);
-        //写入只读的文件流 (FileChannel放入Netty的FileRegion中)
-        ctx.write(new DefaultFileRegion(new RandomAccessFile(file, "r").getChannel(), 0, file.length()));
-        //ctx响应并关闭
+        //构造发送文件线程，将文件写入到Chunked缓冲区中,同时写入只读的文件流 (FileChannel放入Netty的FileRegion中)
+        ChannelFuture sendFileFuture = ctx.write(new DefaultFileRegion(new RandomAccessFile(file, "r").getChannel(), 0, file.length()));
+        //添加传输监听
+        sendFileFuture.addListener(new ChannelProgressiveFutureListener() {
+            @Override
+            public void operationProgressed(ChannelProgressiveFuture future, long progress, long total) {
+                if (total < 0) { // total unknown
+                    logger.info("静态资源传输进度: " + progress);
+                } else {
+                    logger.info("静态资源传输进度: " + progress + " / " + total);
+                }
+            }
+
+            @Override
+            public void operationComplete(ChannelProgressiveFuture future) throws Exception {
+                logger.info("静态资源传输完毕.");
+            }
+        });
+        //ctx响应并关闭(如果使用Chunked编码，最后则需要发送一个编码结束的看空消息体，进行标记，表示所有消息体已经成功发送完成)
         ctx.channel().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
     }
 
@@ -144,9 +164,25 @@ public class ResponseHandler {
         response.headers().add("Access-Control-Max-Age", 86400);
         //写入响应及对应handlers
         ctx.write(response);
-        //写入只读的文件流 (FileChannel放入Netty的FileRegion中)
-        ctx.write(new DefaultFileRegion(new RandomAccessFile(file, "r").getChannel(), 0, file.length()));
-        //ctx响应并关闭
+        //构造发送文件线程，将文件写入到Chunked缓冲区中,同时写入只读的文件流 (FileChannel放入Netty的FileRegion中)
+        ChannelFuture sendFileFuture = ctx.write(new DefaultFileRegion(new RandomAccessFile(file, "r").getChannel(), 0, file.length()));
+        //添加传输监听
+        sendFileFuture.addListener(new ChannelProgressiveFutureListener() {
+            @Override
+            public void operationProgressed(ChannelProgressiveFuture future, long progress, long total) {
+                if (total < 0) { // total unknown
+                    logger.info("文件下载进度: " + progress);
+                } else {
+                    logger.info("文件下载进度: " + progress + " / " + total);
+                }
+            }
+
+            @Override
+            public void operationComplete(ChannelProgressiveFuture future) throws Exception {
+                logger.info("下载完毕.");
+            }
+        });
+        //ctx响应并关闭(如果使用Chunked编码，最后则需要发送一个编码结束的看空消息体，进行标记，表示所有消息体已经成功发送完成)
         ctx.channel().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
     }
 
