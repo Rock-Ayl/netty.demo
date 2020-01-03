@@ -38,12 +38,20 @@ public class RegistryEntry {
                 }
                 //获取类
                 Class cls = ScanClassUtil.scan.classNameToClassRef(className);
-                //new 服务实体
+                //获取实现类
+                List<String> implNames = ScanClassUtil.readImplClassNames(cls.getName());
+                //没有实现不注册
+                if (implNames.size() == 0) {
+                    logger.error("[{}] has not implement class", cls.getName());
+                    continue;
+                }
+                //创建服务实体
                 ServiceEntry serviceEntry = new ServiceEntry(cls);
-                //初始化服务实体
+                //初始化服务实体，解析里面的方法、参数
                 serviceEntry.init();
                 //组装至List存放
                 serviceMap.put(cls.getSimpleName(), serviceEntry);
+                logger.info("[{}] Register Success", cls.getName());
             }
         }
         logger.info(">>>>>> RegistryEntry Scan All Services >>>>>>");
