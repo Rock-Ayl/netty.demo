@@ -20,9 +20,8 @@ public class SocketServer {
 
     public static SocketServer socketServer = new SocketServer();
 
-    //单例
+    //构造私有化
     private SocketServer() {
-
     }
 
     /**
