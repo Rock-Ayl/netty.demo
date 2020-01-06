@@ -14,15 +14,11 @@ import org.slf4j.LoggerFactory;
  * created by Rock-Ayl 2019-11-4
  * 通信服务
  */
-public class SocketServer {
+public enum SocketServer {
+
+    SocketServer;
 
     protected static Logger logger = LoggerFactory.getLogger(SocketServer.class);
-
-    public static SocketServer socketServer = new SocketServer();
-
-    //构造私有化
-    private SocketServer() {
-    }
 
     /**
      * NioEventLoopGroup是一个处理I/O操作的事件循环器 (其实是个线程池)。
@@ -77,14 +73,14 @@ public class SocketServer {
 
     //开启netty
     public static void startup() {
-        socketServer.bossGroup = new NioEventLoopGroup();
-        socketServer.workerGroup = new NioEventLoopGroup();
+        SocketServer.bossGroup = new NioEventLoopGroup();
+        SocketServer.workerGroup = new NioEventLoopGroup();
         try {
             /**
              * ServerBootstrap是用来搭建 server 的协助类。
              * 你也可以直接使用Channel搭建 server，然而这样做步骤冗长，不是一个好的实践，大多数情况下建议使用ServerBootstrap。
              */
-            ServerBootstrap bootstrap = SocketServer.createDefaultServerBootstrap(socketServer.bossGroup, socketServer.workerGroup);
+            ServerBootstrap bootstrap = SocketServer.createDefaultServerBootstrap(SocketServer.bossGroup, SocketServer.workerGroup);
             /**
              * 这里的 handler 会被用来处理新接收的Channel。
              * ChannelInitializer是一个特殊的 handler，
@@ -104,13 +100,13 @@ public class SocketServer {
              * In this example, this does not happen, but you can do that to gracefully(在本例中，这种情况不会发生，但是您可以优雅地这样做)
              * shut down your server.(关闭你的服务)
              */
-            socketServer.channel = f.channel();
-            socketServer.channel.closeFuture().sync();
+            SocketServer.channel = f.channel();
+            SocketServer.channel.closeFuture().sync();
         } catch (Exception e) {
             logger.error("Socket startup Error, maybe Address already in use ", e);
         } finally {
-            socketServer.workerGroup.shutdownGracefully();
-            socketServer.bossGroup.shutdownGracefully();
+            SocketServer.workerGroup.shutdownGracefully();
+            SocketServer.bossGroup.shutdownGracefully();
         }
     }
 
