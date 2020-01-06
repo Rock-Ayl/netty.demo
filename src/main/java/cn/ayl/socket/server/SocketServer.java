@@ -20,6 +20,11 @@ public class SocketServer {
 
     public static SocketServer socketServer = new SocketServer();
 
+    //单例
+    private SocketServer() {
+
+    }
+
     /**
      * NioEventLoopGroup是一个处理I/O操作的事件循环器 (其实是个线程池)。
      * netty为不同类型的传输协议提供了多种NioEventLoopGroup的实现。
@@ -71,9 +76,7 @@ public class SocketServer {
                 .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
     }
 
-    /**
-     * 开启Http与WebSocket
-     */
+    //开启netty
     public static void startup() {
         socketServer.bossGroup = new NioEventLoopGroup();
         socketServer.workerGroup = new NioEventLoopGroup();
@@ -112,7 +115,7 @@ public class SocketServer {
         }
     }
 
-    //关闭Socket
+    //关闭netty
     public void destroy() {
         if (channel != null) {
             channel.close();
