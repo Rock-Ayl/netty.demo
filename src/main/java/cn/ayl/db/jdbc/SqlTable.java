@@ -3,6 +3,7 @@ package cn.ayl.db.jdbc;
 import cn.ayl.db.jdbc.sqlbuilder.Sql;
 import cn.ayl.util.json.JsonObject;
 import cn.ayl.util.json.JsonObjects;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,7 @@ public class SqlTable extends Table {
     protected static Logger logger = LoggerFactory.getLogger(SqlTable.class);
 
     protected static class ObjectObserve implements IObserveRecord {
-        public JsonObjects records = new JsonObjects();
+        public JsonObjects records = JsonObjects.VOID();
         protected boolean wrapperParam = true;
 
         protected static ObjectObserve build(boolean wrapperParam) {
@@ -127,7 +128,7 @@ public class SqlTable extends Table {
 
     public JsonObject queryObject(String sql) {
         JsonObjects list = queryObjects(sql, 0, 1);
-        if (list == null || list.size() == 0) {
+        if (CollectionUtils.isEmpty(list)) {
             return null;
         }
         return list.get(0);
@@ -135,7 +136,7 @@ public class SqlTable extends Table {
 
     public JsonObject queryObject(String sql, Object[] values) {
         JsonObjects list = queryObjects(sql, this.toList(values), 0, 1, false);
-        if (list == null || list.size() == 0) {
+        if (CollectionUtils.isEmpty(list)) {
             return null;
         }
         return list.get(0);
@@ -143,7 +144,7 @@ public class SqlTable extends Table {
 
     public JsonObject queryObject(String sql, List<Object> values) {
         JsonObjects list = queryObjects(sql, values, 0, 1, true);
-        if (list == null || list.size() == 0) {
+        if (CollectionUtils.isEmpty(list)) {
             return null;
         }
         return list.get(0);
