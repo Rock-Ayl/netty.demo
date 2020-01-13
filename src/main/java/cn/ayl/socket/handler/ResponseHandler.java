@@ -1,8 +1,8 @@
 package cn.ayl.socket.handler;
 
 import cn.ayl.config.Const;
-import cn.ayl.util.StringUtil;
-import cn.ayl.util.json.JsonObject;
+import cn.ayl.util.StringUtils;
+import cn.ayl.common.json.JsonObject;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
@@ -78,7 +78,7 @@ public class ResponseHandler {
     public static void sendMessageForJson(ChannelHandlerContext ctx, HttpResponseStatus status, String content) {
         JsonObject result = JsonObject.Success().append(Const.Message, content);
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer(result.toJson(), CharsetUtil.UTF_8));
-        if (!StringUtil.isEmpty(content)) {
+        if (!StringUtils.isEmpty(content)) {
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         }

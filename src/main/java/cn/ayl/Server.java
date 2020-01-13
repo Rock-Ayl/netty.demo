@@ -1,7 +1,7 @@
 package cn.ayl;
 
-import cn.ayl.entry.RegistryEntry;
-import cn.ayl.job.Scheduler;
+import cn.ayl.common.entry.RegistryEntry;
+import cn.ayl.common.job.Scheduler;
 import cn.ayl.socket.server.SocketServer;
 
 /**

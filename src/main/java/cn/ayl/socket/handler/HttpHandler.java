@@ -1,15 +1,15 @@
 package cn.ayl.socket.handler;
 
 import cn.ayl.config.Const;
-import cn.ayl.entry.MethodEntry;
-import cn.ayl.entry.ParamEntry;
-import cn.ayl.entry.RegistryEntry;
-import cn.ayl.entry.ServiceEntry;
-import cn.ayl.rpc.Context;
-import cn.ayl.util.ScanClassUtil;
-import cn.ayl.util.TypeUtil;
-import cn.ayl.util.json.JsonObject;
-import cn.ayl.util.json.JsonUtil;
+import cn.ayl.common.entry.MethodEntry;
+import cn.ayl.common.entry.ParamEntry;
+import cn.ayl.common.entry.RegistryEntry;
+import cn.ayl.common.entry.ServiceEntry;
+import cn.ayl.socket.rpc.Context;
+import cn.ayl.util.ScanClassUtils;
+import cn.ayl.util.TypeUtils;
+import cn.ayl.common.json.JsonObject;
+import cn.ayl.common.json.JsonUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -181,7 +181,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             }
         }
         //已确认服务接口参数均对应上,获取服务的实现类
-        Class serviceClass = ScanClassUtil.findImplClass(serviceEntry.interFaceClass);
+        Class serviceClass = ScanClassUtils.findImplClass(serviceEntry.interFaceClass);
         //是否存在实现
         if (serviceClass == null) {
             return Const.Json_No_Impl;
@@ -344,7 +344,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 //如果该参数是我需要的
                 if (paramMap.containsKey(entry.getKey())) {
                     //强转并组装
-                    params.put(entry.getKey(), TypeUtil.castObject(paramMap.get(entry.getKey()).clazz, entry.getValue().get(0)));
+                    params.put(entry.getKey(), TypeUtils.castObject(paramMap.get(entry.getKey()).clazz, entry.getValue().get(0)));
                 }
             }
             return params;
@@ -403,7 +403,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 //如果是所需参数
                 if (paramMap.containsKey(attributeName)) {
                     //强转并组装
-                    params.put(attributeName, TypeUtil.castObject(paramMap.get(attributeName).clazz, attribute.getValue()));
+                    params.put(attributeName, TypeUtils.castObject(paramMap.get(attributeName).clazz, attribute.getValue()));
                 }
             }
         }
@@ -429,7 +429,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             //如果是所需参数
             if (paramMap.containsKey(key.toString())) {
                 //强转并组装
-                params.put(key.toString(), TypeUtil.castObject(paramMap.get(key.toString()).clazz, jsonParams.get((String) key)));
+                params.put(key.toString(), TypeUtils.castObject(paramMap.get(key.toString()).clazz, jsonParams.get((String) key)));
             }
         }
         return params;

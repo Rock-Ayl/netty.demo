@@ -1,7 +1,7 @@
 package cn.ayl.socket.decoder;
 
 import cn.ayl.config.Const;
-import cn.ayl.rpc.Context;
+import cn.ayl.socket.rpc.Context;
 import cn.ayl.socket.handler.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;

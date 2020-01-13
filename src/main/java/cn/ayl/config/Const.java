@@ -1,8 +1,8 @@
 package cn.ayl.config;
 
-import cn.ayl.rpc.Context;
-import cn.ayl.util.PropertyFileUtil;
-import cn.ayl.util.json.JsonObject;
+import cn.ayl.socket.rpc.Context;
+import cn.ayl.util.PropertyFileUtils;
+import cn.ayl.common.json.JsonObject;
 import io.netty.util.AttributeKey;
 import jodd.io.FileNameUtil;
 
@@ -23,7 +23,7 @@ public class Const {
     /**
      * 配置文件对象
      */
-    public static PropertyFileUtil properties = new PropertyFileUtil().use("setting.properties");
+    public static PropertyFileUtils properties = new PropertyFileUtils().use("setting.properties");
 
     /**
      * 常用字段

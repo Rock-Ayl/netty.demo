@@ -1,9 +1,9 @@
 package cn.ayl.socket.handler;
 
 import cn.ayl.config.Const;
-import cn.ayl.rpc.Context;
+import cn.ayl.socket.rpc.Context;
 import cn.ayl.socket.decoder.ProtocolDecoder;
-import cn.ayl.util.StringUtil;
+import cn.ayl.util.StringUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
@@ -143,7 +143,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             context.requestType = Const.RequestType.htmlPage;
         } else if (path.startsWith(Const.DownloadPath)) {
             context.requestType = Const.RequestType.download;
-        } else if (!StringUtil.isEmpty(FilenameUtils.getExtension(path))) {
+        } else if (!StringUtils.isEmpty(FilenameUtils.getExtension(path))) {
             context.requestType = Const.RequestType.resource;
         } else {
             context.requestType = Const.RequestType.service;

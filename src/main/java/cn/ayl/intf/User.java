@@ -1,6 +1,6 @@
 package cn.ayl.intf;
 
-import cn.ayl.annotation.Service;
+import cn.ayl.common.annotation.Service;
 
 /**
  * created by Rock-Ayl 2020/1/3

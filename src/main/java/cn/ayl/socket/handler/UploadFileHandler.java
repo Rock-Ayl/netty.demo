@@ -1,16 +1,15 @@
 package cn.ayl.socket.handler;
 
 import cn.ayl.config.Const;
-import cn.ayl.entry.FileEntry;
-import cn.ayl.util.Base64Convert;
-import cn.ayl.util.StringUtil;
-import cn.ayl.util.json.JsonObject;
+import cn.ayl.common.entry.FileEntry;
+import cn.ayl.util.Base64Utils;
+import cn.ayl.util.StringUtils;
+import cn.ayl.common.json.JsonObject;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,13 +115,13 @@ public class UploadFileHandler {
             //如果是中文，用base64解码一下
             if (fileName.indexOf(".") <= 0) {
                 //解码
-                fileName = Base64Convert.decode64(fileName);
+                fileName = Base64Utils.decode64(fileName);
             }
             file.setFileName(fileName);
             //文件后缀
             file.setFileExt(FilenameUtils.getExtension(fileName));
             //生成一个文件唯一id
-            file.setFileId(StringUtil.newId());
+            file.setFileId(StringUtils.newId());
             //文件创建时间
             file.setFileCreateTime(headers.get(Const.FileCreateTime, "0"));
             //文件修改时间
@@ -253,7 +252,7 @@ public class UploadFileHandler {
                 FileUpload fileUpload = (FileUpload) data;
                 if (fileUpload.isCompleted()) {
                     file.setFileName(fileUpload.getFilename());
-                    if (StringUtils.isEmpty(file.getFileName())) {
+                    if (org.apache.commons.lang3.StringUtils.isEmpty(file.getFileName())) {
                         file.setFileName(fileUpload.getName());
                     }
                     fileBuffer.put(fileUpload.getByteBuf().array());

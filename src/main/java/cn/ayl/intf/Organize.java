@@ -1,9 +1,9 @@
 package cn.ayl.intf;
 
-import cn.ayl.annotation.Method;
-import cn.ayl.annotation.Param;
-import cn.ayl.annotation.Service;
-import cn.ayl.util.json.JsonObject;
+import cn.ayl.common.annotation.Method;
+import cn.ayl.common.annotation.Param;
+import cn.ayl.common.annotation.Service;
+import cn.ayl.common.json.JsonObject;
 
 /**
  * created by Rock-Ayl 2019-11-13

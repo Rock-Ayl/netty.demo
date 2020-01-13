@@ -1,7 +1,7 @@
 package cn.ayl.service;
 
 import cn.ayl.intf.Organize;
-import cn.ayl.util.json.JsonObject;
+import cn.ayl.common.json.JsonObject;
 
 /**
  * created by Rock-Ayl 2019-11-26
