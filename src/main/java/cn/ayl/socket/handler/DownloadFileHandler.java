@@ -1,6 +1,7 @@
 package cn.ayl.socket.handler;
 
 import cn.ayl.config.Const;
+import cn.ayl.handler.FileHandler;
 import cn.ayl.util.StringUtils;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
@@ -23,7 +24,6 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
     protected static Logger logger = LoggerFactory.getLogger(DownloadFileHandler.class);
 
     /**
-     * todo 读取下载流逻辑,现在没有业务，随意写了一个，以后可以添加身份
      * 读取业务中的文件
      *
      * @param type
@@ -31,13 +31,8 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
      * @param fileName
      * @return
      */
-    protected File readDownloadFile(String type, String fileId, String fileName) {
-        File file = new File(Const.DownloadFilePath + fileName);
-        if (file.exists()) {
-            return file;
-        } else {
-            return null;
-        }
+    private File readDownloadFile(String type, String fileId, String fileName) {
+        return FileHandler.instance.readDownloadFile(type, fileId, fileName);
     }
 
     /**
@@ -49,11 +44,11 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
         //获取get请求路径的参数
         Map map = getGetParamsFromChannel(request);
-        //todo 根据请求路径抽取参数，可以更多
+        //根据请求路径抽取参数
         String type = (String) map.get(Const.Type);
         String fileId = (String) map.get(Const.FileId);
         String fileName = (String) map.get(Const.FileName);
-        //todo 这里可以补充逻辑判定
+        //判空
         if (org.apache.commons.lang3.StringUtils.isEmpty(type) || org.apache.commons.lang3.StringUtils.isEmpty(fileId) || StringUtils.isEmpty(fileName)) {
             logger.error("下载请求失败.");
             ResponseHandler.sendMessageForJson(ctx, NOT_FOUND, "下载文件参数必须同时包含type&fileId&fileName");

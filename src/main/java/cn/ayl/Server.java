@@ -16,7 +16,7 @@ public class Server {
         //扫描所有服务已存在
         RegistryEntry.scanServices();
         //扫描之后，可以启动netty监听
-        SocketServer.startup();
+        SocketServer.SocketServer.startup();
     }
 
 }

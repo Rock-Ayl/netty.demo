@@ -72,7 +72,7 @@ public enum SocketServer {
     }
 
     //开启netty
-    public static void startup() {
+    public void startup() {
         SocketServer.bossGroup = new NioEventLoopGroup();
         SocketServer.workerGroup = new NioEventLoopGroup();
         try {

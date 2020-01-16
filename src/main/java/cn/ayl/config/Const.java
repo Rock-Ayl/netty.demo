@@ -30,6 +30,8 @@ public class Const {
      */
     public static String SPACE = " ";
     public static String Message = "message";
+    public static String Items = "items";
+    public static String Data = "data";
     public static String IsSuccess = "isSuccess";
     public static String Type = "type";
     public static String FileId = "fileId";

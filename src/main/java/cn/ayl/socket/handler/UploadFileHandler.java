@@ -2,6 +2,7 @@ package cn.ayl.socket.handler;
 
 import cn.ayl.config.Const;
 import cn.ayl.common.entry.FileEntry;
+import cn.ayl.handler.FileHandler;
 import cn.ayl.util.Base64Utils;
 import cn.ayl.util.StringUtils;
 import cn.ayl.common.json.JsonObject;
@@ -44,6 +45,8 @@ public class UploadFileHandler {
     protected ByteBuffer fileBuffer;
     //文件实体
     private FileEntry file;
+    //业务返回结果
+    private JsonObject result;
 
     static {
         //设置结束时删除临时文件
@@ -71,9 +74,13 @@ public class UploadFileHandler {
         headerFilters.add("Cookie");
     }
 
-    //todo 上传业务逻辑,根据fileEntry去处理
-    public void handleUpload() {
-
+    /**
+     * 处理上传业务
+     *
+     * @return
+     */
+    private void uploadService(FileEntry fileEntry) {
+        result = FileHandler.instance.uploadFile(fileEntry);
     }
 
     public void handleRequest(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
@@ -171,7 +178,8 @@ public class UploadFileHandler {
                 logger.info("upload File[{}] Success", file.getFileName());
                 fileChannel.close();
                 fileBuffer.clear();
-                doUploadService();
+                //处理上传业务
+                uploadService(file);
             }
             return;
         }
@@ -258,17 +266,18 @@ public class UploadFileHandler {
                     fileBuffer.put(fileUpload.getByteBuf().array());
                     fileChannel.close();
                     fileBuffer.clear();
-                    doUploadService();
+                    //处理上传业务
+                    uploadService(file);
                     //响应并关闭
-                    ResponseHandler.sendForJson(ctx, HttpResponseStatus.OK, file.toJson());
+                    if (result != null) {
+                        ResponseHandler.sendForJson(ctx, HttpResponseStatus.OK, result);
+                    } else {
+                        ResponseHandler.sendForJson(ctx, HttpResponseStatus.OK, file.toJson());
+                    }
                     logger.info("upload FileName=[{}] success.", file.getFileName());
                 }
             }
         }
-    }
-
-    private void doUploadService() {
-        handleUpload();
     }
 
     public void clear() {

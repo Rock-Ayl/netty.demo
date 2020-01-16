@@ -1,6 +1,6 @@
 package cn.ayl.socket.handler;
 
-import cn.ayl.config.Const;
+import cn.ayl.handler.FileHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
 import jodd.io.FileNameUtil;
@@ -27,23 +27,33 @@ public class ResourceHandler {
     //静态资源-文件最后修改时间格式
     public static final SimpleDateFormat HTTP_DATE_FORMATTER = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
 
+    /**
+     * 读取服务器中静态资源
+     *
+     * @param pathSuffix 资源path后缀
+     * @return 文件
+     */
+    private File readResourceFile(String pathSuffix) {
+        return FileHandler.instance.readResourceFile(pathSuffix);
+    }
+
     //资源处理器
     public void handleResource(ChannelHandlerContext ctx, HttpRequest req) {
-        //获取请求静态路径
-        String uri = req.getUri();
-        //如果uri长度太短，直接返回
-        if (uri.length() == 0) {
+        //获取请求静态路径后缀
+        String pathSuffix = req.getUri();
+        //如果资源后缀长度太短，直接返回
+        if (pathSuffix.length() == 0) {
             return;
         }
         try {
             //对中文进行解码
-            uri = URLDecoder.decode(FileNameUtil.getBaseName(uri), "UTF-8") + "." + FileNameUtil.getExtension(uri);
+            pathSuffix = URLDecoder.decode(FileNameUtil.getBaseName(pathSuffix), "UTF-8") + "." + FileNameUtil.getExtension(pathSuffix);
         } catch (UnsupportedEncodingException e) {
             logger.error("Resource decode Exception.", e);
             return;
         }
         //获取服务器中的文件
-        File file = new File(Const.ResourcePath + uri);
+        File file = readResourceFile(pathSuffix);
         //文件是否存在
         boolean hasFile = file.exists();
         //如果存在，处理文件
