@@ -19,7 +19,7 @@ public class PrintJob implements Job {
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         //todo 业务
-        logger.info("执行定时器任务ing...");
+        logger.info(" Scheduler Demo Starting...");
     }
 
 }

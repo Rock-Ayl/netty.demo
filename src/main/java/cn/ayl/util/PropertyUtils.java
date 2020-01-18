@@ -14,17 +14,17 @@ import java.util.function.Function;
  * create by Rock-Ayl 2019-6-13
  * 操作properties的工具类
  */
-public class PropertyFileUtils extends Properties {
+public class PropertyUtils extends Properties {
 
-    private static final Logger logger = LoggerFactory.getLogger(PropertyFileUtils.class);
+    private static final Logger logger = LoggerFactory.getLogger(PropertyUtils.class);
 
-    public PropertyFileUtils() {
+    public PropertyUtils() {
         defaults = new Properties();
     }
 
-    public PropertyFileUtils use(String fileName) {
+    public PropertyUtils use(String fileName) {
         try {
-            InputStream stream = PropertyFileUtils.class.getResourceAsStream("/" + fileName);
+            InputStream stream = PropertyUtils.class.getResourceAsStream("/" + fileName);
             InputStreamReader in = new InputStreamReader(stream, "UTF-8");
             defaults.load(in);
             in.close();

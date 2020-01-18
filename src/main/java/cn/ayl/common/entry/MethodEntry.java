@@ -88,19 +88,4 @@ public class MethodEntry {
         }
     }
 
-    private int weight() {
-        switch (this.command) {
-            case post:
-                return 0;
-            case get:
-                return 1;
-            default:
-                return 0;
-        }
-    }
-
-    protected int compareTo(MethodEntry source) {
-        return this.weight() - source.weight();
-    }
-
 }
