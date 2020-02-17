@@ -24,7 +24,7 @@ public class Context {
     public Channel channel;
 
     //cookieId
-    public String cookieid = null;
+    public String cookieId = null;
     //会话参数
     public JsonObject parameterObject = JsonObject.VOID();
 
