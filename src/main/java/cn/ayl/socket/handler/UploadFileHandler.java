@@ -263,7 +263,7 @@ public class UploadFileHandler {
                     if (org.apache.commons.lang3.StringUtils.isEmpty(file.getFileName())) {
                         file.setFileName(fileUpload.getName());
                     }
-                    fileBuffer.put(fileUpload.getByteBuf().array());
+                    fileBuffer.put(fileUpload.get());
                     fileChannel.close();
                     fileBuffer.clear();
                     //处理上传业务
