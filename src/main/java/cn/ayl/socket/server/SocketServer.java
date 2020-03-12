@@ -104,6 +104,7 @@ public enum SocketServer {
             SocketServer.channel.closeFuture().sync();
         } catch (Exception e) {
             logger.error("Socket startup Error, maybe Address already in use ", e);
+            System.exit(-1);
         } finally {
             SocketServer.workerGroup.shutdownGracefully();
             SocketServer.bossGroup.shutdownGracefully();
