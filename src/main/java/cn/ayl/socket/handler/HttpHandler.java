@@ -19,6 +19,7 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryAttribute;
 import io.netty.util.ReferenceCountUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -149,8 +150,14 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         if (serviceAndMethod.size() < 2) {
             return Const.Json_No_Service;
         }
+        //服务名
+        String serviceName = serviceAndMethod.get(0);
+        //判空
+        if (StringUtils.isBlank(serviceName)) {
+            return Const.Json_No_Service;
+        }
         //获取服务
-        ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceAndMethod.get(0));
+        ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceName);
         //如果服务存在
         if (serviceEntry == null) {
             return Const.Json_No_Service;
@@ -246,7 +253,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 //处理请求
                 uploadFileHandler.handleRequest(ctx, req);
                 break;
-            //服务请求
+            //默认服务请求
             case service:
             default:
                 handleService(ctx, req);
