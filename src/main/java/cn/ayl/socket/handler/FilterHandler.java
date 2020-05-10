@@ -3,7 +3,6 @@ package cn.ayl.socket.handler;
 import cn.ayl.config.Const;
 import cn.ayl.socket.rpc.Context;
 import cn.ayl.socket.decoder.ProtocolDecoder;
-import cn.ayl.util.StringUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
@@ -11,6 +10,7 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.ReferenceCountUtil;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,16 +101,23 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    //身份效验
+    /**
+     * 请求身份效验
+     *
+     * @param req
+     * @return
+     */
     private boolean auth(HttpRequest req) {
         //是否需要验证
         boolean needAuth = false;
         //根据请求类型分类是否需要验证身份
         switch (context.requestType) {
+            //上传下载必须验证身份
             case upload:
             case download:
                 needAuth = true;
                 break;
+            //服务需要看接口
             case service:
                 //service的得拿到 auth
                 needAuth = HttpHandler.hasNeedAuth(req);
@@ -143,7 +150,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             context.requestType = Const.RequestType.htmlPage;
         } else if (path.startsWith(Const.DownloadPath)) {
             context.requestType = Const.RequestType.download;
-        } else if (!StringUtils.isEmpty(FilenameUtils.getExtension(path))) {
+        } else if (StringUtils.isNotEmpty(FilenameUtils.getExtension(path))) {
             context.requestType = Const.RequestType.resource;
         } else {
             context.requestType = Const.RequestType.service;

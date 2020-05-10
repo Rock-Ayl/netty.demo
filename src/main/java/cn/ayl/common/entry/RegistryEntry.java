@@ -3,6 +3,7 @@ package cn.ayl.common.entry;
 import cn.ayl.config.Const;
 import cn.ayl.intf.IMicroService;
 import cn.ayl.util.ScanClassUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,7 @@ public class RegistryEntry {
                 //获取实现类
                 List<String> implNames = ScanClassUtils.readImplClassNames(cls.getName());
                 //没有实现不注册
-                if (implNames.size() == 0) {
+                if (CollectionUtils.isEmpty(implNames)) {
                     logger.error("[{}] has not implement class", cls.getName());
                     continue;
                 }

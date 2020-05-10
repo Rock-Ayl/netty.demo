@@ -54,6 +54,7 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
          */
         @Override
         protected void decode(ChannelHandlerContext channelCtx, ByteBuf buffer, List<Object> out) {
+            //过滤请求大小
             if (buffer.readableBytes() < 8) {
                 return;
             }

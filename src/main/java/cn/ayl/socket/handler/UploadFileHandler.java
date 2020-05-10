@@ -4,7 +4,7 @@ import cn.ayl.config.Const;
 import cn.ayl.common.entry.FileEntry;
 import cn.ayl.handler.FileHandler;
 import cn.ayl.util.Base64Utils;
-import cn.ayl.util.StringUtils;
+import cn.ayl.util.IdUtils;
 import cn.ayl.common.json.JsonObject;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
@@ -128,7 +128,7 @@ public class UploadFileHandler {
             //文件后缀
             file.setFileExt(FilenameUtils.getExtension(fileName));
             //生成一个文件唯一id
-            file.setFileId(StringUtils.newId());
+            file.setFileId(IdUtils.newId());
             //文件创建时间
             file.setFileCreateTime(headers.get(Const.FileCreateTime, "0"));
             //文件修改时间

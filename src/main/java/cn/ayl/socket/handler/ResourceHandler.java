@@ -4,6 +4,7 @@ import cn.ayl.handler.FileHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
 import jodd.io.FileNameUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +72,14 @@ public class ResourceHandler {
         }
     }
 
+    /**
+     * 处理文件
+     *
+     * @param ctx
+     * @param req
+     * @param file
+     * @throws Exception
+     */
     private void handleFile(ChannelHandlerContext ctx, HttpRequest req, File file) throws Exception {
         //如果文件不需要修改，返回
         if (!isModified(ctx, req, file)) {
@@ -93,7 +102,7 @@ public class ResourceHandler {
         String ifModifiedSince = req.headers().get(IF_MODIFIED_SINCE);
         try {
             //如果存在文件最后修改时间
-            if (ifModifiedSince != null && !ifModifiedSince.isEmpty()) {
+            if (StringUtils.isNotEmpty(ifModifiedSince)) {
                 //转化为时间戳并变为秒
                 long ifModifiedSinceDateSeconds = HTTP_DATE_FORMATTER.parse(ifModifiedSince).getTime() / 1000;
                 //获取服务器文件最后修改时间
@@ -106,6 +115,7 @@ public class ResourceHandler {
                 }
             }
         } catch (Exception e) {
+            logger.error("检测缓存文件是否修改出错:{}", e);
             return true;
         }
         return true;

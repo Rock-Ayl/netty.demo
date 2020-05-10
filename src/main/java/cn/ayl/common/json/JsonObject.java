@@ -1,7 +1,7 @@
 package cn.ayl.common.json;
 
 import cn.ayl.util.GsonUtils;
-import cn.ayl.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -92,7 +92,7 @@ public class JsonObject extends Document {
         for (Iterator<Map.Entry<String, Object>> i = this.entrySet().iterator(); i.hasNext(); ) {
             Map.Entry<String, Object> entry = i.next();
             JsonObject item = (JsonObject) entry.getValue();
-            if (!StringUtils.isEmpty(keyFieldName)) {
+            if (org.apache.commons.lang3.StringUtils.isNotEmpty(keyFieldName)) {
                 item.append(keyFieldName, entry.getKey());
             }
             result.add(item);

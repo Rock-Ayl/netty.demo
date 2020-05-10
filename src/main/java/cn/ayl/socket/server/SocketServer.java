@@ -104,6 +104,7 @@ public enum SocketServer {
             SocketServer.channel.closeFuture().sync();
         } catch (Exception e) {
             logger.error("Socket startup Error, maybe Address already in use ", e);
+            //直接关闭
             System.exit(-1);
         } finally {
             SocketServer.workerGroup.shutdownGracefully();
@@ -111,14 +112,16 @@ public enum SocketServer {
         }
     }
 
-    //关闭netty
+    /**
+     * 关闭
+     */
     public void destroy() {
         if (channel != null) {
             channel.close();
         }
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
-        System.out.println("WebsocketChatServer Destroy:" + Const.SocketPort);
+        logger.error("WebsocketChatServer Destroy:" + Const.SocketPort);
     }
 
 }

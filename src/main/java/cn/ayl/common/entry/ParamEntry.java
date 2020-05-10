@@ -8,8 +8,9 @@ import cn.ayl.config.Const;
  */
 public class ParamEntry {
 
-    //该参数class类型 eg: String Boolean ...
+    //类
     public final Class<?> clazz;
+    //类的类型
     public transient final Const.ClassType type;
     //名称
     public final String name;

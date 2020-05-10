@@ -19,6 +19,7 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryAttribute;
 import io.netty.util.ReferenceCountUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,10 +117,13 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @return
      */
     public static boolean hasNeedAuth(HttpRequest req) {
+        //默认需要验证
+        boolean needAuth = true;
         try {
             //根据请求路径获得服务和方法名
             List<String> serviceAndMethod = getServiceAndMethod(req.getUri());
-            if (serviceAndMethod.size() >= 2) {
+            //判空
+            if (CollectionUtils.isNotEmpty(serviceAndMethod) && serviceAndMethod.size() >= 2) {
                 //获取服务
                 ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceAndMethod.get(0));
                 //如果服务存在
@@ -128,14 +132,17 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                     MethodEntry methodEntry = serviceEntry.methodMap.get(serviceAndMethod.get(1));
                     //如果方法存在
                     if (methodEntry != null) {
-                        return methodEntry.auth;
+                        //返回是否需要验证
+                        needAuth = methodEntry.auth;
                     }
                 }
             }
         } catch (Exception e) {
-            return false;
+            logger.error("请求是否需要验证十分失败:{}", e);
+        } finally {
+            //返回结果
+            return needAuth;
         }
-        return false;
     }
 
     /**

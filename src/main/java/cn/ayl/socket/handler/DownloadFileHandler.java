@@ -2,9 +2,9 @@ package cn.ayl.socket.handler;
 
 import cn.ayl.config.Const;
 import cn.ayl.handler.FileHandler;
-import cn.ayl.util.StringUtils;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,9 +49,9 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
         String fileId = (String) map.get(Const.FileId);
         String fileName = (String) map.get(Const.FileName);
         //判空
-        if (org.apache.commons.lang3.StringUtils.isEmpty(type) || org.apache.commons.lang3.StringUtils.isEmpty(fileId) || StringUtils.isEmpty(fileName)) {
+        if (StringUtils.isEmpty(type) || StringUtils.isEmpty(fileId) || StringUtils.isEmpty(fileName)) {
             logger.error("下载请求失败.");
-            ResponseHandler.sendMessageForJson(ctx, NOT_FOUND, "下载文件参数必须同时包含type&fileId&fileName");
+            ResponseHandler.sendMessageForJson(ctx, NOT_FOUND, "下载文件参数必须同时包含type、fileId、fileName");
             return;
         }
         //从业务中读取文件

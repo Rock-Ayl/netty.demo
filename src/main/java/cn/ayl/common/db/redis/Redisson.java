@@ -1,7 +1,7 @@
 package cn.ayl.common.db.redis;
 
 import cn.ayl.config.Const;
-import cn.ayl.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RAtomicLong;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;

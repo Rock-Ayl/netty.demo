@@ -46,7 +46,12 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    // 处理Websocket的代码
+    /**
+     * 处理Websocket的代码
+     *
+     * @param ctx
+     * @param frame
+     */
     private void handleWebSocketRequest(ChannelHandlerContext ctx, WebSocketFrame frame) {
         // 判断是否是关闭链路的指令
         if (frame instanceof CloseWebSocketFrame) {
