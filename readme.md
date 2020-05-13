@@ -1,95 +1,298 @@
-# A Netty For Http And WebSocket Demo
+# 基于netty的轻量级.单机版.RPC服务框架
 
-use:
+## 技术栈
 
-netty 4
+- JDK 1.8
+- netty 4.X
+- MariaDB 10.4.10
+- Redis 5.0.7
+- Mongo 4.0.9
 
-jdk 1.8
+## 支持网络协议
 
-remark:
+- Http
+- WebSocket
 
-================
+## Add dependencies to build.gradle.
 
-2019-11-13日 更新，已将启动整合至Server上
+``` json
+   //依赖
+   dependencies {
+   
+       //netty-4
+       compile group: 'io.netty', name: 'netty-all', version: '4.1.19.Final'
+       //mongo-Bson
+       compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.8.2'
+       //google-Gson
+       compile group: 'com.google.code.gson', name: 'gson', version: '2.8.5'
+       //apache-commons工具包
+       compile group: 'org.apache.commons', name: 'commons-dbcp2', version: '2.1.1'
+       compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.6'
+       compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+       compile group: 'commons-io', name: 'commons-io', version: '2.5'
+       compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
+       //日志-slf4j
+       compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.25'
+       //gitHub的 超轻量级的Java类路径和模块路径扫描器
+       compile group: 'io.github.lukehutch', name: 'fast-classpath-scanner', version: '2.18.1'
+       //阿里的fastJson，这里仅仅用来做类型强转
+       compile group: 'com.alibaba', name: 'fastjson', version: '1.2.58'
+       //定时器 quartz
+       compile group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.0'
+       //mongo-Bson
+       compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.8.2'
+       //mysql-jdbc
+       compile group: 'mysql', name: 'mysql-connector-java', version: '6.0.6'
+       //redis,redisson
+       compile group: 'redis.clients', name: 'jedis', version: '2.9.0'
+       compile group: 'org.redisson', name: 'redisson', version: '3.5.4'
+       //etcd连接池
+       compile group: 'org.mousio', name: 'etcd4j', version: '2.17.0'
+   
+   }
+   
+   //jar包设置
+   jar {
+   
+       //这个是将所有依赖在打包时候放入jar包中,方便直接启动
+       from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+   
+       //告诉gradle,我的Main是什么,打包时候有用
+       manifest {
+           //主程序是这个
+           attributes('Main-Class': 'cn.ayl.Server')
+       }
+   
+   }
+   
+   //编译参数名称 jdk1.8新特性之一,默认关闭的,由于用到了反射,打开它,不然build后没办法启动
+   compileJava {
+   
+       //等价于:require -parameters,please add '-parameters' in [preferences]->[Build.JavaCompiler]->[Additional Parameters]
+       options.compilerArgs << '-parameters'
+   
+   }
+```
 
-如何使用？
+## 1.定义接口
 
-启动Server,然后调用Post请求:
+>通过注解`@Service`和继承`IMicroService`暴露服务
 
-http://127.0.0.1:8888/Organize/login
+>通过`@Method`暴露方法,方法备注,是否需要验证身份(默认不需要)
 
-body:
+>通过`@Param`暴露参数,参数备注,参数是否可选(默认必传)
 
-{
-	name:"Rock-Ayl",
-	pwd:123456,
-	isRole:false
+
+``` java
+
+@Service(desc = "用户")
+public interface User extends IMicroService {
+
+    @Method(desc = "获取用户列表", auth = true)
+    JsonObject readUserList(
+            @Param(value = "关键词", optional = true) String keyword,
+            @Param(value = "第几页", optional = true) Integer pageIndex,
+            @Param(value = "每页几条数据", optional = true) Integer pageSize
+    );
+
+    @Method(desc = "用户登录")
+    JsonObject login(
+            @Param("账户") String account,
+            @Param("密码") String password
+    );
+
 }
 
-看intf中的Organize接口和其实现的OrganizeService
+ ```
+ 
+ ## 2.实现接口
+ 
+ >继承`Context`并实现要实现的接口
+ 
+ ``` java
+public class UserService extends Context implements User {
 
-照着这个class和方法继续写就可以各种实现请求和返回Json的业务了。
+    @Override
+    public JsonObject readUserList(String keyword, Integer pageIndex, Integer pageSize) {
+        //验证权限为root
+        if (!UserCommons.isRoot(this.ctxUserId)) {
+            return Const.Json_No_Permission;
+        }
+        //验证关键词
+        if (StringUtils.isEmpty(keyword)) {
+            //缺省
+            keyword = "";
+        } else if (!PatternUtils.isUserName(keyword)) {
+            return Const.Json_Not_Keyword;
+        }
+        //查询并返回
+        return UserCommons.readUserList(keyword, pageIndex, pageSize);
+    }
 
-这是一个超轻量的伪·微服务架构系统，因为目前只有单机，很多地方都没有完善。
+    @Override
+    public JsonObject login(String account, String password) {
+        //如果key不是手机号
+        if (!PatternUtils.isMobile(account)) {
+            return Const.Json_Not_Mobile;
+        }
+        //如果key不是密码
+        if (!PatternUtils.isUserName(password)) {
+            return Const.Json_Not_Password;
+        }
+        //获取用户信息
+        JsonObject userInfo = UserCommons.readUserInfo(account, password);
+        //判空
+        if (userInfo == null) {
+            return Const.Json_No_User;
+        }
+        //生成用户cookieId
+        String cookieId = IdUtils.newId();
+        //组装至用户信息
+        userInfo.append("cookieId", cookieId);
+        //删除密码
+        userInfo.remove("password");
+        //将用户登录缓存写入redis中
+        Redis.user.set(cookieId, userInfo.toString());
+        //返回用户数据
+        return JsonObject.Success().append(Const.Data, userInfo);
+    }
 
-@author是新人，照着我的老大架构仿照着去写的项目，纯粹用来练手。
+}
 
-P`S:习惯真是很可怕的事情。
+ ```
+
+## 3.快速启动
 
 ================
 
-更新：增加另一个测试接口，测试后，发现了已知问题，那就是只能用固定的几个对象去接参数，很不科学，准备修复
+ >IDE中直接用`Server`的`main`启动
+ 
+ ``` java
+public class Server {
 
-=================
+    public static void main(String[] args) {
+        //启动定时器线程
+        Scheduler.startup();
+        //扫描所有服务已存在
+        RegistryEntry.scanServices();
+        //扫描之后，可以启动netty监听
+        SocketServer.SocketServer.startup();
+    }
 
-更新：已解决上一个固定参数的bug
-新bug:上传处理器，下载处理器，虽然能够成功，但都存在不小的问题
+}
 
-=================
+ ```
+ 
+ >服务器中用脚本`serverStart.sh` (注意配置变量)
 
-上传，下载趋于稳定
+ ``` Bash
+#!/bin/bash
 
-下载链接eg:127.0.0.1:8888/Download?fileId=1&fileName=ayl.doc&type=p
+#jar包路径(基于当前路径)
+APP_NAME="build/libs/netty.demo-1.0.jar"
 
-上传eg：http://127.0.0.1:8888/Upload
+#进程PID
+pid=0
 
-header：
-FileSize：178940269
-FileType：application/msword
-FileName：MDc26IOW5aKp5q+N5a2Q5aSn572i5belLm1rdg==
-Content-Type：application/x-www-form-urlencoded
+Help() {
+    echo "case: sh run.sh [start|stop|restart|status]"
+    echo "请类似这样执行 ./*.sh start   or  ./*sh restart"
+    exit 1
+}
 
-form-data：选择一个文件
+# 判断当前服务是否已经启动的函数
+checkPID(){
+    #根据PID
+    pid=`ps -ef|grep $APP_NAME|grep -v grep|awk '{print $2}' `
+    #判断pid是否为空 0:存在进程 1:不存在进程
+    if [ -z "${pid}" ]; then
+        return 1
+    else
+        return 0
+    fi
+}
 
-==================
+# 启动
+start(){
+     echo "#######进程启动##########"
+    checkPID
+     # [$? -eq "0"] pid存在 说明服务正在运行中，将进程号打印出来
+    if [ $? -eq "0" ]; then
+        echo "${APP_NAME} 已经启动,PID:${pid}"
+    else
+        # pid为空 执行java -jar 命令启动服务
+        nohup java -jar $APP_NAME >/dev/null 2>&1 &
+        echo "${APP_NAME} 正在启动了."
+    fi
+    echo "#########End#############"
+}
 
-2019-11-22
+# 停止
+stop(){
+     echo "#######进程停止##########"
+    checkPID
+     # [$? -eq "0"] 说明pid不等于空 说明服务正在运行中，将进程号杀死
+    if [ $? -eq "0" ]; then
+        kill -9 $pid
+        echo "${pid} 进程被停止."
+    else
+        echo "${APP_NAME} 没有启动."
+    fi
+    echo "#########End#############"
+}
 
-目前已经趋于成熟
-
-拥有基础的service服务、下载，、上传、websocket处理。
-
-DB三件套：mysql,redis,mongo
-
-前后端完全分离。
-
-已知问题：上传文件时特定情况会出现文件多出4组二进制byte[]的问题，暂时没解决。
-
-但不用content-length请求headers就可以规避，具体原因不明。。。
-
-====================
-
-2019-12-11
-
-最近一段时间添加了不少的东西
-
-优化了一些写法、bug
-
-添加了netty请求的过滤器，完善了auth，增加了定时器，服务区域完善。
+# 查看状态
+status(){
+    echo "#######查看状态##########"
+    checkPID
+    if [ $? -eq "0" ]; then
+        echo "${APP_NAME} 正在启动,PID:${pid}"
+    else
+        echo "${APP_NAME} 没有启动"
+    fi
+    echo "#########End#############"
+}
 
 
-==================
+# 重启
+restart(){
+    stop
+    start
+}
 
-2019-12-13
 
-现在聊天室能多个人一起聊天了
+# 命令表
+case "$1" in
+    "start")
+        start
+        ;;
+    "stop")
+        stop
+        ;;
+    "status")
+        status
+        ;;
+    "restart")
+        restart
+        ;;
+    *)
+    Help
+    ;;
+esac
+
+ ```
+
+## 4.可配置信息所在
+
+- setting.properties
+- Const
+
+## 5.备注
+
+```
+
+该框架尚有很多未完善的地方,但可以作为一个学习netty的demo.
+
+框架优点是 轻量,不需要依赖Spring全家桶
+
+```

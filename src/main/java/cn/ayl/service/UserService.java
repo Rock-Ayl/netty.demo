@@ -49,8 +49,6 @@ public class UserService extends Context implements User {
         if (userInfo == null) {
             return Const.Json_No_User;
         }
-        //获取用户id
-        String userId = userInfo.getString("userId");
         //生成用户cookieId
         String cookieId = IdUtils.newId();
         //组装至用户信息
