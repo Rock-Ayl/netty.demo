@@ -15,9 +15,20 @@ import cn.ayl.util.PatternUtils;
 public class UserService implements User {
 
     @Override
-    public JsonObject login(String key, String password) {
+    public JsonObject readUserList(String keyword, Integer pageIndex, Integer pageSize) {
+        //todo 验证权限为root
+        //验证关键词
+        if (!PatternUtils.isUserName(keyword)) {
+            return Const.Json_Not_keyword;
+        }
+        //查询并返回
+        return UserCommons.readUserList(keyword, pageIndex, pageSize);
+    }
+
+    @Override
+    public JsonObject login(String account, String password) {
         //如果key不是手机号
-        if (!PatternUtils.isMobile(key)) {
+        if (!PatternUtils.isMobile(account)) {
             return Const.Json_Not_Mobile;
         }
         //如果key不是密码
@@ -25,7 +36,7 @@ public class UserService implements User {
             return Const.Json_Not_Password;
         }
         //获取用户信息
-        JsonObject userInfo = UserCommons.getUserInfo(key, password);
+        JsonObject userInfo = UserCommons.readUserInfo(account, password);
         //判空
         if (userInfo == null) {
             return Const.Json_No_User;
@@ -38,9 +49,9 @@ public class UserService implements User {
         userInfo.append("cookieId", cookieId);
         //删除密码
         userInfo.remove("password");
-        //写入redis中
+        //覆盖之前登陆信息并写入redis中
         Redis.user.set(userId, userInfo.toString());
-        //返回
+        //返回用户数据
         return JsonObject.Success().append(Const.Data, userInfo);
     }
 

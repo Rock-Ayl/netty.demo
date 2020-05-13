@@ -1,5 +1,6 @@
 package cn.ayl.common.user;
 
+import cn.ayl.common.StringCommons;
 import cn.ayl.common.db.jdbc.SqlTable;
 import cn.ayl.common.json.JsonObject;
 
@@ -12,12 +13,42 @@ public class UserCommons {
     /**
      * 根据账号密码获取用户信息
      *
-     * @param key      账号
+     * @param account  账号
      * @param password 密码
      * @return
      */
-    public static JsonObject getUserInfo(String key, String password) {
-        return SqlTable.use().queryObject("SELECT * FROM `user` WHERE mobile = ? AND `password` = ?", new Object[]{key, password});
+    public static JsonObject readUserInfo(String account, String password) {
+        //查询并返回,不存在会返回null
+        return SqlTable.use().queryObject("SELECT * FROM `user` WHERE mobile = ? AND `password` = ?", new Object[]{account, password});
+    }
+
+    /**
+     * 读取用户列表
+     *
+     * @param keyword   关键词(检索用户名)
+     * @param pageIndex 分页
+     * @param pageSize  分页
+     * @return
+     */
+    public static JsonObject readUserList(String keyword, Integer pageIndex, Integer pageSize) {
+        //基础查询Sql
+        StringBuffer sql = new StringBuffer("SELECT * FROM `user` WHERE userName like '%" + keyword + "%'  ");
+        //查询并返回
+        return StringCommons.queryItemsAndTotalCount(sql, new Object[]{}, pageIndex, pageSize);
+    }
+
+    /**
+     * 判断是否为系统管理员
+     *
+     * @param userId
+     * @return
+     */
+    public static boolean isRoot(long userId) {
+        //todo 暂时认为用户id=1是管理员
+        if (userId == 1L) {
+            return true;
+        }
+        return false;
     }
 
 }

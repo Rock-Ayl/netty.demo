@@ -33,6 +33,7 @@ public class Const {
     public static String Items = "items";
     public static String Data = "data";
     public static String IsSuccess = "isSuccess";
+    public static String TotalCount = "totalCount";
     public static String Type = "type";
     public static String FileId = "fileId";
     public static String FileCreateTime = "fileCreateTime";
@@ -58,7 +59,6 @@ public class Const {
     public static List<String> DefaultService;
 
     static {
-
         //WebSocket地址
         WebSocketPath = "/WebSocket";
         //上传地址
@@ -73,7 +73,6 @@ public class Const {
         defaultService.add(DownloadPath.replace('/', '.'));
         defaultService.add(HttpPagePath.replace('/', '.'));
         DefaultService = defaultService;
-
     }
 
     /**
@@ -164,5 +163,6 @@ public class Const {
     public static JsonObject Json_Not_Mobile = JsonObject.Fail("账号不是手机号.");
     public static JsonObject Json_Not_Password = JsonObject.Fail("密码错误.");
     public static JsonObject Json_No_User = JsonObject.Fail("用户不存在.");
+    public static JsonObject Json_Not_keyword = JsonObject.Fail("关键词不正确.");
 
 }
