@@ -15,7 +15,7 @@
 
 ## Add dependencies to build.gradle.
 
-``` json
+```
    //依赖
    dependencies {
    
