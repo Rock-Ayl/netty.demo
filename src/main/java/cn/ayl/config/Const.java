@@ -5,7 +5,6 @@ import cn.ayl.util.PropertyUtils;
 import cn.ayl.common.json.JsonObject;
 import io.netty.util.AttributeKey;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +13,21 @@ import java.util.List;
  * 常量
  */
 public class Const {
+
+    /**
+     * Method组
+     */
+
+    public static JsonObject Json_Find_Exception = JsonObject.Fail("出现异常.");
+    public static JsonObject Json_No_Impl = JsonObject.Fail("该服务不存在具体实现.");
+    public static JsonObject Json_Error_Param = JsonObject.Fail("接口传参不正确.");
+    public static JsonObject Json_No_InterFace = JsonObject.Fail("不存在该接口.");
+    public static JsonObject Json_No_Service = JsonObject.Fail("不存在该服务.");
+    public static JsonObject Json_Not_Mobile = JsonObject.Fail("账号不是手机号.");
+    public static JsonObject Json_Not_Password = JsonObject.Fail("密码错误.");
+    public static JsonObject Json_No_User = JsonObject.Fail("用户不存在.");
+    public static JsonObject Json_Not_Keyword = JsonObject.Fail("关键词不正确.");
+    public static JsonObject Json_No_Permission = JsonObject.Fail("没有权限.");
 
     /**
      * netty channel的上下文 AttributeKey
@@ -31,6 +45,7 @@ public class Const {
     public static String SPACE = " ";
     public static String Message = "message";
     public static String Items = "items";
+    public static String CookieId = "cookieId";
     public static String Data = "data";
     public static String IsSuccess = "isSuccess";
     public static String TotalCount = "totalCount";
@@ -150,19 +165,5 @@ public class Const {
     public enum RequestType {
         none, service, htmlPage, resource, upload, download, redirect, admin, websocket, stream, http
     }
-
-    /**
-     * Method组
-     */
-
-    public static JsonObject Json_Find_Exception = JsonObject.Fail("出现异常.");
-    public static JsonObject Json_No_Impl = JsonObject.Fail("该服务不存在具体实现.");
-    public static JsonObject Json_Error_Param = JsonObject.Fail("接口传参不正确.");
-    public static JsonObject Json_No_InterFace = JsonObject.Fail("不存在该接口.");
-    public static JsonObject Json_No_Service = JsonObject.Fail("不存在该服务.");
-    public static JsonObject Json_Not_Mobile = JsonObject.Fail("账号不是手机号.");
-    public static JsonObject Json_Not_Password = JsonObject.Fail("密码错误.");
-    public static JsonObject Json_No_User = JsonObject.Fail("用户不存在.");
-    public static JsonObject Json_Not_keyword = JsonObject.Fail("关键词不正确.");
 
 }

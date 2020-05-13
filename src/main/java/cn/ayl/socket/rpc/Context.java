@@ -22,9 +22,12 @@ public class Context {
     public ChannelId channelId;
     //Channel
     public Channel channel;
-
-    //cookieId
+    //Channel cookieId
     public String cookieId = null;
+
+    //认证的用户Id
+    public long ctxUserId;
+
     //会话参数
     public JsonObject parameterObject = JsonObject.VOID();
 

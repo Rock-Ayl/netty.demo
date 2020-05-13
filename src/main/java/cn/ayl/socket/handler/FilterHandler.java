@@ -1,5 +1,8 @@
 package cn.ayl.socket.handler;
 
+import cn.ayl.common.db.redis.Redis;
+import cn.ayl.common.json.JsonObject;
+import cn.ayl.common.json.JsonUtil;
 import cn.ayl.config.Const;
 import cn.ayl.socket.rpc.Context;
 import cn.ayl.socket.decoder.ProtocolDecoder;
@@ -58,19 +61,22 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             HttpRequest req = (HttpRequest) msg;
             //判断请求类型是否为预检
             if (req.method().name().equalsIgnoreCase("OPTIONS")) {
-                context.requestType = Const.RequestType.http;
+                this.context.requestType = Const.RequestType.http;
                 //响应预检
                 ResponseHandler.sendOption(ctx);
                 return false;
             }
+            //赋予上下文cookieId
+            this.context.cookieId = req.headers().get(Const.CookieId, "");
             //获得请求path
-            context.uriPath = getPath(req);
+            this.context.uriPath = getPath(req);
             //分配请求类型
             getHttpRequestType();
             //解决长连接重用与短连接404问题
             checkChanelPipe(ctx);
             //身份效验
             if (!auth(req)) {
+                //如果身份效验失败,发送错误信息
                 ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.UNAUTHORIZED, "身份验证失败.");
                 return false;
             }
@@ -125,11 +131,26 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
         }
         //如果Cookie需要认证(auto = true)
         if (needAuth) {
-            //todo 验证失败条件,然后修改成返回false
-            if (true) {
-                return true;
+            //获取cookieId
+            String cookieId = context.cookieId;
+            //判空
+            if (StringUtils.isNotBlank(cookieId)) {
+                //获取用户信息
+                JsonObject userInfo = JsonUtil.parse(Redis.user.get(cookieId));
+                //获取用户id
+                long userId = userInfo.getLong("userId", 0L);
+                //如果是真实用户id
+                if (userId != 0L) {
+                    //赋予上下文用户id
+                    context.ctxUserId = userId;
+                    //验证成功
+                    return true;
+                }
             }
+            //默认失败
+            return false;
         }
+        //不需要验证默认验证成功
         return true;
     }
 

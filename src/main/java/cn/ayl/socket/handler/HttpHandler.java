@@ -205,6 +205,12 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             Constructor noArgConstructor = serviceClass.getDeclaredConstructor();
             //实现类
             Object service = noArgConstructor.newInstance();
+            //如果服务继承了上下文
+            if (service instanceof Context) {
+                //赋予业务类可用的参数
+                ((Context) service).ctxUserId = context.ctxUserId;
+                ((Context) service).cookieId = context.cookieId;
+            }
             //组装参数和参数类型
             Object[] valueArr = new Object[paramList.size()];
             Class<?>[] valueTypeArr = new Class[paramList.size()];

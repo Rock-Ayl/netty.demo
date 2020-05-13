@@ -5,21 +5,29 @@ import cn.ayl.common.db.redis.Redis;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.config.Const;
 import cn.ayl.intf.User;
+import cn.ayl.socket.rpc.Context;
 import cn.ayl.util.IdUtils;
 import cn.ayl.util.PatternUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Created By Rock-Ayl on 2020-05-13
  * 用户接口的实现类
  */
-public class UserService implements User {
+public class UserService extends Context implements User {
 
     @Override
     public JsonObject readUserList(String keyword, Integer pageIndex, Integer pageSize) {
-        //todo 验证权限为root
+        //验证权限为root
+        if (!UserCommons.isRoot(this.ctxUserId)) {
+            return Const.Json_No_Permission;
+        }
         //验证关键词
-        if (!PatternUtils.isUserName(keyword)) {
-            return Const.Json_Not_keyword;
+        if (StringUtils.isEmpty(keyword)) {
+            //缺省
+            keyword = "";
+        } else if (!PatternUtils.isUserName(keyword)) {
+            return Const.Json_Not_Keyword;
         }
         //查询并返回
         return UserCommons.readUserList(keyword, pageIndex, pageSize);
@@ -49,8 +57,8 @@ public class UserService implements User {
         userInfo.append("cookieId", cookieId);
         //删除密码
         userInfo.remove("password");
-        //覆盖之前登陆信息并写入redis中
-        Redis.user.set(userId, userInfo.toString());
+        //将用户登录缓存写入redis中
+        Redis.user.set(cookieId, userInfo.toString());
         //返回用户数据
         return JsonObject.Success().append(Const.Data, userInfo);
     }

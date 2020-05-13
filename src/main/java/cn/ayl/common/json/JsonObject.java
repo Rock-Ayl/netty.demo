@@ -1,5 +1,6 @@
 package cn.ayl.common.json;
 
+import cn.ayl.config.Const;
 import cn.ayl.util.GsonUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
@@ -31,7 +32,7 @@ public class JsonObject extends Document {
     }
 
     public boolean isSuccess() {
-        return this.getBoolean("isSuccess", true);
+        return this.getBoolean(Const.IsSuccess, true);
     }
 
     public JsonObject notExist() {
@@ -58,7 +59,7 @@ public class JsonObject extends Document {
     }
 
     public JsonObject fail() {
-        this.append("isSuccess", false);
+        this.append(Const.IsSuccess, false);
         return this;
     }
 
@@ -83,7 +84,7 @@ public class JsonObject extends Document {
     }
 
     public JsonObject success() {
-        this.append("isSuccess", true);
+        this.append(Const.IsSuccess, true);
         return this;
     }
 
