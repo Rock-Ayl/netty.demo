@@ -2,6 +2,7 @@ package cn.ayl.socket.handler;
 
 import cn.ayl.config.Const;
 import cn.ayl.common.json.JsonObject;
+import cn.ayl.util.TypeUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
@@ -96,7 +97,7 @@ public class ResponseHandler {
         //一个基础的OK请求
         HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         //添加响应流类型
-        response.headers().set(HttpHeaderNames.CONTENT_TYPE, Const.parseHttpResponseContentType(file.getPath()));
+        response.headers().set(HttpHeaderNames.CONTENT_TYPE, TypeUtils.parseHttpResponseContentType(file.getPath()));
         //handlers添加文件长度
         response.headers().set(HttpHeaderNames.CONTENT_LENGTH, file.length());
         //写入响应及对应handlers
