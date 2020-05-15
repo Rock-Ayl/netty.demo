@@ -39,7 +39,7 @@ public enum FileHandler {
      * @return
      */
     public File readResourceFile(String pathSuffix) {
-        return new File(Const.ResourcePath + pathSuffix);
+        return new File(Const.ResourceFilePath + pathSuffix);
     }
 
     /**

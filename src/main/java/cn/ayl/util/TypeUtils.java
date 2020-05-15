@@ -25,6 +25,7 @@ public class TypeUtils {
             fileExt = fileExt.toLowerCase();
             //分发
             switch (fileExt) {
+                case "txt":
                 case "html":
                     return "text/html; charset=UTF-8";
                 case "text":
