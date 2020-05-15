@@ -27,8 +27,141 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
 
     private static final Logger logger = LoggerFactory.getLogger(FilterHandler.class);
 
-    //上下文
+    //请求上下文
     private Context context;
+
+    /**
+     * 过滤器初始化
+     *
+     * @param ctx
+     * @param msg
+     * @return
+     */
+    private boolean filter(ChannelHandlerContext ctx, Object msg) {
+        //过滤下http请求
+        if (msg instanceof HttpRequest) {
+            //强转
+            HttpRequest req = (HttpRequest) msg;
+            //判断请求类型是否为预检
+            if (req.method().name().equalsIgnoreCase("OPTIONS")) {
+                this.context.requestType = Const.RequestType.http;
+                //响应预检
+                ResponseHandler.sendOption(ctx);
+                return false;
+            }
+            //获取请求cookieId
+            this.context.cookieId = req.headers().get(Const.CookieId, "");
+            //获得请求path
+            this.context.uriPath = req.uri();
+            //分配请求类型
+            this.context.requestType = getHttpRequestType(context.uriPath);
+            //解决长连接重用与短连接404问题
+            checkChanelPipe(ctx);
+            //身份效验
+            if (!authUser(req)) {
+                //如果身份效验失败,直接发送错误信息
+                ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.UNAUTHORIZED, "身份验证失败.");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 当有多个长链接和短连接时,netty会只调用一次解码器,造成请求解码重用,导致各种类型的请求404,这里统一处理重用问题
+     */
+    private void checkChanelPipe(ChannelHandlerContext ctx) {
+        ChannelPipeline p = ctx.pipeline();
+        //根据真正的请求类型分配
+        switch (context.requestType) {
+            case download:
+                //清除http处理器
+                ProtocolDecoder.clearHttpHandlerAddLast(p);
+                //增加下载套件及处理器
+                ProtocolDecoder.downloadAddLast(p);
+                break;
+            case service:
+                //清除下载套件及处理器
+                ProtocolDecoder.clearDownloadAddLast(p);
+                //增加http处理器
+                ProtocolDecoder.httpHandlerAddLast(p);
+                break;
+        }
+    }
+
+    /**
+     * 效验请求的用户身份
+     *
+     * @param req
+     * @return
+     */
+    private boolean authUser(HttpRequest req) {
+        //是否需要验证
+        boolean needAuth = false;
+        //根据请求类型分类是否需要验证身份
+        switch (context.requestType) {
+            //上传下载必须验证身份
+            case upload:
+            case download:
+                needAuth = true;
+                break;
+            //服务需要看接口设置的auth
+            case service:
+                //获取接口auth
+                needAuth = HttpHandler.hasNeedAuth(req);
+                break;
+        }
+        //如果Cookie需要认证(auto = true)
+        if (needAuth) {
+            //获取cookieId
+            String cookieId = context.cookieId;
+            //判空
+            if (StringUtils.isNotBlank(cookieId)) {
+                //从Redis中获取用户登录信息并解析成Json
+                JsonObject userInfo = JsonUtil.parse(Redis.user.get(cookieId));
+                //获取用户id
+                long userId = userInfo.getLong("userId", 0L);
+                //如果是真实用户id
+                if (userId != 0L) {
+                    //赋予上下文用户id
+                    this.context.ctxUserId = userId;
+                    //验证成功
+                    return true;
+                }
+            }
+            //默认失败
+            return false;
+        }
+        //不需要验证默认验证成功
+        return true;
+    }
+
+    /**
+     * 根据path分配请求内容
+     * <p>
+     * 1.upload开头,视为上传文件请求
+     * 2.download开头,视为下载文件请求
+     * 3.htmlPage开头,视为页面请求
+     * 4.文件后缀结尾,视为静态文件资源请求
+     * 5.默认看做接口服务
+     * </p>
+     *
+     * @param path
+     * @return
+     */
+    private Const.RequestType getHttpRequestType(String path) {
+        if (path.startsWith(Const.UploadPath)) {
+            return Const.RequestType.upload;
+        } else if (path.startsWith(Const.DownloadPath)) {
+            return Const.RequestType.download;
+        } else if (path.startsWith(Const.HttpPagePath)) {
+            return Const.RequestType.htmlPage;
+        } else if (StringUtils.isNotEmpty(FilenameUtils.getExtension(path))) {
+            return Const.RequestType.resource;
+        } else {
+            return Const.RequestType.service;
+        }
+    }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
@@ -50,148 +183,6 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
         } else {
             //释放请求
             ReferenceCountUtil.safeRelease(msg);
-        }
-    }
-
-    //过滤器初始化
-    private boolean filter(ChannelHandlerContext ctx, Object msg) {
-        //过滤下http请求
-        if (msg instanceof HttpRequest) {
-            //强转
-            HttpRequest req = (HttpRequest) msg;
-            //判断请求类型是否为预检
-            if (req.method().name().equalsIgnoreCase("OPTIONS")) {
-                this.context.requestType = Const.RequestType.http;
-                //响应预检
-                ResponseHandler.sendOption(ctx);
-                return false;
-            }
-            //赋予上下文cookieId
-            this.context.cookieId = req.headers().get(Const.CookieId, "");
-            //获得请求path
-            this.context.uriPath = getPath(req);
-            //分配请求类型
-            getHttpRequestType();
-            //解决长连接重用与短连接404问题
-            checkChanelPipe(ctx);
-            //身份效验
-            if (!auth(req)) {
-                //如果身份效验失败,发送错误信息
-                ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.UNAUTHORIZED, "身份验证失败.");
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * 当有多个长链接和短连接时,netty会只调用一次解码器,造成请求解码重用,导致各种类型的请求404,这里会处理重用问题
-     */
-    private void checkChanelPipe(ChannelHandlerContext ctx) {
-        ChannelPipeline p = ctx.pipeline();
-        switch (context.requestType) {
-            case download:
-                logger.error("Filter. checkChanelPipe download ctx.type={}", context.requestType);
-                //清除http处理器
-                ProtocolDecoder.clearHttpHandlerAddLast(p);
-                //增加下载套件及处理器
-                ProtocolDecoder.downloadAddLast(p);
-                break;
-            case service:
-                logger.info("Filter. checkChanelPipe service ctx.type={}", context.requestType);
-                //清除下载套件及处理器
-                ProtocolDecoder.clearDownloadAddLast(p);
-                //增加http处理器
-                ProtocolDecoder.httpHandlerAddLast(p);
-                break;
-        }
-    }
-
-    /**
-     * 请求身份效验
-     *
-     * @param req
-     * @return
-     */
-    private boolean auth(HttpRequest req) {
-        //是否需要验证
-        boolean needAuth = false;
-        //根据请求类型分类是否需要验证身份
-        switch (context.requestType) {
-            //上传下载必须验证身份
-            case upload:
-            case download:
-                needAuth = true;
-                break;
-            //服务需要看接口
-            case service:
-                //service的得拿到 auth
-                needAuth = HttpHandler.hasNeedAuth(req);
-                break;
-        }
-        //如果Cookie需要认证(auto = true)
-        if (needAuth) {
-            //获取cookieId
-            String cookieId = context.cookieId;
-            //判空
-            if (StringUtils.isNotBlank(cookieId)) {
-                //获取用户信息
-                JsonObject userInfo = JsonUtil.parse(Redis.user.get(cookieId));
-                //获取用户id
-                long userId = userInfo.getLong("userId", 0L);
-                //如果是真实用户id
-                if (userId != 0L) {
-                    //赋予上下文用户id
-                    context.ctxUserId = userId;
-                    //验证成功
-                    return true;
-                }
-            }
-            //默认失败
-            return false;
-        }
-        //不需要验证默认验证成功
-        return true;
-    }
-
-    /***
-     * 根据路径开头分配Http请求内容
-     *
-     * upload开头是上传
-     * htmlPage开头是请求静态资源
-     * 如果有文件后缀是资源
-     * 什么都不是，默认看做服务
-     * @return
-     */
-    private void getHttpRequestType() {
-        String path = context.uriPath;
-        if (path.startsWith(Const.UploadPath)) {
-            context.requestType = Const.RequestType.upload;
-        } else if (path.startsWith(Const.HttpPagePath)) {
-            context.requestType = Const.RequestType.htmlPage;
-        } else if (path.startsWith(Const.DownloadPath)) {
-            context.requestType = Const.RequestType.download;
-        } else if (StringUtils.isNotEmpty(FilenameUtils.getExtension(path))) {
-            context.requestType = Const.RequestType.resource;
-        } else {
-            context.requestType = Const.RequestType.service;
-        }
-    }
-
-    /**
-     * Http获取请求Path
-     *
-     * @param req
-     * @return
-     */
-    private String getPath(HttpRequest req) {
-        String path = null;
-        try {
-            path = new URI(req.getUri()).getPath();
-        } catch (Exception e) {
-            logger.error("接口解析错误.");
-        } finally {
-            return path;
         }
     }
 

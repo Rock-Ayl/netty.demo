@@ -32,7 +32,7 @@ public class JsonObject extends Document {
     }
 
     public boolean isSuccess() {
-        return this.getBoolean(Const.IsSuccess, true);
+        return this.getBoolean("isSuccess", true);
     }
 
     public JsonObject notExist() {
@@ -59,7 +59,7 @@ public class JsonObject extends Document {
     }
 
     public JsonObject fail() {
-        this.append(Const.IsSuccess, false);
+        this.append("isSuccess", false);
         return this;
     }
 
@@ -84,7 +84,7 @@ public class JsonObject extends Document {
     }
 
     public JsonObject success() {
-        this.append(Const.IsSuccess, true);
+        this.append("isSuccess", true);
         return this;
     }
 
