@@ -21,6 +21,9 @@ public class TypeUtils {
         String fileExt = FilenameUtils.getExtension(fileName);
         //判空
         if (StringUtils.isNotBlank(fileExt)) {
+            //小写
+            fileExt = fileExt.toLowerCase();
+            //分发
             switch (fileExt) {
                 case "html":
                     return "text/html; charset=UTF-8";
@@ -43,6 +46,8 @@ public class TypeUtils {
                     return "image/gif";
                 case "ico":
                     return "image/x-ico";
+                case "mp4":
+                    return "video/mp4; charset=utf-8";
             }
         }
         //缺省
