@@ -1,6 +1,7 @@
 package cn.ayl.socket.handler;
 
 import cn.ayl.handler.FileHandler;
+import cn.ayl.util.DateUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpRequest;
 import jodd.io.FileNameUtil;
@@ -24,9 +25,6 @@ import static io.netty.handler.codec.http.HttpResponseStatus.*;
 public class ResourceHandler {
 
     protected static Logger logger = LoggerFactory.getLogger(ResourceHandler.class);
-
-    //静态资源-文件最后修改时间格式
-    public static final SimpleDateFormat HTTP_DATE_FORMATTER = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
 
     /**
      * 读取服务器中静态资源
@@ -104,7 +102,7 @@ public class ResourceHandler {
             //如果存在文件最后修改时间
             if (StringUtils.isNotEmpty(ifModifiedSince)) {
                 //转化为时间戳并变为秒
-                long ifModifiedSinceDateSeconds = HTTP_DATE_FORMATTER.parse(ifModifiedSince).getTime() / 1000;
+                long ifModifiedSinceDateSeconds = DateUtils.SDF_HTTP_DATE_FORMATTER.parse(ifModifiedSince).getTime() / 1000;
                 //获取服务器文件最后修改时间
                 long fileLastModifiedSeconds = file.lastModified() / 1000;
                 //如果相同，告诉浏览器不需要修改

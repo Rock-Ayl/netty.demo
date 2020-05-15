@@ -4,7 +4,6 @@ import cn.ayl.config.Const;
 import cn.ayl.handler.FileHandler;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,49 +23,34 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
     protected static Logger logger = LoggerFactory.getLogger(DownloadFileHandler.class);
 
     /**
-     * 读取业务中的文件
-     *
-     * @param type
-     * @param fileId
-     * @param fileName
-     * @return
-     */
-    private File readDownloadFile(String type, String fileId, String fileName) {
-        return FileHandler.instance.readDownloadFile(type, fileId, fileName);
-    }
-
-    /**
      * 请求进入点
      *
      * @throws Exception
      */
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
-        //获取get请求路径的参数
+    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) {
+        //获取get请求的参数
         Map map = getGetParamsFromChannel(request);
         //根据请求路径抽取参数
         String type = (String) map.get(Const.Type);
         String fileId = (String) map.get(Const.FileId);
         String fileName = (String) map.get(Const.FileName);
-        //判空
-        if (StringUtils.isEmpty(type) || StringUtils.isEmpty(fileId) || StringUtils.isEmpty(fileName)) {
-            logger.error("下载请求失败.");
-            ResponseHandler.sendMessageForJson(ctx, NOT_FOUND, "下载文件参数必须同时包含type、fileId、fileName");
-            return;
-        }
+        String cookieId = (String) map.get(Const.CookieId);
         //从业务中读取文件
-        File file = readDownloadFile(type, fileId, fileName);
+        File file = FileHandler.instance.readDownloadFile(type, fileId, fileName, cookieId);
         //读取失败，返回
         if (file == null) {
-            logger.error("下载请求失败,文件不存在.");
-            ResponseHandler.sendMessageForJson(ctx, NOT_FOUND, "下载请求失败,文件不存在.");
+            //响应失败
+            ResponseHandler.sendMessageForJson(ctx, NOT_FOUND, "下载请求失败,文件不存在或用户信息失效.");
             return;
         }
         try {
             //响应成功
             ResponseHandler.sendForDownloadStream(ctx, file, type, fileName);
         } catch (Exception e) {
-            logger.error("type=" + type + "&fileId=" + fileId, e);
+            logger.error("响应请求文件流失败:{}", e);
+        } finally {
+            return;
         }
     }
 

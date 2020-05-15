@@ -8,26 +8,30 @@ import java.io.File;
 
 /**
  * create by Rock-Ayl 2020/1/16
- * 文件 业务处理器
+ * 文件业务处理器
  */
 public enum FileHandler {
 
     instance;
 
     /**
-     * todo 读取下载流逻辑,现在没有业务，随意写了一个，以后可以添加身份
+     * todo 读取下载流逻辑,现在没有业务,随意写了一个
      * 读取业务中的文件
      *
-     * @param type
-     * @param fileId
-     * @param fileName
+     * @param type     下载操作类型
+     * @param fileId   文件fileId
+     * @param fileName 文件名
+     * @param cookieId 用户cookieId,用来验证身份
      * @return
      */
-    public File readDownloadFile(String type, String fileId, String fileName) {
+    public File readDownloadFile(String type, String fileId, String fileName, String cookieId) {
         File file = new File(Const.DownloadFilePath + fileName);
-        if (file.exists()) {
+        //如果存在并且是个文件
+        if (file.exists() && file.isFile()) {
+            //返回
             return file;
         } else {
+            //返回null
             return null;
         }
     }
