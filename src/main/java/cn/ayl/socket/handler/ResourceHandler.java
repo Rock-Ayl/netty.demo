@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.IF_MODIFIED_SINCE;
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
@@ -27,96 +25,86 @@ public class ResourceHandler {
     protected static Logger logger = LoggerFactory.getLogger(ResourceHandler.class);
 
     /**
-     * 读取服务器中静态资源
+     * 处理静态文件资源
      *
-     * @param pathSuffix 资源path后缀
-     * @return 文件
+     * @param ctx
+     * @param req
+     * @param uriPath
      */
-    private File readResourceFile(String pathSuffix) {
-        return FileHandler.instance.readResourceFile(pathSuffix);
-    }
-
-    //资源处理器
-    public void handleResource(ChannelHandlerContext ctx, HttpRequest req) {
-        //获取请求静态路径后缀
-        String pathSuffix = req.getUri();
-        //如果资源后缀长度太短，直接返回
-        if (pathSuffix.length() == 0) {
+    public void handleResource(ChannelHandlerContext ctx, HttpRequest req, String uriPath) {
+        //判空
+        if (StringUtils.isEmpty(uriPath)) {
             return;
         }
+        //静态文件资源path
+        String resourceFilePath;
         try {
-            //对中文进行解码
-            pathSuffix = URLDecoder.decode(FileNameUtil.getBaseName(pathSuffix), "UTF-8") + "." + FileNameUtil.getExtension(pathSuffix);
+            //解析文件名称
+            String fileBaseName = FileNameUtil.getBaseName(uriPath);
+            //解析文件后缀
+            String fileExt = FileNameUtil.getExtension(uriPath);
+            //解码并组装成文件path
+            resourceFilePath = URLDecoder.decode(fileBaseName, "UTF-8") + "." + fileExt;
         } catch (UnsupportedEncodingException e) {
             logger.error("Resource decode Exception.", e);
             return;
         }
-        //获取服务器中的文件
-        File file = readResourceFile(pathSuffix);
-        //文件是否存在
-        boolean hasFile = file.exists();
-        //如果存在，处理文件
-        if (hasFile) {
+        //获取服务器中的静态文件
+        File file = FileHandler.instance.readResourceFile(resourceFilePath);
+        //如果是个文件
+        if (file.exists() && file.isFile()) {
             try {
-                //处理文件
-                handleFile(ctx, req, file);
+                //如果静态文件没有改动,直接返回(让浏览器用缓存)
+                if (isNotModified(req, file)) {
+                    //文件未被修改,浏览器可以延用缓存
+                    ResponseHandler.sendMessageForJson(ctx, NOT_MODIFIED, "Modified false.");
+                } else {
+                    //响应请求文件流
+                    ResponseHandler.sendForResourceStream(ctx, file);
+                }
             } catch (Exception e) {
                 logger.error("Resource HandleFile Exception.", e);
+            } finally {
                 return;
             }
         } else {
-            //不存在文件，直接返回 not found
+            //不存在文件,响应失败
             ResponseHandler.sendMessageForJson(ctx, NOT_FOUND, "没有发现文件.");
         }
     }
 
     /**
-     * 处理文件
+     * 检测静态文件是否没有修改过
+     * 1.修改过,浏览器就必须重新刷新文件
+     * 2.未修改过,浏览器延用缓存
      *
-     * @param ctx
-     * @param req
-     * @param file
-     * @throws Exception
-     */
-    private void handleFile(ChannelHandlerContext ctx, HttpRequest req, File file) throws Exception {
-        //如果文件不需要修改，返回
-        if (!isModified(ctx, req, file)) {
-            return;
-        }
-        //需要修改，响应请求文件流
-        ResponseHandler.sendForResourceStream(ctx, file);
-    }
-
-    /**
-     * 检测缓存文件是否修改
-     *
-     * @param ctx
-     * @param req
-     * @param file
+     * @param req  请求
+     * @param file 服务器文件
      * @return
      */
-    private boolean isModified(ChannelHandlerContext ctx, HttpRequest req, File file) {
-        //获取文件最后修改时间
+    private boolean isNotModified(HttpRequest req, File file) {
+        //默认修改过
+        boolean notModified = false;
+        //获取请求给与的浏览器缓存的文件最后修改时间
         String ifModifiedSince = req.headers().get(IF_MODIFIED_SINCE);
         try {
             //如果存在文件最后修改时间
             if (StringUtils.isNotEmpty(ifModifiedSince)) {
                 //转化为时间戳并变为秒
-                long ifModifiedSinceDateSeconds = DateUtils.SDF_HTTP_DATE_FORMATTER.parse(ifModifiedSince).getTime() / 1000;
-                //获取服务器文件最后修改时间
-                long fileLastModifiedSeconds = file.lastModified() / 1000;
-                //如果相同，告诉浏览器不需要修改
+                long ifModifiedSinceDateSeconds = DateUtils.SDF_HTTP_DATE_FORMATTER.parse(ifModifiedSince).getTime();
+                //获取服务器静态文件最后修改时间
+                long fileLastModifiedSeconds = file.lastModified();
+                //如果相同
                 if (ifModifiedSinceDateSeconds == fileLastModifiedSeconds) {
-                    //不需要修改
-                    ResponseHandler.sendMessageForJson(ctx, NOT_MODIFIED, "Modified false.");
-                    return false;
+                    //浏览器不需要修改缓存静态文件
+                    notModified = true;
                 }
             }
         } catch (Exception e) {
             logger.error("检测缓存文件是否修改出错:{}", e);
-            return true;
+        } finally {
+            return notModified;
         }
-        return true;
     }
 
 }

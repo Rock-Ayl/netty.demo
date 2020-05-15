@@ -37,7 +37,7 @@ public enum FileHandler {
     }
 
     /**
-     * todo 读取服务器静态资源
+     * 读取服务器静态资源
      *
      * @param pathSuffix 资源路径后缀
      * @return

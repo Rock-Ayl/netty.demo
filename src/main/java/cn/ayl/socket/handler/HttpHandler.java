@@ -44,73 +44,6 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     //静态资源处理器
     private ResourceHandler responseHandler;
 
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        logger.info("通道不活跃的");
-        super.channelInactive(ctx);
-        if (uploadFileHandler != null) {
-            uploadFileHandler.clear();
-        }
-    }
-
-    /**
-     * 通道，请求过来从这里分类
-     */
-    @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        //获取上下文
-        context = ctx.channel().attr(Const.AttrContext).get();
-        //获取失败，返回
-        if (context == null) {
-            return;
-        }
-        //处理Http请求的分别处理
-        try {
-            //处理service和upload请求的基础处理
-            if (msg instanceof HttpRequest) {
-                final HttpRequest req = (HttpRequest) msg;
-                handleHttpRequest(ctx, req);
-            } else if (msg instanceof HttpContent && uploadFileHandler != null) {
-                //处理接受来的upload文件块
-                uploadFileHandler.handleHttpContent(ctx, (HttpContent) msg);
-            } else if (msg instanceof HttpContent) {
-                //没有upload处理器的文件块
-                ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.OK, "失败的上传请求.");
-            } else {
-                //没有upload处理器的文件块
-                ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.OK, "失败的请求.");
-            }
-        } catch (Exception e) {
-            logger.error("channelRead", e);
-        } finally {
-            //释放
-            ReferenceCountUtil.safeRelease(msg);
-        }
-    }
-
-    /**
-     * 每个channel都有一个唯一的id值
-     * asLongText方法是channel的id的全名
-     */
-    @Override
-    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-        //todo 连接打开时
-        logger.info(ctx.channel().localAddress().toString() + " ,handlerAdded！, channelId=" + ctx.channel().id().asLongText());
-    }
-
-    @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        //todo 连接关闭时
-        logger.info(ctx.channel().localAddress().toString() + " ,handlerRemoved！, channelId=" + ctx.channel().id().asLongText());
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        //todo 出现异常
-        logger.error("Client:" + ctx.channel().remoteAddress() + " ,error", cause.getMessage());
-        ctx.close();
-    }
-
     /**
      * 根据service请求判断是否需要验证身份
      *
@@ -244,13 +177,13 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @throws Exception
      */
     private void handleHttpRequest(final ChannelHandlerContext ctx, HttpRequest req) throws Exception {
-        switch (context.requestType) {
+        switch (this.context.requestType) {
             //请求静态资源
             case resource:
                 //创建一个静态资源处理器
-                responseHandler = new ResourceHandler();
+                this.responseHandler = new ResourceHandler();
                 //处理请求
-                responseHandler.handleResource(ctx, req);
+                this.responseHandler.handleResource(ctx, req, this.context.uriPath);
                 break;
             //请求页面
             case htmlPage:
@@ -258,13 +191,13 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 break;
             //上传请求
             case upload:
-                if (uploadFileHandler != null) {
-                    uploadFileHandler.clear();
+                if (this.uploadFileHandler != null) {
+                    this.uploadFileHandler.clear();
                 }
                 //创建一个上传请求处理器
-                uploadFileHandler = new UploadFileHandler();
+                this.uploadFileHandler = new UploadFileHandler();
                 //处理请求
-                uploadFileHandler.handleRequest(ctx, req);
+                this.uploadFileHandler.handleRequest(ctx, req);
                 break;
             //默认服务请求
             case service:
@@ -453,6 +386,55 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             }
         }
         return params;
+    }
+
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        logger.info("通道不活跃的");
+        super.channelInactive(ctx);
+        if (uploadFileHandler != null) {
+            uploadFileHandler.clear();
+        }
+    }
+
+    /**
+     * 通道，请求过来从这里分类
+     */
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        //获取上下文
+        context = ctx.channel().attr(Const.AttrContext).get();
+        //获取失败，返回
+        if (context == null) {
+            return;
+        }
+        //按请求类型处理
+        try {
+            //如果是http
+            if (msg instanceof HttpRequest) {
+                //处理service和upload请求
+                handleHttpRequest(ctx, (HttpRequest) msg);
+            } else if (msg instanceof HttpContent && uploadFileHandler != null) {
+                //处理接受来的upload文件块
+                uploadFileHandler.handleHttpContent(ctx, (HttpContent) msg);
+            } else {
+                //响应
+                ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.OK, "失败的请求.");
+            }
+        } catch (Exception e) {
+            logger.error("channelRead", e);
+        } finally {
+            //释放
+            ReferenceCountUtil.safeRelease(msg);
+        }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        //todo 出现异常
+        logger.error("Client:" + ctx.channel().remoteAddress() + " ,error", cause.getMessage());
+        ctx.close();
     }
 
 }
