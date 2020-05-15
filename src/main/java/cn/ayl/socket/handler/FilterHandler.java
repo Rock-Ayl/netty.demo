@@ -1,6 +1,7 @@
 package cn.ayl.socket.handler;
 
 import cn.ayl.common.db.redis.Redis;
+import cn.ayl.common.enumeration.RequestType;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.common.json.JsonUtil;
 import cn.ayl.config.Const;
@@ -16,8 +17,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.net.URI;
 
 /**
  * created by Rock-Ayl 2019-12-11
@@ -44,7 +43,8 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             HttpRequest req = (HttpRequest) msg;
             //判断请求类型是否为预检
             if (req.method().name().equalsIgnoreCase("OPTIONS")) {
-                this.context.requestType = Const.RequestType.http;
+                //预检请求当做普通http
+                this.context.requestType = RequestType.http;
                 //响应预检
                 ResponseHandler.sendOption(ctx);
                 return false;
@@ -100,9 +100,8 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
         boolean needAuth = false;
         //根据请求类型分类是否需要验证身份
         switch (context.requestType) {
-            //上传下载必须验证身份
+            //上传必须验证身份
             case upload:
-            case download:
                 needAuth = true;
                 break;
             //服务需要看接口设置的auth
@@ -149,17 +148,17 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
      * @param path
      * @return
      */
-    private Const.RequestType getHttpRequestType(String path) {
+    private RequestType getHttpRequestType(String path) {
         if (path.startsWith(Const.UploadPath)) {
-            return Const.RequestType.upload;
+            return RequestType.upload;
         } else if (path.startsWith(Const.DownloadPath)) {
-            return Const.RequestType.download;
+            return RequestType.download;
         } else if (path.startsWith(Const.HttpPagePath)) {
-            return Const.RequestType.htmlPage;
+            return RequestType.htmlPage;
         } else if (StringUtils.isNotEmpty(FilenameUtils.getExtension(path))) {
-            return Const.RequestType.resource;
+            return RequestType.resource;
         } else {
-            return Const.RequestType.service;
+            return RequestType.service;
         }
     }
 

@@ -135,35 +135,4 @@ public class Const {
     //处理下载请求响应文件流块大小
     public static int ChunkSize = 8 * 1024;
 
-    /**
-     * 枚举组
-     */
-
-    //上下文类型
-    public enum ContentType {
-        none, error, text, html, json, css, js, jpeg, jpg, png, gif, ico, mp3, mp4, data
-    }
-
-    //文件类型
-    public enum FileType {
-        other, txt, html, json, css, js, jpeg, jpg, png, gif, ico, mp3, mp4, mkv, data, folder
-    }
-
-    //请求类型
-    public enum Command {
-        get, post
-    }
-
-    //对象类型
-    public enum ClassType {
-        void_, string_, integer_, long_, double_, float_, boolean_,
-        strings_, integers_, longs_, doubles_, floats_, booleans_, enum_,
-        json_, jsons_, class_,
-    }
-
-    //返回结果类型
-    public enum RequestType {
-        none, service, htmlPage, resource, upload, download, redirect, admin, websocket, stream, http
-    }
-
 }

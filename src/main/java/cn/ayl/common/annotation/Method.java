@@ -1,6 +1,7 @@
 package cn.ayl.common.annotation;
 
-import cn.ayl.config.Const;
+import cn.ayl.common.enumeration.RequestMethod;
+import cn.ayl.common.enumeration.ContentType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -18,11 +19,11 @@ public @interface Method {
     //注释
     String desc() default "";
 
-    //请求类型
-    Const.Command command() default Const.Command.post;
+    //请求方法
+    RequestMethod command() default RequestMethod.post;
 
-    //上下文类型
-    Const.ContentType contentType() default Const.ContentType.json;
+    //内容类型
+    ContentType contentType() default ContentType.json;
 
     //是否需要授权
     boolean auth() default false;

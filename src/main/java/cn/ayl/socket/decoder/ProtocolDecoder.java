@@ -1,5 +1,6 @@
 package cn.ayl.socket.decoder;
 
+import cn.ayl.common.enumeration.RequestType;
 import cn.ayl.config.Const;
 import cn.ayl.socket.rpc.Context;
 import cn.ayl.socket.handler.*;
@@ -85,14 +86,14 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
                 return;
                 /*识别为WebSocket并绑定上下文*/
             } else if (header.startsWith("<policy") || header.indexOf("Connection: Upgrade") > 0) {
-                context = Context.createInitContext(Const.RequestType.websocket, channel);
+                context = Context.createInitContext(RequestType.websocket, channel);
                 /*如下为Http请求,进行upload,download,service归类并绑定上下文*/
             } else if (header.startsWith("POST " + Const.UploadPath)) {
-                context = Context.createInitContext(Const.RequestType.upload, channel);
+                context = Context.createInitContext(RequestType.upload, channel);
             } else if (header.startsWith("GET " + Const.DownloadPath)) {
-                context = Context.createInitContext(Const.RequestType.download, channel);
+                context = Context.createInitContext(RequestType.download, channel);
             } else {
-                context = Context.createInitContext(Const.RequestType.http, channel);
+                context = Context.createInitContext(RequestType.http, channel);
             }
             logger.info("decode header={}&contextType={}", header, context.requestType.name());
         }
@@ -168,12 +169,12 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
             //基础套件
             httpAddLast(p);
             //如果请求类型为上传，整合文件
-            if (context.requestType != Const.RequestType.upload) {
+            if (context.requestType != RequestType.upload) {
                 //上传套件
                 uploadAddLast(p);
             }
             //是否为下载请求
-            if (context.requestType == Const.RequestType.download) {
+            if (context.requestType == RequestType.download) {
                 //下载套件及处理器
                 downloadAddLast(p);
             } else {

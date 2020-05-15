@@ -1,8 +1,9 @@
 package cn.ayl.common.entry;
 
 import cn.ayl.common.annotation.Param;
-import cn.ayl.config.Const;
-import cn.ayl.util.ReflectUtils;
+import cn.ayl.common.enumeration.ClassType;
+import cn.ayl.common.enumeration.RequestMethod;
+import cn.ayl.common.enumeration.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,14 +26,14 @@ public class MethodEntry {
     public String name;
     //注水
     public String desc;
-    //请求类型 get or post
-    public Const.Command command;
+    //请求方法
+    public RequestMethod command;
     //是否需要授权
     public boolean auth;
     //上下文类型
-    public Const.ContentType contentType;
+    public ContentType contentType;
     //返回值类型: 一般为Class_ 因为JsonObject就是对象
-    public transient Const.ClassType resultType;
+    public transient ClassType resultType;
     public transient Method method;
     //参数组
     public LinkedHashMap<String, ParamEntry> paramMap = new LinkedHashMap();
@@ -52,7 +53,7 @@ public class MethodEntry {
         //方法
         this.method = method;
         //确认返回值类型
-        this.resultType = ReflectUtils.parseType(this.method.getReturnType());
+        this.resultType = ClassType.parseType(this.method.getReturnType());
         //获取参数组
         Parameter[] paramNames = method.getParameters();
         //获取参数类型
@@ -78,7 +79,7 @@ public class MethodEntry {
             //参数注释
             String paramDesc = paramAnnotation.value();
             //参数类型
-            Const.ClassType type = ReflectUtils.parseType(cls);
+            ClassType type = ClassType.parseType(cls);
             //创建实体
             ParamEntry param = new ParamEntry(cls, type, paramName, paramDesc, paramAnnotation.optional());
             //组装
