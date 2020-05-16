@@ -60,7 +60,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             //身份效验
             if (!authUser(req)) {
                 //如果身份效验失败,直接发送错误信息
-                ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.UNAUTHORIZED, "身份验证失败.");
+                ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.UNAUTHORIZED, "身份验证失败.");
                 return false;
             }
         }

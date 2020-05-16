@@ -58,10 +58,10 @@ public class ResourceHandler {
                 //如果静态文件没有改动,直接返回(让浏览器用缓存)
                 if (isNotModified(req, file)) {
                     //文件未被修改,浏览器可以延用缓存
-                    ResponseHandler.sendMessageForJson(ctx, NOT_MODIFIED, "Modified false.");
+                    ResponseHandler.sendMessageOfJson(ctx, NOT_MODIFIED, "Modified false.");
                 } else {
                     //响应请求文件流
-                    ResponseHandler.sendForResourceStream(ctx, file, FileRequestType.preview);
+                    ResponseHandler.sendFileStream(ctx, file, FileRequestType.preview);
                 }
             } catch (Exception e) {
                 logger.error("Resource HandleFile Exception.", e);
@@ -70,7 +70,7 @@ public class ResourceHandler {
             }
         } else {
             //不存在文件,响应失败
-            ResponseHandler.sendMessageForJson(ctx, NOT_FOUND, "没有发现文件.");
+            ResponseHandler.sendMessageOfJson(ctx, NOT_FOUND, "没有发现文件.");
         }
     }
 

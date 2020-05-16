@@ -219,10 +219,10 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             //根据path和params处理业务并返回结果
             Object result = handleServiceFactory(req);
             //组装、响应并返回
-            ResponseHandler.sendForJson(ctx, HttpResponseStatus.OK, result);
+            ResponseHandler.sendJson(ctx, HttpResponseStatus.OK, result);
         } else {
             //todo 处理其他请求类型的请求 eg: OPTIONS HEAD DELETE 等等
-            ResponseHandler.sendForText(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, "ok");
+            ResponseHandler.sendText(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, "ok");
         }
     }
 
@@ -420,7 +420,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 uploadFileHandler.handleHttpContent(ctx, (HttpContent) msg);
             } else {
                 //响应
-                ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.OK, "失败的请求.");
+                ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "失败的请求.");
             }
         } catch (Exception e) {
             logger.error("channelRead", e);

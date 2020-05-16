@@ -94,7 +94,7 @@ public class UploadFileHandler {
             HttpRequest request = (HttpRequest) msg;
             //如果是get请求，返回
             if (request.method().equals(HttpMethod.GET)) {
-                ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.OK, "upload must use post.");
+                ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "upload must use post.");
                 return;
             }
             //Post解码
@@ -104,7 +104,7 @@ public class UploadFileHandler {
                 decoder.setDiscardThreshold(0);
             } catch (HttpPostRequestDecoder.ErrorDataDecoderException e1) {
                 //返回错误
-                ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.OK, e1.getMessage());
+                ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, e1.getMessage());
                 return;
             }
             //请求头
@@ -187,7 +187,7 @@ public class UploadFileHandler {
             decoder.offer(chunk);
         } catch (HttpPostRequestDecoder.ErrorDataDecoderException e1) {
             //返回错误消息
-            ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.OK, e1.getMessage());
+            ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, e1.getMessage());
             ctx.channel().close();
             return;
         }
@@ -198,7 +198,7 @@ public class UploadFileHandler {
             readingChunks = false;
             reset();
             //发送消息
-            ResponseHandler.sendMessageForJson(ctx, HttpResponseStatus.OK, "OK");
+            ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "OK");
             //关闭
             ctx.channel().close();
             return;
@@ -270,9 +270,9 @@ public class UploadFileHandler {
                     uploadService(file);
                     //响应并关闭
                     if (result != null) {
-                        ResponseHandler.sendForJson(ctx, HttpResponseStatus.OK, result);
+                        ResponseHandler.sendJson(ctx, HttpResponseStatus.OK, result);
                     } else {
-                        ResponseHandler.sendForJson(ctx, HttpResponseStatus.OK, file.toJson());
+                        ResponseHandler.sendJson(ctx, HttpResponseStatus.OK, file.toJson());
                     }
                     logger.info("upload FileName=[{}] success.", file.getFileName());
                 }

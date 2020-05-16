@@ -34,7 +34,7 @@ public class ResponseHandler {
      * @param ctx
      */
     public static void sendOption(ChannelHandlerContext ctx) {
-        sendForText(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, "ok");
+        sendText(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, "ok");
     }
 
     /**
@@ -44,7 +44,7 @@ public class ResponseHandler {
      * @param result 返回值
      * @return
      */
-    public static void sendForText(ChannelHandlerContext ctx, HttpResponseStatus status, Object result) {
+    public static void sendText(ChannelHandlerContext ctx, HttpResponseStatus status, Object result) {
         ByteBuf content = copiedBuffer(result.toString(), CharsetUtil.UTF_8);
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
         if (content != null) {
@@ -61,7 +61,7 @@ public class ResponseHandler {
      * @param result 返回值
      * @return
      */
-    public static void sendForJson(ChannelHandlerContext ctx, HttpResponseStatus status, Object result) {
+    public static void sendJson(ChannelHandlerContext ctx, HttpResponseStatus status, Object result) {
         ByteBuf content = copiedBuffer(result.toString(), CharsetUtil.UTF_8);
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
         if (content != null) {
@@ -78,7 +78,7 @@ public class ResponseHandler {
      * @param status
      * @param content
      */
-    public static void sendMessageForJson(ChannelHandlerContext ctx, HttpResponseStatus status, String content) {
+    public static void sendMessageOfJson(ChannelHandlerContext ctx, HttpResponseStatus status, String content) {
         JsonObject result = JsonObject.Success().append(Const.Message, content);
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer(result.toJson(), CharsetUtil.UTF_8));
         //判空
@@ -90,33 +90,14 @@ public class ResponseHandler {
     }
 
     /**
-     * 响应并返回请求静态资源的文件流
-     *
-     * @param ctx
-     * @throws IOException
-     */
-    public static void sendForResourceStream(ChannelHandlerContext ctx, File file, FileRequestType fileRequestType) throws IOException {
-        //一个基础的OK请求
-        HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-        //添加响应流类型
-        response.headers().set(HttpHeaderNames.CONTENT_TYPE, TypeUtils.parseHttpResponseContentType(file.getPath()));
-        //handlers添加文件长度
-        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, file.length());
-        //写入响应及对应handlers
-        ctx.write(response);
-        //写入只读的文件流 (FileChannel放入Netty的FileRegion中)
-        ctx.write(new DefaultFileRegion(new RandomAccessFile(file, "r").getChannel(), 0, file.length()));
-        //ctx响应并关闭(如果使用Chunked编码，最后则需要发送一个编码结束的看空消息体，进行标记，表示所有消息体已经成功发送完成)
-        ctx.channel().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-    }
-
-    /**
      * 响应并返回请求下载文件的文件流
      *
      * @param ctx
      * @throws IOException
      */
-    public static void sendForDownloadStream(ChannelHandlerContext ctx, File file, FileRequestType fileRequestType, String fileName) throws IOException {
+    public static void sendFileStream(ChannelHandlerContext ctx, File file, FileRequestType fileRequestType) throws IOException {
+        //文件名
+        String fileName = file.getName();
         //一个基础的OK请求
         HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         //handlers添加文件长度
@@ -146,7 +127,7 @@ public class ResponseHandler {
         //告诉浏览器文件类型
         response.headers().set(CONTENT_TYPE, contentType);
         response.headers().add(CONTENT_DISPOSITION, disposition);
-        //todo 组装一些需要然前端知道的参数
+        //todo 组装一些需要然前端知道的参数(这东西还得想象放哪)
         response.headers().add("access-control-allow-origin", "*");
         response.headers().add("access-control-allow-credentials", true);
         response.headers().add("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");

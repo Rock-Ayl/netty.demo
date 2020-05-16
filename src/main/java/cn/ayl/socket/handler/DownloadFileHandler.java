@@ -42,12 +42,12 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
         //读取失败，返回
         if (file == null) {
             //响应失败
-            ResponseHandler.sendMessageForJson(ctx, NOT_FOUND, "下载请求失败,文件不存在或用户信息失效.");
+            ResponseHandler.sendMessageOfJson(ctx, NOT_FOUND, "下载请求失败,文件不存在或用户信息失效.");
             return;
         }
         try {
             //响应成功
-            ResponseHandler.sendForDownloadStream(ctx, file, type, fileName);
+            ResponseHandler.sendFileStream(ctx, file, type);
         } catch (Exception e) {
             logger.error("响应请求文件流失败:{}", e);
         } finally {
@@ -89,7 +89,7 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         if (ctx.channel().isActive()) {
-            ResponseHandler.sendMessageForJson(ctx, INTERNAL_SERVER_ERROR, "下载请求异常，连接断开.");
+            ResponseHandler.sendMessageOfJson(ctx, INTERNAL_SERVER_ERROR, "下载请求异常，连接断开.");
             logger.error("下载请求异常，连接断开.");
         }
     }
