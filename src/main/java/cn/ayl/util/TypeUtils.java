@@ -36,6 +36,8 @@ public class TypeUtils {
                     return "text/css; charset=UTF-8";
                 case "js":
                     return "application/x-javascript; charset=UTF-8";
+                case "svg":
+                    return "Image/svg+xml; charset=utf-8";
                 case "jpeg":
                 case "jpg":
                     return "image/jpeg";
@@ -48,6 +50,7 @@ public class TypeUtils {
                 case "ico":
                     return "image/x-ico";
                 case "mp4":
+                case "mkv":
                     return "video/mp4; charset=utf-8";
             }
         }

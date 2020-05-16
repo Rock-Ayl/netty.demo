@@ -1,5 +1,6 @@
 package cn.ayl.socket.handler;
 
+import cn.ayl.common.enumeration.FileRequestType;
 import cn.ayl.config.Const;
 import cn.ayl.handler.FileHandler;
 import io.netty.channel.*;
@@ -31,8 +32,8 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) {
         //获取get请求的参数
         Map map = getGetParamsFromChannel(request);
-        //根据请求路径抽取参数
-        String type = (String) map.get(Const.Type);
+        //根据请求路径抽取参数, 文件请求类型,文件fileId,文件名,用户cookieId
+        FileRequestType type = FileRequestType.parse((String) map.get(Const.Type));
         String fileId = (String) map.get(Const.FileId);
         String fileName = (String) map.get(Const.FileName);
         String cookieId = (String) map.get(Const.CookieId);

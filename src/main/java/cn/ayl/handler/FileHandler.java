@@ -1,6 +1,7 @@
 package cn.ayl.handler;
 
 import cn.ayl.common.entry.FileEntry;
+import cn.ayl.common.enumeration.FileRequestType;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.config.Const;
 
@@ -18,13 +19,13 @@ public enum FileHandler {
      * todo 读取下载流逻辑,现在没有业务,随意写了一个
      * 读取业务中的文件
      *
-     * @param type     下载操作类型
+     * @param type     请求文件的类型
      * @param fileId   文件fileId
      * @param fileName 文件名
      * @param cookieId 用户cookieId,用来验证身份
      * @return
      */
-    public File readDownloadFile(String type, String fileId, String fileName, String cookieId) {
+    public File readDownloadFile(FileRequestType type, String fileId, String fileName, String cookieId) {
         File file = new File(Const.DownloadFilePath + fileName);
         //如果存在并且是个文件
         if (file.exists() && file.isFile()) {

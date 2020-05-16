@@ -1,5 +1,6 @@
 package cn.ayl.socket.handler;
 
+import cn.ayl.common.enumeration.FileRequestType;
 import cn.ayl.config.Const;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.util.TypeUtils;
@@ -16,6 +17,7 @@ import java.io.*;
 import java.net.URLEncoder;
 
 import static io.netty.buffer.Unpooled.copiedBuffer;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_DISPOSITION;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 
 /**
@@ -93,7 +95,7 @@ public class ResponseHandler {
      * @param ctx
      * @throws IOException
      */
-    public static void sendForResourceStream(ChannelHandlerContext ctx, File file) throws IOException {
+    public static void sendForResourceStream(ChannelHandlerContext ctx, File file, FileRequestType fileRequestType) throws IOException {
         //一个基础的OK请求
         HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         //添加响应流类型
@@ -114,34 +116,36 @@ public class ResponseHandler {
      * @param ctx
      * @throws IOException
      */
-    public static void sendForDownloadStream(ChannelHandlerContext ctx, File file, String type, String fileName) throws IOException {
+    public static void sendForDownloadStream(ChannelHandlerContext ctx, File file, FileRequestType fileRequestType, String fileName) throws IOException {
         //一个基础的OK请求
         HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         //handlers添加文件长度
         response.headers().set(HttpHeaderNames.CONTENT_LENGTH, file.length());
-        //todo 如果为preview(浏览),则告诉浏览器,这个是PDF文件或其他文件,看业务,让其用自带插件浏览而非下载PDF(文件主要是PDF为浏览)
-        if (type.equals("preview")) {
-            response.headers().set(CONTENT_TYPE, "application/pdf; charset=utf-8");
-        } else {
-            //todo 处理非浏览类文件
-            switch (type) {
-                //svg格式文件
-                case "svg":
-                    response.headers().set(CONTENT_TYPE, " Image/svg+xml; charset=utf-8");
-                    break;
-                //视频
-                case "video":
-                    response.headers().set(CONTENT_TYPE, " video/mp4; charset=utf-8");
-                    break;
-                //剩下的，默认下载流
-                default:
-                    response.headers().set(CONTENT_TYPE, " application/octet-stream; charset=utf-8");
-                    break;
-            }
-            //设定为： 以附件的形式下载， 文件名是UTF-8，作为转换
-            String disposition = "attachment; filename*=UTF-8''" + URLEncoder.encode(fileName, "utf-8");
-            response.headers().add("Content-Disposition", disposition);
+        //初始化文件类型
+        String contentType;
+        //设定化内容处理:以附件的形式下载、文件名、编码
+        String disposition;
+        //根据文件请求类型判定
+        switch (fileRequestType) {
+            //只是下载
+            case download:
+                //所有下载都是流
+                contentType = "application/octet-stream; charset=utf-8";
+                //告诉浏览器是下载,文件名
+                disposition = "attachment; filename*=UTF-8''" + URLEncoder.encode(fileName, "utf-8");
+                break;
+            //只是预览
+            case preview:
+            default:
+                //按文件类别区分文件类型
+                contentType = TypeUtils.parseHttpResponseContentType(fileName);
+                //告诉浏览器是预览,文件名
+                disposition = "inline; filename*=UTF-8''" + URLEncoder.encode(fileName, "utf-8");
+                break;
         }
+        //告诉浏览器文件类型
+        response.headers().set(CONTENT_TYPE, contentType);
+        response.headers().add(CONTENT_DISPOSITION, disposition);
         //todo 组装一些需要然前端知道的参数
         response.headers().add("access-control-allow-origin", "*");
         response.headers().add("access-control-allow-credentials", true);

@@ -1,5 +1,6 @@
 package cn.ayl.socket.handler;
 
+import cn.ayl.common.enumeration.FileRequestType;
 import cn.ayl.handler.FileHandler;
 import cn.ayl.util.DateUtils;
 import io.netty.channel.ChannelHandlerContext;
@@ -60,7 +61,7 @@ public class ResourceHandler {
                     ResponseHandler.sendMessageForJson(ctx, NOT_MODIFIED, "Modified false.");
                 } else {
                     //响应请求文件流
-                    ResponseHandler.sendForResourceStream(ctx, file);
+                    ResponseHandler.sendForResourceStream(ctx, file, FileRequestType.preview);
                 }
             } catch (Exception e) {
                 logger.error("Resource HandleFile Exception.", e);
