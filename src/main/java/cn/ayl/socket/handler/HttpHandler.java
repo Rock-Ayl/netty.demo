@@ -54,9 +54,9 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         boolean needAuth = true;
         try {
             //根据请求路径获得服务和方法名
-            List<String> serviceAndMethod = getServiceAndMethod(req.getUri());
+            List<String> serviceAndMethod = getServiceAndMethod(req.uri());
             //判空
-            if (CollectionUtils.isNotEmpty(serviceAndMethod) && serviceAndMethod.size() >= 2) {
+            if (serviceAndMethod.size() > 1) {
                 //获取服务
                 ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceAndMethod.get(0));
                 //如果服务存在
@@ -221,19 +221,20 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             //组装、响应并返回
             ResponseHandler.sendJson(ctx, HttpResponseStatus.OK, result);
         } else {
-            //todo 处理其他请求类型的请求 eg: OPTIONS HEAD DELETE 等等
-            ResponseHandler.sendText(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, "ok");
+            //当做预检请求处理
+            ResponseHandler.sendOption(ctx);
         }
     }
 
     /**
-     * 根据 get、post 类型和已知参数组从请求中获取参数
+     * 根据请求类型获取参数
      *
      * @param req
      * @return
      */
     private Map<String, Object> getParamsFromChannelByService(HttpRequest req, LinkedHashMap<String, ParamEntry> paramMap) {
         Map<String, Object> params = null;
+        //如果是get
         if (req.method() == HttpMethod.GET) {
             //获取get请求的参数
             params = getGetParamsFromChannel(req, paramMap);
@@ -251,31 +252,18 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @return
      */
     private static List<String> getServiceAndMethod(String path) {
+        //初始化
         List<String> result = new ArrayList<>();
-        //服务名
-        String serviceName = null;
-        //方法名
-        String methodName = null;
-        //去掉第一个/
-        path = path.substring(1);
         //拆分
-        String[] piecewise = path.split("/");
+        List<String> piecewise = Arrays.asList(path.split("/"));
         //分别组装服务名和方法名
-        if (piecewise.length >= 2) {
-            for (String info : piecewise) {
-                if (serviceName == null) {
-                    serviceName = info;
-                } else {
-                    if (methodName == null) {
-                        methodName = info;
-                        break;
-                    }
-                }
-            }
+        if (CollectionUtils.isNotEmpty(piecewise) && piecewise.size() > 2) {
+            //获取并组装服务名
+            result.add(piecewise.get(1));
+            //获取并组装方法名
+            result.add(piecewise.get(2));
         }
-        //组装
-        result.add(serviceName);
-        result.add(methodName);
+        //返回
         return result;
     }
 
