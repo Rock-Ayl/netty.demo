@@ -359,18 +359,20 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @throws UnsupportedEncodingException
      */
     private Map<String, Object> getJSONParams(HttpRequest httpRequest, LinkedHashMap<String, ParamEntry> paramMap) throws UnsupportedEncodingException {
-        FullHttpRequest fullReq = (FullHttpRequest) httpRequest;
+        //初始化参数对象
         Map<String, Object> params = new HashMap<>();
+        //强转下请求
+        FullHttpRequest fullReq = (FullHttpRequest) httpRequest;
         ByteBuf content = fullReq.content();
         byte[] reqContent = new byte[content.readableBytes()];
         content.readBytes(reqContent);
         String strContent = new String(reqContent, "UTF-8");
         JsonObject jsonParams = JsonUtil.parse(strContent);
-        for (Object key : jsonParams.keySet()) {
+        for (String key : jsonParams.keySet()) {
             //如果是所需参数
-            if (paramMap.containsKey(key.toString())) {
+            if (paramMap.containsKey(key)) {
                 //强转并组装
-                params.put(key.toString(), TypeUtils.castObject(paramMap.get(key.toString()).clazz, jsonParams.get((String) key)));
+                params.put(key, TypeUtils.castObject(paramMap.get(key).clazz, jsonParams.get(key)));
             }
         }
         return params;
@@ -381,6 +383,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         logger.info("通道不活跃的");
         super.channelInactive(ctx);
+        //判空
         if (uploadFileHandler != null) {
             uploadFileHandler.clear();
         }
@@ -413,7 +416,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         } catch (Exception e) {
             logger.error("channelRead", e);
         } finally {
-            //释放
+            //释放请求
             ReferenceCountUtil.safeRelease(msg);
         }
     }

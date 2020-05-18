@@ -73,10 +73,8 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
                 //强转并组装
                 params.put(entry.getKey(), entry.getValue().get(0));
             }
-            return params;
-        } else {
-            return null;
         }
+        return params;
     }
 
     /**
@@ -89,6 +87,7 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         if (ctx.channel().isActive()) {
+            //响应
             ResponseHandler.sendMessageOfJson(ctx, INTERNAL_SERVER_ERROR, "下载请求异常，连接断开.");
             logger.error("下载请求异常，连接断开.");
         }
