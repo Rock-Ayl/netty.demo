@@ -53,8 +53,16 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             this.context.cookieId = req.headers().get(Const.CookieId, "");
             //获得请求path
             this.context.uriPath = req.uri();
-            //分配请求类型
-            this.context.requestType = getHttpRequestType(context.uriPath);
+            //根据请求类型进行过滤
+            switch (this.context.requestType) {
+                //ws请求不分配类型
+                case websocket:
+                    break;
+                default:
+                    //默认分配http请求类型
+                    this.context.requestType = getHttpRequestType(context.uriPath);
+                    break;
+            }
             //解决长连接重用与短连接404问题
             checkChanelPipe(ctx);
             //身份效验
@@ -99,7 +107,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
         //是否需要验证
         boolean needAuth = false;
         //根据请求类型分类是否需要验证身份
-        switch (context.requestType) {
+        switch (this.context.requestType) {
             //上传必须验证身份
             case upload:
                 needAuth = true;
@@ -113,7 +121,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
         //如果Cookie需要认证(auto = true)
         if (needAuth) {
             //获取cookieId
-            String cookieId = context.cookieId;
+            String cookieId = this.context.cookieId;
             //判空
             if (StringUtils.isNotBlank(cookieId)) {
                 //从Redis中获取用户登录信息并解析成Json
