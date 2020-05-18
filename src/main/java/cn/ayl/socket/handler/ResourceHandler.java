@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.net.URLDecoder;
 
 import static io.netty.handler.codec.http.HttpHeaderNames.IF_MODIFIED_SINCE;
@@ -33,44 +33,34 @@ public class ResourceHandler {
      * @param uriPath
      */
     public void handleResource(ChannelHandlerContext ctx, HttpRequest req, String uriPath) {
-        //判空
-        if (StringUtils.isEmpty(uriPath)) {
-            return;
-        }
-        //静态文件资源path
-        String resourceFilePath;
         try {
-            //解析文件名称
-            String fileBaseName = FileNameUtil.getBaseName(uriPath);
-            //解析文件后缀
-            String fileExt = FileNameUtil.getExtension(uriPath);
-            //解码并组装成文件path
-            resourceFilePath = URLDecoder.decode(fileBaseName, "UTF-8") + "." + fileExt;
-        } catch (UnsupportedEncodingException e) {
-            logger.error("Resource decode Exception.", e);
-            return;
-        }
-        //获取服务器中的静态文件
-        File file = FileHandler.instance.readResourceFile(resourceFilePath);
-        //如果是个文件
-        if (file.exists() && file.isFile()) {
-            try {
-                //如果静态文件没有改动,直接返回(让浏览器用缓存)
-                if (isNotModified(req, file)) {
-                    //文件未被修改,浏览器可以延用缓存
-                    ResponseHandler.sendMessageOfJson(ctx, NOT_MODIFIED, "Modified false.");
+            //判空
+            if (StringUtils.isNotEmpty(uriPath)) {
+                //解析文件名称
+                String fileBaseName = FileNameUtil.getBaseName(uriPath);
+                //解析文件后缀
+                String fileExt = FileNameUtil.getExtension(uriPath);
+                //解码并组装成静态文件path
+                String resourceFilePath = URLDecoder.decode(fileBaseName, "UTF-8") + "." + fileExt;
+                //获取服务器中的静态文件
+                File file = FileHandler.instance.readResourceFile(resourceFilePath);
+                //如果是个文件
+                if (file.exists() && file.isFile()) {
+                    //如果静态文件没有改动,直接返回(让浏览器用缓存)
+                    if (isNotModified(req, file)) {
+                        //文件未被修改,浏览器可以延用缓存
+                        ResponseHandler.sendMessageOfJson(ctx, NOT_MODIFIED, "Modified false.");
+                    } else {
+                        //响应请求文件流
+                        ResponseHandler.sendFileStream(ctx, file, FileRequestType.preview);
+                    }
                 } else {
-                    //响应请求文件流
-                    ResponseHandler.sendFileStream(ctx, file, FileRequestType.preview);
+                    //不存在文件,响应失败
+                    ResponseHandler.sendMessageOfJson(ctx, NOT_FOUND, "没有发现文件.");
                 }
-            } catch (Exception e) {
-                logger.error("Resource HandleFile Exception.", e);
-            } finally {
-                return;
             }
-        } else {
-            //不存在文件,响应失败
-            ResponseHandler.sendMessageOfJson(ctx, NOT_FOUND, "没有发现文件.");
+        } catch (IOException e) {
+            logger.error("handleResource IOException.", e);
         }
     }
 
