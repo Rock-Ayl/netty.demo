@@ -3,14 +3,13 @@ package cn.ayl.socket.handler;
 import cn.ayl.common.enumeration.FileRequestType;
 import cn.ayl.config.Const;
 import cn.ayl.handler.FileHandler;
+import cn.ayl.util.HttpUtils;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
@@ -30,8 +29,8 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
      */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) {
-        //获取get请求的参数
-        Map map = getGetParamsFromChannel(request);
+        //从get请求获取参数
+        Map<String, Object> map = HttpUtils.getParamsFromRequest(request, null);
         //根据请求路径抽取参数, 文件请求类型,文件fileId,文件名,用户cookieId
         FileRequestType type = FileRequestType.parse((String) map.get(Const.Type));
         String fileId = (String) map.get(Const.FileId);
@@ -53,28 +52,6 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
         } finally {
             return;
         }
-    }
-
-    /**
-     * Http获取GET方式传递的参数
-     *
-     * @param fullHttpRequest
-     * @return
-     */
-    private Map<String, Object> getGetParamsFromChannel(FullHttpRequest fullHttpRequest) {
-        //参数组
-        Map<String, Object> params = new HashMap<>();
-        //如果请求为GET继续
-        if (fullHttpRequest.method() == HttpMethod.GET) {
-            // 处理get请求
-            QueryStringDecoder decoder = new QueryStringDecoder(fullHttpRequest.uri());
-            Map<String, List<String>> paramList = decoder.parameters();
-            for (Map.Entry<String, List<String>> entry : paramList.entrySet()) {
-                //强转并组装
-                params.put(entry.getKey(), entry.getValue().get(0));
-            }
-        }
-        return params;
     }
 
     /**

@@ -6,25 +6,17 @@ import cn.ayl.common.entry.ParamEntry;
 import cn.ayl.common.entry.RegistryEntry;
 import cn.ayl.common.entry.ServiceEntry;
 import cn.ayl.socket.rpc.Context;
+import cn.ayl.util.HttpUtils;
 import cn.ayl.util.ScanClassUtils;
-import cn.ayl.util.TypeUtils;
-import cn.ayl.common.json.JsonObject;
-import cn.ayl.common.json.JsonUtil;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
-import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
-import io.netty.handler.codec.http.multipart.InterfaceHttpData;
-import io.netty.handler.codec.http.multipart.MemoryAttribute;
 import io.netty.util.ReferenceCountUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -86,7 +78,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      */
     private Object handleServiceFactory(HttpRequest req) {
         //根据请求路径获得服务和方法名
-        List<String> serviceAndMethod = getServiceAndMethod(context.uriPath);
+        List<String> serviceAndMethod = getServiceAndMethod(this.context.uriPath);
         if (serviceAndMethod.size() < 2) {
             return Const.Json_No_Service;
         }
@@ -112,7 +104,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         LinkedHashMap<String, ParamEntry> paramMap = methodEntry.paramMap;
         List<String> paramList = methodEntry.paramList;
         //根据获取请求参数
-        Map<String, Object> params = getParamsFromChannelByService(req, paramMap);
+        Map<String, Object> params = HttpUtils.getParamsFromRequest(req, paramMap);
         if (params == null) {
             return Const.Json_Error_Param;
         }
@@ -141,8 +133,8 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             //如果服务继承了上下文
             if (service instanceof Context) {
                 //赋予业务类可用的参数
-                ((Context) service).ctxUserId = context.ctxUserId;
-                ((Context) service).cookieId = context.cookieId;
+                ((Context) service).ctxUserId = this.context.ctxUserId;
+                ((Context) service).cookieId = this.context.cookieId;
             }
             //组装参数和参数类型
             Object[] valueArr = new Object[paramList.size()];
@@ -227,25 +219,6 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * 根据请求类型获取参数
-     *
-     * @param req
-     * @return
-     */
-    private Map<String, Object> getParamsFromChannelByService(HttpRequest req, LinkedHashMap<String, ParamEntry> paramMap) {
-        Map<String, Object> params = null;
-        //如果是get
-        if (req.method() == HttpMethod.GET) {
-            //获取get请求的参数
-            params = getGetParamsFromChannel(req, paramMap);
-        } else if (req.method() == HttpMethod.POST) {
-            //获取post请求的参数
-            params = getPostRequestParams(req, paramMap);
-        }
-        return params;
-    }
-
-    /**
      * 根据请求路径获得服务和方法名
      *
      * @param path eg:/Organize/login
@@ -265,133 +238,6 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         }
         //返回
         return result;
-    }
-
-    /**
-     * Http获取GET方式传递的参数
-     *
-     * @param fullHttpRequest
-     * @return
-     */
-    private Map<String, Object> getGetParamsFromChannel(HttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
-        //参数组
-        Map<String, Object> params = new HashMap<>();
-        //如果请求为GET继续
-        if (fullHttpRequest.method() == HttpMethod.GET) {
-            // 处理get请求
-            QueryStringDecoder decoder = new QueryStringDecoder(fullHttpRequest.uri());
-            Map<String, List<String>> paramList = decoder.parameters();
-            for (Map.Entry<String, List<String>> entry : paramList.entrySet()) {
-                //如果该参数是我需要的
-                if (paramMap.containsKey(entry.getKey())) {
-                    //强转并组装
-                    params.put(entry.getKey(), TypeUtils.castObject(paramMap.get(entry.getKey()).clazz, entry.getValue().get(0)));
-                }
-            }
-            return params;
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * 根据已知参数 从POST方式的Http请求 获取传递的参数
-     *
-     * @param fullHttpRequest
-     * @return
-     */
-    private Map<String, Object> getPostRequestParams(HttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
-        //初始化餐数据
-        Map<String, Object> params = new HashMap<>();
-        //如果请求为POST
-        if (fullHttpRequest.method() == HttpMethod.POST) {
-            // 处理POST请求
-            String requestContentType = fullHttpRequest.headers().get("Content-Type").trim();
-            //从from中获取参数
-            if (requestContentType.contains("x-www-form-urlencoded")) {
-                params = getFormParams(fullHttpRequest, paramMap);
-                //从body中获取参数
-            } else if (requestContentType.contains("application/json")) {
-                try {
-                    //从body中获取
-                    params = getJsonParamsFromPostRequest(fullHttpRequest, paramMap);
-                } catch (UnsupportedEncodingException e) {
-                    logger.error("从body中获取参数失败");
-                } finally {
-                    return params;
-                }
-            }
-        }
-        return params;
-    }
-
-    /**
-     * 根据已知参数组从Http解析from表单数据（Content-Type = x-www-form-urlencoded）
-     *
-     * @param fullHttpRequest
-     * @return
-     */
-    private Map<String, Object> getFormParams(HttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
-        //返回值初始化
-        Map<String, Object> params = new HashMap<>();
-        HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), fullHttpRequest);
-        List<InterfaceHttpData> postData = decoder.getBodyHttpDatas();
-        for (InterfaceHttpData data : postData) {
-            if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
-                MemoryAttribute attribute = (MemoryAttribute) data;
-                String attributeName = attribute.getName();
-                //如果是所需参数
-                if (paramMap.containsKey(attributeName)) {
-                    //强转并组装
-                    params.put(attributeName, TypeUtils.castObject(paramMap.get(attributeName).clazz, attribute.getValue()));
-                }
-            }
-        }
-        return params;
-    }
-
-    /**
-     * Http解析Post请求的body参数(Json形势)
-     *
-     * @param httpRequest post请求
-     * @param paramMap    所需参数及对应的class类型
-     * @return
-     * @throws UnsupportedEncodingException
-     */
-    private Map<String, Object> getJsonParamsFromPostRequest(HttpRequest httpRequest, LinkedHashMap<String, ParamEntry> paramMap) throws UnsupportedEncodingException {
-        //初始化参数对象
-        Map<String, Object> params = new HashMap<>();
-        //强转下请求
-        FullHttpRequest fullReq = (FullHttpRequest) httpRequest;
-        //获取请求内容
-        ByteBuf content = fullReq.content();
-        //初始化内容byte[]
-        byte[] reqContent = new byte[content.readableBytes()];
-        //写入byte[]
-        content.readBytes(reqContent);
-        //读取成字符并转化为Json
-        JsonObject jsonParams = JsonUtil.parse(new String(reqContent, "UTF-8"));
-        //循环
-        for (String key : jsonParams.keySet()) {
-            //如果是所需要的参数
-            if (paramMap.containsKey(key)) {
-                //强转并组装
-                params.put(key, TypeUtils.castObject(paramMap.get(key).clazz, jsonParams.get(key)));
-            }
-        }
-        //返回
-        return params;
-    }
-
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        logger.info("通道不活跃的");
-        super.channelInactive(ctx);
-        //判空
-        if (uploadFileHandler != null) {
-            uploadFileHandler.clear();
-        }
     }
 
     /**
@@ -423,6 +269,16 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         } finally {
             //释放请求
             ReferenceCountUtil.safeRelease(msg);
+        }
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        logger.info("通道不活跃的");
+        super.channelInactive(ctx);
+        //判空
+        if (uploadFileHandler != null) {
+            uploadFileHandler.clear();
         }
     }
 

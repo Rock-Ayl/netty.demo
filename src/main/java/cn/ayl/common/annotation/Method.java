@@ -23,7 +23,7 @@ public @interface Method {
     RequestMethod command() default RequestMethod.post;
 
     //内容类型
-    ContentType contentType() default ContentType.json;
+    ContentType contentType() default ContentType.Json;
 
     //是否需要授权
     boolean auth() default false;
