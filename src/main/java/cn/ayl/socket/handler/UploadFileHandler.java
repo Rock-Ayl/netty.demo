@@ -87,7 +87,7 @@ public class UploadFileHandler {
         //如果是http请求
         if (msg instanceof HttpRequest) {
             //创建文件实体
-            file = new FileEntry();
+            this.file = new FileEntry();
             //创建文件其他参数对象
             JsonObject fileObject = JsonObject.VOID();
             //转化为http请求
@@ -99,9 +99,9 @@ public class UploadFileHandler {
             }
             //Post解码
             try {
-                decoder = new HttpPostRequestDecoder(factory, request);
+                this.decoder = new HttpPostRequestDecoder(this.factory, request);
                 //禁用丢弃字节
-                decoder.setDiscardThreshold(0);
+                this.decoder.setDiscardThreshold(0);
             } catch (HttpPostRequestDecoder.ErrorDataDecoderException e1) {
                 //返回错误
                 ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, e1.getMessage());
@@ -110,13 +110,13 @@ public class UploadFileHandler {
             //请求头
             HttpHeaders headers = request.headers();
             //是否为Multipart请求
-            isMultipart = decoder.isMultipart();
+            this.isMultipart = this.decoder.isMultipart();
             //文件大小
             String v = headers.get(Const.FileSize, "0");
             if (v.equals("0")) {
                 v = headers.get("content-length");
             }
-            file.setFileSize(Integer.parseInt(v));
+            this.file.setFileSize(Integer.parseInt(v));
             //文件名
             String fileName = headers.get(Const.FileName, "");
             //如果是中文，用base64解码一下
@@ -124,21 +124,21 @@ public class UploadFileHandler {
                 //解码
                 fileName = Base64Utils.decode64(fileName);
             }
-            file.setFileName(fileName);
+            this.file.setFileName(fileName);
             //文件后缀
-            file.setFileExt(FilenameUtils.getExtension(fileName));
+            this.file.setFileExt(FilenameUtils.getExtension(fileName));
             //生成一个文件唯一id
-            file.setFileId(IdUtils.newId());
+            this.file.setFileId(IdUtils.newId());
             //文件创建时间
-            file.setFileCreateTime(headers.get(Const.FileCreateTime, "0"));
+            this.file.setFileCreateTime(headers.get(Const.FileCreateTime, "0"));
             //文件修改时间
-            file.setFileUpdateTime(headers.get(Const.FileUpdateTime, "0"));
+            this.file.setFileUpdateTime(headers.get(Const.FileUpdateTime, "0"));
             //文件地址
-            file.setFilePath(Const.UploadFilePath + file.getFileId() + "." + file.getFileExt());
+            this.file.setFilePath(Const.UploadFilePath + this.file.getFileId() + "." + this.file.getFileExt());
             //指定文件本身对象，模式rw为：以读取、写入方式打开指定文件。如果该文件不存在，则尝试创建文件
-            fileChannel = new RandomAccessFile(file.getFilePath(), "rw").getChannel();
+            this.fileChannel = new RandomAccessFile(file.getFilePath(), "rw").getChannel();
             //文件流(内存)，写入文件长度
-            fileBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, file.getFileSize());
+            this.fileBuffer = this.fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, this.file.getFileSize());
             //文件创建时间
             fileObject.append(Const.FileCreateTime, Long.parseLong(headers.get(Const.FileCreateTime, "0")));
             //将文件的附属信息全部存入文件其他信息对象中
@@ -147,15 +147,15 @@ public class UploadFileHandler {
                 //该headers的key
                 String key = entry.getKey();
                 //过滤一些不需要添加的参数
-                if (key.startsWith("File") || headerFilters.contains(key)) {
+                if (key.startsWith("File") || this.headerFilters.contains(key)) {
                     continue;
                 }
                 //组装
                 fileObject.append(key, entry.getValue());
             }
             //组装文件对象参数
-            file.setFileObject(fileObject);
-            readingChunks = HttpUtil.isTransferEncodingChunked(request);
+            this.file.setFileObject(fileObject);
+            this.readingChunks = HttpUtil.isTransferEncodingChunked(request);
         }
     }
 
@@ -171,20 +171,20 @@ public class UploadFileHandler {
         if (this.isMultipart == false) {
             ByteBuffer buffer = chunk.content().nioBuffer();
             while (buffer.hasRemaining()) {
-                fileBufferSize += buffer.remaining();
-                fileBuffer.put(buffer);
+                this.fileBufferSize += buffer.remaining();
+                this.fileBuffer.put(buffer);
             }
-            if (fileBufferSize == file.getFileSize()) {
-                logger.info("upload File[{}] Success", file.getFileName());
-                fileChannel.close();
-                fileBuffer.clear();
+            if (this.fileBufferSize == this.file.getFileSize()) {
+                logger.info("upload File[{}] Success", this.file.getFileName());
+                this.fileChannel.close();
+                this.fileBuffer.clear();
                 //处理上传业务
-                uploadService(file);
+                uploadService(this.file);
             }
             return;
         }
         try {
-            decoder.offer(chunk);
+            this.decoder.offer(chunk);
         } catch (HttpPostRequestDecoder.ErrorDataDecoderException e1) {
             //返回错误消息
             ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, e1.getMessage());
@@ -195,7 +195,7 @@ public class UploadFileHandler {
         readHttpDataChunkByChunk(ctx);
         //最后一个分快
         if (chunk instanceof LastHttpContent) {
-            readingChunks = false;
+            this.readingChunks = false;
             reset();
             //发送消息
             ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "OK");
@@ -212,11 +212,11 @@ public class UploadFileHandler {
      */
     private void readHttpDataChunkByChunk(ChannelHandlerContext ctx) {
         try {
-            while (decoder.hasNext()) {
-                InterfaceHttpData data = decoder.next();
+            while (this.decoder.hasNext()) {
+                InterfaceHttpData data = this.decoder.next();
                 if (data != null) {
-                    if (partialContent == data) {
-                        partialContent = null;
+                    if (this.partialContent == data) {
+                        this.partialContent = null;
                     }
                     try {
                         //写数据
@@ -227,10 +227,10 @@ public class UploadFileHandler {
                     }
                 }
             }
-            InterfaceHttpData data = decoder.currentPartialHttpData();
+            InterfaceHttpData data = this.decoder.currentPartialHttpData();
             if (data != null) {
-                if (partialContent == null) {
-                    partialContent = (HttpData) data;
+                if (this.partialContent == null) {
+                    this.partialContent = (HttpData) data;
                 }
             }
         } catch (HttpPostRequestDecoder.EndOfDataDecoderException e1) {
@@ -251,7 +251,7 @@ public class UploadFileHandler {
             String value;
             try {
                 value = attribute.getString(CharsetUtil.UTF_8);
-                attrs.put(attribute.getName(), value);
+                this.attrs.put(attribute.getName(), value);
             } catch (IOException e1) {
                 return;
             }
@@ -259,36 +259,36 @@ public class UploadFileHandler {
             if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
                 FileUpload fileUpload = (FileUpload) data;
                 if (fileUpload.isCompleted()) {
-                    file.setFileName(fileUpload.getFilename());
-                    if (org.apache.commons.lang3.StringUtils.isEmpty(file.getFileName())) {
-                        file.setFileName(fileUpload.getName());
+                    this.file.setFileName(fileUpload.getFilename());
+                    if (org.apache.commons.lang3.StringUtils.isEmpty(this.file.getFileName())) {
+                        this.file.setFileName(fileUpload.getName());
                     }
-                    fileBuffer.put(fileUpload.get());
-                    fileChannel.close();
-                    fileBuffer.clear();
+                    this.fileBuffer.put(fileUpload.get());
+                    this.fileChannel.close();
+                    this.fileBuffer.clear();
                     //处理上传业务
-                    uploadService(file);
+                    uploadService(this.file);
                     //响应并关闭
-                    if (result != null) {
-                        ResponseHandler.sendJson(ctx, HttpResponseStatus.OK, result);
+                    if (this.result != null) {
+                        ResponseHandler.sendJson(ctx, HttpResponseStatus.OK, this.result);
                     } else {
-                        ResponseHandler.sendJson(ctx, HttpResponseStatus.OK, file.toJson());
+                        ResponseHandler.sendJson(ctx, HttpResponseStatus.OK, this.file.toJson());
                     }
-                    logger.info("upload FileName=[{}] success.", file.getFileName());
+                    logger.info("upload FileName=[{}] success.", this.file.getFileName());
                 }
             }
         }
     }
 
     public void clear() {
-        if (decoder != null) {
-            decoder.cleanFiles();
+        if (this.decoder != null) {
+            this.decoder.cleanFiles();
         }
     }
 
     private void reset() {
-        decoder.destroy();
-        decoder = null;
+        this.decoder.destroy();
+        this.decoder = null;
     }
 
 }

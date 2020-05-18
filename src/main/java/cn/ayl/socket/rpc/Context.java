@@ -1,7 +1,6 @@
 package cn.ayl.socket.rpc;
 
 import cn.ayl.common.enumeration.RequestType;
-import cn.ayl.config.Const;
 import cn.ayl.common.json.JsonObject;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelId;
