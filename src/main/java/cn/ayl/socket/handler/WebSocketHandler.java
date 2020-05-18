@@ -114,9 +114,8 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         Channel incoming = ctx.channel();
-        logger.error("Client:" + incoming.remoteAddress() + "异常");
+        logger.error("Client:" + incoming.remoteAddress() + "异常:[{}]", cause);
         // 当出现异常就关闭连接
-        cause.printStackTrace();
         ctx.close();
     }
 
