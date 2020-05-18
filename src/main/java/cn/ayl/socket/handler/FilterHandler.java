@@ -53,13 +53,13 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             this.context.cookieId = req.headers().get(Const.CookieId, "");
             //获得请求path
             this.context.uriPath = req.uri();
-            //根据请求类型进行过滤
+            //根据请求类型进行细化
             switch (this.context.requestType) {
-                //ws请求不分配类型
+                //ws请求不细化类型
                 case websocket:
                     break;
                 default:
-                    //默认分配http请求类型
+                    //细化http请求类型
                     this.context.requestType = getHttpRequestType(context.uriPath);
                     break;
             }
