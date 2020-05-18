@@ -33,33 +33,22 @@ public class HttpUtils {
     /**
      * 从请求中获取参数
      *
-     * @param req      get/post请求
-     * @param paramMap 所需参数及参数对象类型,可以为null
+     * @param httpRequest get/post请求
+     * @param paramMap    所需参数及参数对象类型,可以为null
      * @return
      */
-    public static Map<String, Object> getParamsFromRequest(FullHttpRequest req, LinkedHashMap<String, ParamEntry> paramMap) {
+    public static Map<String, Object> getParams(HttpRequest httpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
         //初始化
         Map<String, Object> params = null;
         //如果是get
-        if (req.method() == HttpMethod.GET) {
+        if (httpRequest.method() == HttpMethod.GET) {
             //取get参数的同时过滤不必须的参数
-            params = HttpUtils.getParamsFromGetRequestByNeedParams(req, paramMap);
-        } else if (req.method() == HttpMethod.POST) {
+            params = HttpUtils.getParamsFromGet(httpRequest, paramMap);
+        } else if (httpRequest.method() == HttpMethod.POST) {
             //取post参数的同时过滤不必须的参数
-            params = HttpUtils.getParamsFromPostRequestByNeedParams(req, paramMap);
+            params = HttpUtils.getParamsFromPost(httpRequest, paramMap);
         }
         return params;
-    }
-
-    /**
-     * 从请求中获取参数
-     *
-     * @param req      get/post请求
-     * @param paramMap 所需参数及参数对象类型,可以为null
-     * @return
-     */
-    public static Map<String, Object> getParamsFromRequest(HttpRequest req, LinkedHashMap<String, ParamEntry> paramMap) {
-        return getParamsFromRequest((FullHttpRequest) req, paramMap);
     }
 
     /**
@@ -69,7 +58,7 @@ public class HttpUtils {
      * @param paramMap    所需的参数组及class类型,可以为null
      * @return
      */
-    private static Map<String, Object> getParamsFromGetRequestByNeedParams(HttpRequest httpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
+    private static Map<String, Object> getParamsFromGet(HttpRequest httpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
         //参数组
         Map<String, Object> params = new HashMap<>();
         //如果请求为GET继续
@@ -101,26 +90,26 @@ public class HttpUtils {
     /**
      * 从post请求中获取参数(过滤掉不需要的参数)
      *
-     * @param fullHttpRequest post请求
-     * @param paramMap        所需的参数组及class类型,可以为null
+     * @param httpRequest post请求
+     * @param paramMap    所需的参数组及class类型,可以为null
      * @return
      */
-    private static Map<String, Object> getParamsFromPostRequestByNeedParams(HttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
+    private static Map<String, Object> getParamsFromPost(HttpRequest httpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
         //初始化餐数据
         Map<String, Object> params = new HashMap<>();
         //如果请求为POST
-        if (fullHttpRequest.method() == HttpMethod.POST) {
+        if (httpRequest.method() == HttpMethod.POST) {
             //处理POST请求
-            ContentType contentType = ContentType.parse(fullHttpRequest.headers().get("Content-Type"));
+            ContentType contentType = ContentType.parse(httpRequest.headers().get("Content-Type"));
             //根据内容类型获取参数
             switch (contentType) {
                 //application/x-www-form-urlencoded
                 case XWWWFormUrlencoded:
-                    params = getFormDefaultParamsFromPostRequestByNeedParams(fullHttpRequest, paramMap);
+                    params = getFormDefaultParamsFromPost(httpRequest, paramMap);
                     break;
                 //application/json
                 case Json:
-                    params = getJsonParamsFromPostRequestByNeedParams(fullHttpRequest, paramMap);
+                    params = getJsonParamsFromPost(httpRequest, paramMap);
                     break;
             }
             return params;
@@ -135,7 +124,7 @@ public class HttpUtils {
      * @param paramMap    所需的参数组及class类型,可以为null
      * @return
      */
-    private static Map<String, Object> getFormDefaultParamsFromPostRequestByNeedParams(HttpRequest httpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
+    private static Map<String, Object> getFormDefaultParamsFromPost(HttpRequest httpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
         //返回值初始化
         Map<String, Object> params = new HashMap<>();
         //构建请求解码器
@@ -171,7 +160,7 @@ public class HttpUtils {
      * @param paramMap    所需参数及对应的class类型,可以为null
      * @return
      */
-    private static Map<String, Object> getJsonParamsFromPostRequestByNeedParams(HttpRequest httpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
+    private static Map<String, Object> getJsonParamsFromPost(HttpRequest httpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
         //初始化参数对象
         Map<String, Object> params = new HashMap<>();
         //强转下请求

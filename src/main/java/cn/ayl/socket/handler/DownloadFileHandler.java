@@ -30,7 +30,7 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) {
         //从get请求获取参数
-        Map<String, Object> map = HttpUtils.getParamsFromRequest(request, null);
+        Map<String, Object> map = HttpUtils.getParams(request, null);
         //根据请求路径抽取参数, 文件请求类型,文件fileId,文件名,用户cookieId
         FileRequestType type = FileRequestType.parse((String) map.get(Const.Type));
         String fileId = (String) map.get(Const.FileId);

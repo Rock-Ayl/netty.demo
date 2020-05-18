@@ -104,7 +104,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         LinkedHashMap<String, ParamEntry> paramMap = methodEntry.paramMap;
         List<String> paramList = methodEntry.paramList;
         //根据获取请求参数
-        Map<String, Object> params = HttpUtils.getParamsFromRequest(req, paramMap);
+        Map<String, Object> params = HttpUtils.getParams(req, paramMap);
         if (params == null) {
             return Const.Json_Error_Param;
         }
