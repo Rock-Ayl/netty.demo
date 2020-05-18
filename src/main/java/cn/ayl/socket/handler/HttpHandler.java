@@ -240,7 +240,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             params = getGetParamsFromChannel(req, paramMap);
         } else if (req.method() == HttpMethod.POST) {
             //获取post请求的参数
-            params = getPostParamsFromChannel(req, paramMap);
+            params = getPostRequestParams(req, paramMap);
         }
         return params;
     }
@@ -300,31 +300,29 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @param fullHttpRequest
      * @return
      */
-    private Map<String, Object> getPostParamsFromChannel(HttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
-        //参数组
-        Map<String, Object> params;
+    private Map<String, Object> getPostRequestParams(HttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
+        //初始化餐数据
+        Map<String, Object> params = new HashMap<>();
         //如果请求为POST
         if (fullHttpRequest.method() == HttpMethod.POST) {
             // 处理POST请求
-            String strContentType = fullHttpRequest.headers().get("Content-Type").trim();
-            //从from中获取
-            if (strContentType.contains("x-www-form-urlencoded")) {
+            String requestContentType = fullHttpRequest.headers().get("Content-Type").trim();
+            //从from中获取参数
+            if (requestContentType.contains("x-www-form-urlencoded")) {
                 params = getFormParams(fullHttpRequest, paramMap);
-            } else if (strContentType.contains("application/json")) {
+                //从body中获取参数
+            } else if (requestContentType.contains("application/json")) {
                 try {
                     //从body中获取
-                    params = getJSONParams(fullHttpRequest, paramMap);
+                    params = getJsonParamsFromPostRequest(fullHttpRequest, paramMap);
                 } catch (UnsupportedEncodingException e) {
                     logger.error("从body中获取参数失败");
-                    return null;
+                } finally {
+                    return params;
                 }
-            } else {
-                return null;
             }
-            return params;
-        } else {
-            return null;
         }
+        return params;
     }
 
     /**
@@ -334,6 +332,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @return
      */
     private Map<String, Object> getFormParams(HttpRequest fullHttpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
+        //返回值初始化
         Map<String, Object> params = new HashMap<>();
         HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), fullHttpRequest);
         List<InterfaceHttpData> postData = decoder.getBodyHttpDatas();
@@ -352,29 +351,35 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * Http解析json数据（Content-Type = application/json）
+     * Http解析Post请求的body参数(Json形势)
      *
-     * @param httpRequest
+     * @param httpRequest post请求
+     * @param paramMap    所需参数及对应的class类型
      * @return
      * @throws UnsupportedEncodingException
      */
-    private Map<String, Object> getJSONParams(HttpRequest httpRequest, LinkedHashMap<String, ParamEntry> paramMap) throws UnsupportedEncodingException {
+    private Map<String, Object> getJsonParamsFromPostRequest(HttpRequest httpRequest, LinkedHashMap<String, ParamEntry> paramMap) throws UnsupportedEncodingException {
         //初始化参数对象
         Map<String, Object> params = new HashMap<>();
         //强转下请求
         FullHttpRequest fullReq = (FullHttpRequest) httpRequest;
+        //获取请求内容
         ByteBuf content = fullReq.content();
+        //初始化内容byte[]
         byte[] reqContent = new byte[content.readableBytes()];
+        //写入byte[]
         content.readBytes(reqContent);
-        String strContent = new String(reqContent, "UTF-8");
-        JsonObject jsonParams = JsonUtil.parse(strContent);
+        //读取成字符并转化为Json
+        JsonObject jsonParams = JsonUtil.parse(new String(reqContent, "UTF-8"));
+        //循环
         for (String key : jsonParams.keySet()) {
-            //如果是所需参数
+            //如果是所需要的参数
             if (paramMap.containsKey(key)) {
                 //强转并组装
                 params.put(key, TypeUtils.castObject(paramMap.get(key).clazz, jsonParams.get(key)));
             }
         }
+        //返回
         return params;
     }
 
