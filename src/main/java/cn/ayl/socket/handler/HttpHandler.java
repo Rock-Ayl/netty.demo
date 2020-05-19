@@ -211,7 +211,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             //根据path和params处理业务并返回结果
             Object result = handleServiceFactory(req);
             //组装、响应并返回
-            ResponseHandler.sendJson(ctx, HttpResponseStatus.OK, result);
+            ResponseHandler.sendObject(ctx, HttpResponseStatus.OK, result);
         } else {
             //当做预检请求处理
             ResponseHandler.sendOption(ctx);

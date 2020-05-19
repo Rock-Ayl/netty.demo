@@ -270,9 +270,9 @@ public class UploadFileHandler {
                     uploadService(this.file);
                     //响应并关闭
                     if (this.result != null) {
-                        ResponseHandler.sendJson(ctx, HttpResponseStatus.OK, this.result);
+                        ResponseHandler.sendObject(ctx, HttpResponseStatus.OK, this.result);
                     } else {
-                        ResponseHandler.sendJson(ctx, HttpResponseStatus.OK, this.file.toJson());
+                        ResponseHandler.sendObject(ctx, HttpResponseStatus.OK, this.file.toJson());
                     }
                     logger.info("upload FileName=[{}] success.", this.file.getFileName());
                 }

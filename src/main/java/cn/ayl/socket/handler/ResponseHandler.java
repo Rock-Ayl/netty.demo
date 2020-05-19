@@ -9,16 +9,11 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URLEncoder;
-
-import static io.netty.buffer.Unpooled.copiedBuffer;
-import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_DISPOSITION;
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 
 /**
  * Created By Rock-Ayl 2019-11-14
@@ -29,45 +24,23 @@ public class ResponseHandler {
     private static final Logger logger = LoggerFactory.getLogger(ResponseHandler.class);
 
     /**
-     * 响应预检请求
+     * 响应一般http请求并返回object
      *
      * @param ctx
+     * @param status
+     * @param result 返回结果,一般为Json
      */
-    public static void sendOption(ChannelHandlerContext ctx) {
-        sendText(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, "ok");
-    }
-
-    /**
-     * 响应http并返回text
-     *
-     * @param status 状态
-     * @param result 返回值
-     * @return
-     */
-    public static void sendText(ChannelHandlerContext ctx, HttpResponseStatus status, Object result) {
-        ByteBuf content = copiedBuffer(result.toString(), CharsetUtil.UTF_8);
+    public static void sendObject(ChannelHandlerContext ctx, HttpResponseStatus status, Object result) {
+        //获取缓冲
+        ByteBuf content = Unpooled.copiedBuffer(result.toString(), CharsetUtil.UTF_8);
+        //请求初始化
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
-        if (content != null) {
-            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain;charset=UTF-8");
-            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
-        }
-        ctx.channel().writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
-    }
-
-    /**
-     * 响应http并返回json
-     *
-     * @param status 状态
-     * @param result 返回值
-     * @return
-     */
-    public static void sendJson(ChannelHandlerContext ctx, HttpResponseStatus status, Object result) {
-        ByteBuf content = copiedBuffer(result.toString(), CharsetUtil.UTF_8);
-        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
+        //判空
         if (content != null) {
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         }
+        //响应并关闭通道
         ctx.channel().writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
@@ -79,15 +52,18 @@ public class ResponseHandler {
      * @param content
      */
     public static void sendMessageOfJson(ChannelHandlerContext ctx, HttpResponseStatus status, String content) {
-        JsonObject result = JsonObject.Success().append(Const.Message, content);
-        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, Unpooled.copiedBuffer(result.toJson(), CharsetUtil.UTF_8));
-        //判空
-        if (StringUtils.isNotEmpty(content)) {
-            response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
-            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
-        }
-        ctx.channel().writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+        sendObject(ctx, status, JsonObject.Success().append(Const.Message, content));
     }
+
+    /**
+     * 响应预检请求
+     *
+     * @param ctx
+     */
+    public static void sendOption(ChannelHandlerContext ctx) {
+        sendObject(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, "ok");
+    }
+
 
     /**
      * 响应并返回请求下载文件的文件流
@@ -125,8 +101,8 @@ public class ResponseHandler {
                 break;
         }
         //告诉浏览器文件类型
-        response.headers().set(CONTENT_TYPE, contentType);
-        response.headers().add(CONTENT_DISPOSITION, disposition);
+        response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
+        response.headers().add(HttpHeaderNames.CONTENT_DISPOSITION, disposition);
         //todo 组装一些需要然前端知道的参数(这东西还得想象放哪)
         response.headers().add("access-control-allow-origin", "*");
         response.headers().add("access-control-allow-credentials", true);
