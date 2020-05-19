@@ -64,7 +64,6 @@ public class ResponseHandler {
         sendObject(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, "ok");
     }
 
-
     /**
      * 响应并返回请求下载文件的文件流
      *
