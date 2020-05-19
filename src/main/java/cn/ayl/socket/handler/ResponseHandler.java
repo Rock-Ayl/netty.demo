@@ -31,7 +31,7 @@ public class ResponseHandler {
      * @param result 返回结果,一般为Json
      */
     public static void sendObject(ChannelHandlerContext ctx, HttpResponseStatus status, Object result) {
-        //获取缓冲
+        //创建一个新缓冲
         ByteBuf content = Unpooled.copiedBuffer(result.toString(), CharsetUtil.UTF_8);
         //请求初始化
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
