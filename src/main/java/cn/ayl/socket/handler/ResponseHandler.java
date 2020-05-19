@@ -8,12 +8,16 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
+import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URLEncoder;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created By Rock-Ayl 2019-11-14
@@ -22,6 +26,37 @@ import java.net.URLEncoder;
 public class ResponseHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseHandler.class);
+
+    private static Set<AsciiString> Headers = new HashSet<>();
+
+    static {
+        Headers.add(AsciiString.cached("Origin"));
+        Headers.add(AsciiString.cached("X-Requested-With"));
+        Headers.add(AsciiString.cached("Accept"));
+        //通用参数
+        Headers.add(AsciiString.cached("params"));
+        //cookieId
+        Headers.add(AsciiString.cached("cookieId"));
+        Headers.add(HttpHeaderNames.CONTENT_TYPE);
+        Headers.add(HttpHeaderNames.CONTENT_LENGTH);
+        Headers.add(HttpHeaderNames.AUTHORIZATION);
+    }
+
+    /**
+     * 设置通用响应headers
+     *
+     * @param response
+     */
+    private static void setServerHeaders(HttpResponse response) {
+        HttpHeaders headers = response.headers();
+        headers.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+        headers.set(HttpHeaderNames.SERVER, "netty.demo");
+        headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+        headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS, true);
+        headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "GET,POST,PUT,DELETE,OPTIONS");
+        headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, Collections.unmodifiableSet(Headers));
+        headers.set(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE, 86400);
+    }
 
     /**
      * 响应一般http请求并返回object
@@ -40,6 +75,8 @@ public class ResponseHandler {
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         }
+        //添加通用参数
+        setServerHeaders(response);
         //响应并关闭通道
         ctx.channel().writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
@@ -102,12 +139,8 @@ public class ResponseHandler {
         //告诉浏览器文件类型
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
         response.headers().add(HttpHeaderNames.CONTENT_DISPOSITION, disposition);
-        //todo 组装一些需要然前端知道的参数(这东西还得想象放哪)
-        response.headers().add("access-control-allow-origin", "*");
-        response.headers().add("access-control-allow-credentials", true);
-        response.headers().add("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-        response.headers().add("Access-Control-Allow-Headers", "X-Requested-With, Content-Type,Content-Length,cookieId,fileName,fileId,type");
-        response.headers().add("Access-Control-Max-Age", 86400);
+        //添加通用参数
+        setServerHeaders(response);
         //写入响应及对应handlers
         ctx.write(response);
         //写入只读的文件流 (FileChannel放入Netty的FileRegion中)
