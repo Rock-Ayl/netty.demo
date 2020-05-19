@@ -10,6 +10,7 @@ import cn.ayl.socket.decoder.ProtocolDecoder;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.ReferenceCountUtil;
@@ -42,7 +43,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             //强转
             HttpRequest req = (HttpRequest) msg;
             //判断请求类型是否为预检
-            if (req.method().name().equalsIgnoreCase("OPTIONS")) {
+            if (req.method() == HttpMethod.OPTIONS) {
                 //预检请求当做普通http
                 this.context.requestType = RequestType.http;
                 //响应预检

@@ -20,7 +20,7 @@ public @interface Method {
     String desc() default "";
 
     //请求方法
-    RequestMethod command() default RequestMethod.post;
+    RequestMethod command() default RequestMethod.Post;
 
     //内容类型
     ContentType contentType() default ContentType.Json;
