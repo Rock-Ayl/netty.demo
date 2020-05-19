@@ -3,6 +3,7 @@ package cn.ayl.socket.handler;
 import cn.ayl.common.enumeration.FileRequestType;
 import cn.ayl.config.Const;
 import cn.ayl.common.json.JsonObject;
+import cn.ayl.util.DateUtils;
 import cn.ayl.util.TypeUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.URLEncoder;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -139,6 +141,8 @@ public class ResponseHandler {
         //告诉浏览器文件类型
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
         response.headers().add(HttpHeaderNames.CONTENT_DISPOSITION, disposition);
+        //告诉浏览器文件最后修改时间
+        response.headers().set(HttpHeaderNames.LAST_MODIFIED, DateUtils.SDF_HTTP_DATE_FORMATTER.format(new Date(file.lastModified())));
         //添加通用参数
         setServerHeaders(response);
         //写入响应及对应handlers
