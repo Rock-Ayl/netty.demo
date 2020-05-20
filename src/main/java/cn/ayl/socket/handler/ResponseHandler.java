@@ -71,7 +71,7 @@ public class ResponseHandler {
         //创建一个新缓冲
         ByteBuf content = Unpooled.copiedBuffer(result.toString(), CharsetUtil.UTF_8);
         //请求初始化
-        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, content);
+        FullHttpResponse response = new DefaultFullHttpResponse(Const.CurrentHttpVersion, status, content);
         //判空
         if (content != null) {
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
@@ -109,11 +109,13 @@ public class ResponseHandler {
      * @param ctx
      * @throws IOException
      */
-    public static void sendFileStream(ChannelHandlerContext ctx, File file, FileRequestType fileRequestType) throws IOException {
+    public static void sendFileStream(ChannelHandlerContext ctx, HttpRequest request, File file, FileRequestType fileRequestType) throws IOException {
         //文件名
         String fileName = file.getName();
+        //当前时间
+        long thisTime = System.currentTimeMillis();
         //一个基础的OK请求
-        HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+        HttpResponse response = new DefaultHttpResponse(Const.CurrentHttpVersion, HttpResponseStatus.OK);
         //handlers添加文件长度
         response.headers().set(HttpHeaderNames.CONTENT_LENGTH, file.length());
         //初始化文件类型
@@ -138,10 +140,17 @@ public class ResponseHandler {
                 disposition = "inline; filename*=UTF-8''" + URLEncoder.encode(fileName, "utf-8");
                 break;
         }
-        //告诉浏览器文件类型
+        //文件内容类型
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
+        //文件名,是否 save as
         response.headers().add(HttpHeaderNames.CONTENT_DISPOSITION, disposition);
-        //告诉浏览器文件最后修改时间
+        //该资源发送的时间
+        response.headers().set(HttpHeaderNames.DATE, DateUtils.SDF_HTTP_DATE_FORMATTER.format(thisTime));
+        //响应过期的日期和时间
+        response.headers().set(HttpHeaderNames.EXPIRES, DateUtils.SDF_HTTP_DATE_FORMATTER.format(thisTime + Const.FileResourceExpiresTime));
+        //设置缓存开关
+        response.headers().set(HttpHeaderNames.CACHE_CONTROL, "private, max-age=" + Const.FileResourceExpiresTime);
+        //文件最后修改时间
         response.headers().set(HttpHeaderNames.LAST_MODIFIED, DateUtils.SDF_HTTP_DATE_FORMATTER.format(new Date(file.lastModified())));
         //添加通用参数
         setServerHeaders(response);

@@ -46,7 +46,7 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
         }
         try {
             //响应成功
-            ResponseHandler.sendFileStream(ctx, file, type);
+            ResponseHandler.sendFileStream(ctx, request, file, type);
         } catch (Exception e) {
             logger.error("响应请求文件流失败:{}", e);
         } finally {

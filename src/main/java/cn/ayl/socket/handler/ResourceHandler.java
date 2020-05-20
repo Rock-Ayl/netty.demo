@@ -4,7 +4,9 @@ import cn.ayl.common.enumeration.FileRequestType;
 import cn.ayl.handler.FileHandler;
 import cn.ayl.util.DateUtils;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import jodd.io.FileNameUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -13,9 +15,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.URLDecoder;
-
-import static io.netty.handler.codec.http.HttpHeaderNames.IF_MODIFIED_SINCE;
-import static io.netty.handler.codec.http.HttpResponseStatus.*;
 
 /**
  * created by Rock-Ayl on 2019-11-26
@@ -49,14 +48,14 @@ public class ResourceHandler {
                     //如果静态文件没有改动,直接返回(让浏览器用缓存)
                     if (isNotModified(req, file)) {
                         //文件未被修改,浏览器可以延用缓存
-                        ResponseHandler.sendMessageOfJson(ctx, NOT_MODIFIED, "Modified false.");
+                        ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.NOT_MODIFIED, "Modified false.");
                     } else {
                         //响应请求文件流
-                        ResponseHandler.sendFileStream(ctx, file, FileRequestType.preview);
+                        ResponseHandler.sendFileStream(ctx, req, file, FileRequestType.preview);
                     }
                 } else {
                     //不存在文件,响应失败
-                    ResponseHandler.sendMessageOfJson(ctx, NOT_FOUND, "没有发现文件.");
+                    ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.NOT_FOUND, "没有发现文件.");
                 }
             }
         } catch (IOException e) {
@@ -77,7 +76,7 @@ public class ResourceHandler {
         //默认修改过
         boolean notModified = false;
         //获取请求给与的浏览器缓存的文件最后修改时间
-        String ifModifiedSince = req.headers().get(IF_MODIFIED_SINCE);
+        String ifModifiedSince = req.headers().get(HttpHeaderNames.IF_MODIFIED_SINCE);
         try {
             //如果存在文件最后修改时间
             if (StringUtils.isNotEmpty(ifModifiedSince)) {
