@@ -127,7 +127,7 @@ public class Const {
     public static final int AllIdleTimeSeconds = 120;
     //BACKLOG值用于构造服务端套接字ServerSocket对象，标识当服务器请求处理线程全满时，用于临时存放已完成三次握手的请求的队列的最大长度。如果未设置或所设置的值小于1，Java将使用默认值50。
     public static final int ChannelOptionSoBacklogValue = 1024;
-    //处理下载请求响应文件流块大小
+    //处理下载请求如果需要加密内存处理时,响应文件流块大小
     public static final int ChunkSize = 8 * 1024;
     //静态文件过期时间(秒)
     public static final long FileResourceExpiresTime = 60 * 1000;
