@@ -13,6 +13,7 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,12 +115,42 @@ public class ResponseHandler {
     public static void sendFileStream(ChannelHandlerContext ctx, HttpRequest request, File file, FileRequestType fileRequestType) throws IOException {
         //文件名
         String fileName = file.getName();
+        //文件长度
+        long fileLength = file.length();
         //当前时间
         long thisTime = System.currentTimeMillis();
         //一个基础的OK请求
         HttpResponse response = new DefaultHttpResponse(Const.CurrentHttpVersion, HttpResponseStatus.OK);
-        //handlers添加文件长度
-        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, file.length());
+        //支持告诉客户端支持分片下载,如迅雷等多线程
+        response.headers().set(HttpHeaderNames.ACCEPT_RANGES, HttpHeaderValues.BYTES);
+        //文件起始字节位置初始化
+        long startOffset = 0;
+        //文件结束字节位置初始化
+        long endOffset = fileLength - 1;
+        //传输文件的实际总长度
+        long endLength = fileLength;
+        //获取range值
+        String range = request.headers().get(HttpHeaderNames.RANGE);
+        //Range判空
+        if (StringUtils.isNotEmpty(range)) {
+            //设置为分片下载状态
+            response.setStatus(HttpResponseStatus.PARTIAL_CONTENT);
+            //解析Range前后区间
+            String[] r = range.replace("bytes=", "").split("-");
+            //设置文件起始字节位置
+            startOffset = Long.parseLong(r[0]);
+            //判断是否存在文件结束字节位置
+            if (r.length == 2) {
+                //文件结束字节位置
+                endOffset = Long.parseLong(r[1]);
+            }
+            //设置响应范围
+            response.headers().set(HttpHeaderNames.CONTENT_RANGE, HttpHeaderValues.BYTES + " " + startOffset + "-" + endOffset + "/" + fileLength);
+            //传输文件的实际总长度
+            endLength = endOffset - startOffset + 1;
+        }
+        //handlers添加文件实际传输长度
+        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, endLength);
         //初始化文件类型
         String contentType;
         //设定化内容处理:以附件的形式下载、文件名、编码
@@ -158,13 +189,15 @@ public class ResponseHandler {
         setServerHeaders(response);
         //写入响应及对应handlers
         ctx.write(response);
+        //获取文件对象-只读
+        final RandomAccessFile onlyReadFile = new RandomAccessFile(file, "r");
         //对于http和https协议使用不同的传输文件方式
         if (HttpUtils.isHttps(ctx)) {
             //https的传输文件方式
-            ctx.write(new HttpChunkedInput(new ChunkedFile(new RandomAccessFile(file, "r"), 0, file.length(), Const.ChunkSize)), ctx.newProgressivePromise());
+            ctx.write(new HttpChunkedInput(new ChunkedFile(onlyReadFile, startOffset, endOffset, Const.ChunkSize)), ctx.newProgressivePromise());
         } else {
             //http的传输文件方式,零拷贝,高效
-            ctx.write(new DefaultFileRegion(new RandomAccessFile(file, "r").getChannel(), 0, file.length()), ctx.newProgressivePromise());
+            ctx.write(new DefaultFileRegion(onlyReadFile.getChannel(), startOffset, endOffset), ctx.newProgressivePromise());
         }
         //ctx响应并关闭(如果使用Chunked编码，最后则需要发送一个编码结束的看空消息体，进行标记，表示所有消息体已经成功发送完成)
         ctx.channel().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);

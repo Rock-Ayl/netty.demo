@@ -49,6 +49,8 @@ public class TypeUtils {
                     return "image/gif";
                 case "ico":
                     return "image/x-ico";
+                case "mp3":
+                    return "audio/mp3; charset=utf-8";
                 case "mp4":
                 case "mkv":
                     return "video/mp4; charset=utf-8";
