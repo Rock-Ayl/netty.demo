@@ -13,6 +13,13 @@
 - Http
 - WebSocket
 
+## 支持服务
+
+- 定制化对外提供数据接口
+- 即时聊天室(支持心跳)
+- 上传/下载/预览文件(支持多线程Range)
+- 浏览静态文件资源(支持多线程Range,支持浏览video时快进后退)
+
 ## Add dependencies to build.gradle.
 
 ```
