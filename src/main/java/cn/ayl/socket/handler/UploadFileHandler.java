@@ -3,6 +3,7 @@ package cn.ayl.socket.handler;
 import cn.ayl.config.Const;
 import cn.ayl.common.entry.FileEntry;
 import cn.ayl.handler.FileHandler;
+import cn.ayl.socket.encoder.ResponseAndEncoderHandler;
 import cn.ayl.util.Base64Utils;
 import cn.ayl.util.IdUtils;
 import cn.ayl.common.json.JsonObject;
@@ -94,7 +95,7 @@ public class UploadFileHandler {
             HttpRequest request = (HttpRequest) msg;
             //如果是get请求，返回
             if (request.method().equals(HttpMethod.GET)) {
-                ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "upload must use post.");
+                ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "upload must use post.");
                 return;
             }
             //Post解码
@@ -104,7 +105,7 @@ public class UploadFileHandler {
                 this.decoder.setDiscardThreshold(0);
             } catch (HttpPostRequestDecoder.ErrorDataDecoderException e1) {
                 //返回错误
-                ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, e1.getMessage());
+                ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, e1.getMessage());
                 return;
             }
             //请求头
@@ -187,7 +188,7 @@ public class UploadFileHandler {
             this.decoder.offer(chunk);
         } catch (HttpPostRequestDecoder.ErrorDataDecoderException e1) {
             //返回错误消息
-            ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, e1.getMessage());
+            ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, e1.getMessage());
             ctx.channel().close();
             return;
         }
@@ -198,7 +199,7 @@ public class UploadFileHandler {
             this.readingChunks = false;
             reset();
             //发送消息
-            ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "OK");
+            ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "OK");
             //关闭
             ctx.channel().close();
             return;
@@ -270,9 +271,9 @@ public class UploadFileHandler {
                     uploadService(this.file);
                     //响应并关闭
                     if (this.result != null) {
-                        ResponseHandler.sendObject(ctx, HttpResponseStatus.OK, this.result);
+                        ResponseAndEncoderHandler.sendObject(ctx, HttpResponseStatus.OK, this.result);
                     } else {
-                        ResponseHandler.sendObject(ctx, HttpResponseStatus.OK, this.file.toJson());
+                        ResponseAndEncoderHandler.sendObject(ctx, HttpResponseStatus.OK, this.file.toJson());
                     }
                     logger.info("upload FileName=[{}] success.", this.file.getFileName());
                 }

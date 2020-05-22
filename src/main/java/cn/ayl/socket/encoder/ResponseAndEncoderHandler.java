@@ -1,4 +1,4 @@
-package cn.ayl.socket.handler;
+package cn.ayl.socket.encoder;
 
 import cn.ayl.common.enumeration.FileRequestType;
 import cn.ayl.config.Const;
@@ -26,11 +26,11 @@ import java.util.Set;
 
 /**
  * Created By Rock-Ayl 2019-11-14
- * 请求响应处理程序
+ * 协议编码器及响应处理器
  */
-public class ResponseHandler {
+public class ResponseAndEncoderHandler {
 
-    private static final Logger logger = LoggerFactory.getLogger(ResponseHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResponseAndEncoderHandler.class);
 
     private static Set<AsciiString> Headers = new HashSet<>();
 

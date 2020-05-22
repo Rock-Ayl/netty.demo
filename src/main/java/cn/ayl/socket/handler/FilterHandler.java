@@ -5,6 +5,7 @@ import cn.ayl.common.enumeration.RequestType;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.common.json.JsonUtil;
 import cn.ayl.config.Const;
+import cn.ayl.socket.encoder.ResponseAndEncoderHandler;
 import cn.ayl.socket.rpc.Context;
 import cn.ayl.socket.decoder.ProtocolDecoder;
 import io.netty.channel.ChannelHandlerContext;
@@ -47,7 +48,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
                 //预检请求当做普通http
                 this.context.requestType = RequestType.http;
                 //响应预检
-                ResponseHandler.sendOption(ctx);
+                ResponseAndEncoderHandler.sendOption(ctx);
                 return false;
             }
             //获取请求cookieId
@@ -69,7 +70,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             //身份效验
             if (!authUser(req)) {
                 //如果身份效验失败,直接发送错误信息
-                ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.UNAUTHORIZED, "身份验证失败.");
+                ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.UNAUTHORIZED, "身份验证失败.");
                 return false;
             }
         }

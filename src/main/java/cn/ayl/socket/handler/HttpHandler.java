@@ -5,6 +5,7 @@ import cn.ayl.common.entry.MethodEntry;
 import cn.ayl.common.entry.ParamEntry;
 import cn.ayl.common.entry.RegistryEntry;
 import cn.ayl.common.entry.ServiceEntry;
+import cn.ayl.socket.encoder.ResponseAndEncoderHandler;
 import cn.ayl.socket.rpc.Context;
 import cn.ayl.util.HttpUtils;
 import cn.ayl.util.ScanClassUtils;
@@ -211,10 +212,10 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             //根据path和params处理业务并返回结果
             Object result = handleServiceFactory(req);
             //组装、响应并返回
-            ResponseHandler.sendObject(ctx, HttpResponseStatus.OK, result);
+            ResponseAndEncoderHandler.sendObject(ctx, HttpResponseStatus.OK, result);
         } else {
             //当做预检请求处理
-            ResponseHandler.sendOption(ctx);
+            ResponseAndEncoderHandler.sendOption(ctx);
         }
     }
 
@@ -262,7 +263,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 uploadFileHandler.handleHttpContent(ctx, (HttpContent) msg);
             } else {
                 //响应
-                ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "失败的请求.");
+                ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "失败的请求.");
             }
         } catch (Exception e) {
             logger.error("channelRead", e);

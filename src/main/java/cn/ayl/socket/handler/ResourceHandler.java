@@ -2,6 +2,7 @@ package cn.ayl.socket.handler;
 
 import cn.ayl.common.enumeration.FileRequestType;
 import cn.ayl.handler.FileHandler;
+import cn.ayl.socket.encoder.ResponseAndEncoderHandler;
 import cn.ayl.util.DateUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -48,14 +49,14 @@ public class ResourceHandler {
                     //如果静态文件没有改动,直接返回(让浏览器用缓存)
                     if (isNotModified(req, file)) {
                         //文件未被修改,浏览器可以延用缓存
-                        ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.NOT_MODIFIED, "Modified false.");
+                        ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.NOT_MODIFIED, "Modified false.");
                     } else {
                         //响应请求文件流
-                        ResponseHandler.sendFileStream(ctx, req, file, FileRequestType.preview);
+                        ResponseAndEncoderHandler.sendFileStream(ctx, req, file, FileRequestType.preview);
                     }
                 } else {
                     //不存在文件,响应失败
-                    ResponseHandler.sendMessageOfJson(ctx, HttpResponseStatus.NOT_FOUND, "没有发现文件.");
+                    ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.NOT_FOUND, "没有发现文件.");
                 }
             }
         } catch (IOException e) {
