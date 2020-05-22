@@ -1,7 +1,6 @@
 package cn.ayl.socket.rpc;
 
 import cn.ayl.common.enumeration.RequestType;
-import cn.ayl.common.json.JsonObject;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelId;
 
@@ -12,7 +11,7 @@ import io.netty.channel.ChannelId;
 public class Context {
 
     //请求类型
-    public RequestType requestType;
+    public RequestType requestType = RequestType.none;
     //请求者ip
     public String ip;
     //UriPath
@@ -28,15 +27,13 @@ public class Context {
     //认证的用户Id
     public long ctxUserId;
 
-    //会话参数
-    public JsonObject parameterObject = JsonObject.VOID();
-
-    public Context() {
-        //默认为none
-        requestType = RequestType.none;
-    }
-
-    //创建基础上下文
+    /**
+     * 基础上下文
+     *
+     * @param type
+     * @param channel
+     * @return
+     */
     public static Context createInitContext(RequestType type, Channel channel) {
         Context context = new Context();
         context.requestType = type;
