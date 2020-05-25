@@ -161,22 +161,22 @@ public class ResponseAndEncoderHandler {
             case download:
                 //所有下载都是流
                 contentType = "application/octet-stream; charset=utf-8";
-                //告诉浏览器是下载,文件名
-                disposition = "attachment; filename*=UTF-8''" + URLEncoder.encode(fileName, "utf-8");
+                //告诉浏览器是下载
+                disposition = "attachment";
                 break;
             //只是预览
             case preview:
             default:
                 //按文件类别区分文件类型
                 contentType = TypeUtils.parseHttpResponseContentType(fileName);
-                //告诉浏览器是预览,文件名
-                disposition = "inline; filename*=UTF-8''" + URLEncoder.encode(fileName, "utf-8");
+                //告诉浏览器是预览
+                disposition = "inline";
                 break;
         }
         //文件内容类型
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
         //文件名,是否 save as
-        response.headers().add(HttpHeaderNames.CONTENT_DISPOSITION, disposition);
+        response.headers().add(HttpHeaderNames.CONTENT_DISPOSITION, disposition + "; filename*=UTF-8''" + URLEncoder.encode(fileName, "utf-8"));
         //该资源发送的时间
         response.headers().set(HttpHeaderNames.DATE, DateUtils.SDF_HTTP_DATE_FORMATTER.format(thisTime));
         //响应过期的日期和时间
