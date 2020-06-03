@@ -81,11 +81,8 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
          */
         private void distinguishNetworkProtocol(ByteBuf buffer, Channel channel) {
             String header = this.readHeader(buffer);
-            /*过滤chrome的跨越访问*/
-            if (header.startsWith("GET /favicon.ico")) {
-                return;
-                /*识别为WebSocket并绑定上下文*/
-            } else if (header.startsWith("<policy") || header.indexOf("Connection: Upgrade") > 0) {
+            //判断是否为webSocket
+            if (isWebSocket(header)) {
                 context = Context.createInitContext(RequestType.websocket, channel);
                 /*如下为Http请求,进行upload,download,service归类并绑定上下文*/
             } else if (header.startsWith("POST " + Const.UploadPath)) {
@@ -124,6 +121,19 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
                 }
                 buffer.readerIndex(readerIndex);
             }
+        }
+
+        /**
+         * 判断一个请求是否为WebSocket
+         *
+         * @param header 基于 netty ByteBuf 读出的header
+         * @return
+         */
+        private boolean isWebSocket(String header) {
+            if (header.startsWith("<policy") || header.indexOf("Connection: Upgrade") > 0) {
+                return true;
+            }
+            return false;
         }
 
         /**

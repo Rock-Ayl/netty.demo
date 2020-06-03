@@ -41,14 +41,14 @@ public class TypeUtils {
                 case "jpeg":
                 case "jpg":
                     return "image/jpeg";
+                case "ico":
+                    return "image/vnd.microsoft.icon";
                 case "png":
                     return "image/png";
                 case "pdf":
                     return "application/pdf; charset=utf-8";
                 case "gif":
                     return "image/gif";
-                case "ico":
-                    return "image/x-ico";
                 case "mp3":
                     return "audio/mp3; charset=utf-8";
                 case "mp4":
