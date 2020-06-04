@@ -2,7 +2,7 @@ package cn.ayl;
 
 import cn.ayl.common.entry.RegistryEntry;
 import cn.ayl.common.job.Scheduler;
-import cn.ayl.socket.server.SocketServer;
+import cn.ayl.socket.server.ServerSocket;
 
 /**
  * created By Rock-Ayl on 2019-11-13
@@ -16,7 +16,7 @@ public class Server {
         //扫描所有服务已存在
         RegistryEntry.scanServices();
         //扫描之后，可以启动netty监听
-        SocketServer.SocketServer.startup();
+        ServerSocket.SocketServer.startup();
     }
 
 }

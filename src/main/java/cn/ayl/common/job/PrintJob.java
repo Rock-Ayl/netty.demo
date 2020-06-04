@@ -7,6 +7,8 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDateTime;
+
 /**
  * Created by Rock-Ayl 2019-5-10
  * 打印任务的demo
@@ -19,7 +21,7 @@ public class PrintJob implements Job {
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         //todo 业务
-        logger.info(" Scheduler Demo Starting...");
+        logger.info(" Scheduler Demo Starting at :" + LocalDateTime.now());
     }
 
 }
