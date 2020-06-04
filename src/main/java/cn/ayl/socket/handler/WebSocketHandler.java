@@ -35,9 +35,9 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         //获取上下文
-        context = ctx.channel().attr(Const.AttrContext).get();
+        this.context = ctx.channel().attr(Const.AttrContext).get();
         //无上下文，返回
-        if (context == null) {
+        if (this.context == null) {
             return;
         }
         //处理WebSocket请求的分别处理
@@ -55,7 +55,7 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
     private void handleWebSocketRequest(ChannelHandlerContext ctx, WebSocketFrame frame) {
         // 判断是否是关闭链路的指令
         if (frame instanceof CloseWebSocketFrame) {
-            webSocketServerHandshaker.close(ctx.channel(), (CloseWebSocketFrame) frame.retain());
+            this.webSocketServerHandshaker.close(ctx.channel(), (CloseWebSocketFrame) frame.retain());
             return;
         }
         // 判断是否是Ping消息
@@ -65,11 +65,14 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
         }
         // 文本消息，不支持二进制消息
         if (frame instanceof TextWebSocketFrame) {
-            //请求text
+            //获取请求文本
             String request = ((TextWebSocketFrame) frame).text();
+            //log
             logger.info("收到信息:" + request);
+            //当前通道
             Channel incoming = ctx.channel();
-            for (Channel channel : channels) {
+            //循环所有通道
+            for (Channel channel : this.channels) {
                 if (channel != incoming) {
                     channel.writeAndFlush(new TextWebSocketFrame("[" + incoming.remoteAddress() + "]:" + request));
                 } else {
@@ -80,43 +83,53 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {  // (2)
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        //获取通道
         Channel incoming = ctx.channel();
-        for (Channel channel : channels) {
-            channel.writeAndFlush(new TextWebSocketFrame("[SERVER] - " + incoming.remoteAddress() + " 加入房间"));
-        }
-        channels.add(ctx.channel());
+        //群发消息
+        this.channels.writeAndFlush(new TextWebSocketFrame("[SERVER] - " + incoming.remoteAddress() + " 加入房间"));
+        //从组新增该通道
+        this.channels.add(ctx.channel());
+        //log
         logger.info("Client:" + incoming.remoteAddress() + "加入");
     }
 
     @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {  // (3)
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        //获取通道
         Channel incoming = ctx.channel();
-        for (Channel channel : channels) {
-            channel.writeAndFlush(new TextWebSocketFrame("[SERVER] - " + incoming.remoteAddress() + " 离开房间"));
-        }
+        //群发消息
+        this.channels.writeAndFlush(new TextWebSocketFrame("[SERVER] - " + incoming.remoteAddress() + " 离开房间"));
+        //从组移除该通道(该逻辑可以删除,因为netty会自动调用)
+        this.channels.remove(ctx.channel());
+        //log
         logger.info("Client:" + incoming.remoteAddress() + "离开");
-        channels.remove(ctx.channel());
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception { // (5)
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        //获取通道
         Channel incoming = ctx.channel();
-        logger.info("Client:" + incoming.remoteAddress() + "在线");
+        //log
+        logger.info("Client:" + incoming.remoteAddress() + "上线");
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception { // (6)
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        //获取通道
         Channel incoming = ctx.channel();
-        logger.info("Client:" + incoming.remoteAddress() + "掉线");
+        //log
+        logger.info("Client:" + incoming.remoteAddress() + "下线");
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        //获取通道
         Channel incoming = ctx.channel();
-        logger.error("Client:" + incoming.remoteAddress() + "异常:[{}]", cause);
         // 当出现异常就关闭连接
         ctx.close();
+        //log
+        logger.error("Client:" + incoming.remoteAddress() + "异常:[{}]", cause);
     }
 
 }
