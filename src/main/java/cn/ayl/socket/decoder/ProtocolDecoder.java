@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 协议解码器
@@ -223,8 +224,9 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
 
     //心跳套件及处理器
     public static void heartAddLast(ChannelPipeline p) {
-        //心跳(防止资源浪费)
-        p.addLast(new IdleStateHandler(Const.ReaderIdleTimeSeconds, Const.WriterIdleTimeSeconds, Const.AllIdleTimeSeconds));
+        //初始化心跳设置 读、写、读写 以及 心跳单位
+        p.addLast(new IdleStateHandler(Const.ReaderIdleTimeSeconds, Const.WriterIdleTimeSeconds, Const.AllIdleTimeSeconds, TimeUnit.SECONDS));
+        //心跳处理器
         p.addLast("webSocket-heartBeat", new HeartBeatHandler());
     }
 

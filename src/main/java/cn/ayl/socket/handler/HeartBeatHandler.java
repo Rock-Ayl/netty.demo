@@ -17,17 +17,21 @@ public class HeartBeatHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object msg) throws Exception {
-        // 判断evt是否是 IdleStateEvent(超时的事件，用于触发用户事件，包含读空闲/写空闲/读写空闲 ）
+        //如果通道触发了闲置检测
         if (msg instanceof IdleStateEvent) {
-            // 强制类型转换
+            //获取闲置状态
             IdleStateEvent event = (IdleStateEvent) msg;
+            //根据状态操作
             switch (event.state()) {
+                //读空闲
                 case READER_IDLE:
                     logger.info("进入读空闲...");
                     break;
+                //写空闲
                 case WRITER_IDLE:
                     logger.info("进入写空闲...");
                     break;
+                //读写空闲
                 case ALL_IDLE:
                     logger.info("开始杀死无用通道，节约资源");
                     Channel channel = ctx.channel();

@@ -33,16 +33,19 @@ public class Const {
     /**
      * netty channel的上下文 AttributeKey
      */
+    
     public final static AttributeKey<Context> AttrContext = AttributeKey.valueOf("Context");
 
     /**
      * 配置文件对象
      */
+
     public final static PropertyUtils properties = new PropertyUtils().use("setting.properties");
 
     /**
      * 常用字段
      */
+
     public final static String SPACE = " ";
     public final static String Message = "message";
     public final static String Items = "items";
@@ -63,6 +66,7 @@ public class Const {
     /**
      * 初始化除了Service外的其他几个服务
      */
+
     //WebSocket地址
     public static final String WebSocketPath = "/WebSocket";
     //上传地址
@@ -115,16 +119,19 @@ public class Const {
     public static final String UploadFilePath = "/Users/ayl/workspace/upload/";
     //服务器-下载文件路径
     public static final String DownloadFilePath = "/Users/ayl/workspace/download/";
+
     //SocketPort
     public static final int SocketPort = 8888;
     //http请求聚合字节最大长度
     public static final int MaxContentLength = 1024 * 1048576;
+
     //WebSocket读空闲时间闲置/秒
     public static final int ReaderIdleTimeSeconds = 80;
     //WebSocket写空闲时间闲置/秒
     public static final int WriterIdleTimeSeconds = 100;
     //WebSocket所有空闲时间闲置/秒
     public static final int AllIdleTimeSeconds = 120;
+
     //BACKLOG值用于构造服务端套接字ServerSocket对象，标识当服务器请求处理线程全满时，用于临时存放已完成三次握手的请求的队列的最大长度。如果未设置或所设置的值小于1，Java将使用默认值50。
     public static final int ChannelOptionSoBacklogValue = 1024;
     //处理下载请求如果需要加密内存处理时,响应文件流块大小
