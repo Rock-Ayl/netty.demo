@@ -163,8 +163,8 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
         private void switchWebSocket(ChannelPipeline p) {
             //基础套件
             httpAddLast(p);
-            //上传套件
-            uploadAddLast(p);
+            //聚合套件
+            aggregatorAddLast(p);
             //心跳套件
             heartAddLast(p);
             //升级WebSocket套件及处理器
@@ -179,12 +179,12 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
         private void switchHttp(ChannelPipeline p) {
             //基础套件
             httpAddLast(p);
-            //如果请求类型为上传，整合文件
+            //判断是否不为上传请求
             if (context.requestType != RequestType.upload) {
-                //上传套件
-                uploadAddLast(p);
+                //聚合套件
+                aggregatorAddLast(p);
             }
-            //是否为下载请求
+            //判断是否为下载请求
             if (context.requestType == RequestType.download) {
                 //下载套件及处理器
                 downloadAddLast(p);
@@ -216,8 +216,8 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
         p.addLast("http-response-encoder", new HttpResponseEncoder());
     }
 
-    //上传套件
-    public static void uploadAddLast(ChannelPipeline p) {
+    //聚合套件
+    public static void aggregatorAddLast(ChannelPipeline p) {
         //netty是基于分段请求的，HttpObjectAggregator的作用是将HTTP消息的多个部分合成一条完整的HTTP消息,参数是聚合字节的最大长度
         p.addLast("http-chunk-aggregator", new HttpObjectAggregator(Const.MaxContentLength));
     }
