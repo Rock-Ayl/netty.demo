@@ -42,7 +42,7 @@ public class TypeUtils {
                 case "jpg":
                     return "image/jpeg";
                 case "ico":
-                    return "image/vnd.microsoft.icon";
+                    return "image/x-icon";
                 case "png":
                     return "image/png";
                 case "pdf":
