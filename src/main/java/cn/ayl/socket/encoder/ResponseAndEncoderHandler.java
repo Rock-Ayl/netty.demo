@@ -4,13 +4,11 @@ import cn.ayl.common.enumeration.FileRequestType;
 import cn.ayl.config.Const;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.util.DateUtils;
-import cn.ayl.util.HttpUtils;
 import cn.ayl.util.TypeUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -77,7 +75,9 @@ public class ResponseAndEncoderHandler {
         FullHttpResponse response = new DefaultFullHttpResponse(Const.CurrentHttpVersion, status, content);
         //判空
         if (content != null) {
+            //组装content_type
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
+            //组装content_length
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         }
         //添加通用参数
@@ -191,14 +191,8 @@ public class ResponseAndEncoderHandler {
         ctx.write(response);
         //获取文件对象-只读
         final RandomAccessFile onlyReadFile = new RandomAccessFile(file, "r");
-        //对于http和https协议使用不同的传输文件方式
-        if (HttpUtils.isHttps(ctx)) {
-            //https的传输文件方式
-            ctx.write(new HttpChunkedInput(new ChunkedFile(onlyReadFile, startOffset, endOffset, Const.ChunkSize)), ctx.newProgressivePromise());
-        } else {
-            //http的传输文件方式,零拷贝,高效
-            ctx.write(new DefaultFileRegion(onlyReadFile.getChannel(), startOffset, endOffset), ctx.newProgressivePromise());
-        }
+        //http的传输文件方式,零拷贝,高效
+        ctx.write(new DefaultFileRegion(onlyReadFile.getChannel(), startOffset, endOffset), ctx.newProgressivePromise());
         //ctx响应并关闭(如果使用Chunked编码，最后则需要发送一个编码结束的看空消息体，进行标记，表示所有消息体已经成功发送完成)
         ctx.channel().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
     }
