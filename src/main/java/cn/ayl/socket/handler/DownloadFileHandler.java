@@ -40,13 +40,13 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
         //从业务中读取文件
         File file = FileHandler.instance.readDownloadFile(type, fileId, fileName, cookieId);
         try {
-            //读取失败，返回
-            if (file == null) {
-                //响应失败
-                ResponseAndEncoderHandler.sendMessageOfJson(ctx, NOT_FOUND, "下载请求失败,文件不存在或用户信息失效.");
-            } else {
+            //如果成功获取文件
+            if (file != null && file.exists() && file.isFile()) {
                 //响应成功
                 ResponseAndEncoderHandler.sendFileStream(ctx, request, file, type);
+            } else {
+                //响应失败
+                ResponseAndEncoderHandler.sendMessageOfJson(ctx, NOT_FOUND, "下载请求失败,文件不存在或用户信息失效.");
             }
         } catch (Exception e) {
             logger.error("响应请求文件流失败:{}", e);
