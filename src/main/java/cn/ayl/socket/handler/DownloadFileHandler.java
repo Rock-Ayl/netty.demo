@@ -7,7 +7,6 @@ import cn.ayl.socket.encoder.ResponseAndEncoderHandler;
 import cn.ayl.util.HttpUtils;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
-import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,10 +50,19 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
             }
         } catch (Exception e) {
             logger.error("响应请求文件流失败:{}", e);
-        } finally {
-            //释放请求
-            ReferenceCountUtil.safeRelease(request);
         }
+    }
+
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        //log
+        logger.info("handlerAdded:" + ctx.channel().id());
+    }
+
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        //log
+        logger.info("handlerRemoved:" + ctx.channel().id());
     }
 
     /**

@@ -194,7 +194,7 @@ public class ResponseAndEncoderHandler {
         //http的传输文件方式,零拷贝,高效
         ctx.write(new DefaultFileRegion(onlyReadFile.getChannel(), startOffset, endOffset), ctx.newProgressivePromise());
         //ctx响应并关闭(如果使用Chunked编码，最后则需要发送一个编码结束的看空消息体，进行标记，表示所有消息体已经成功发送完成)
-        ctx.channel().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+        ctx.channel().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
     }
 
 }
