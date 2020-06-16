@@ -202,7 +202,10 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
          */
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+            //输入日志
             logger.error("ProtocolDecoderExecute Exception Channel=[{}]&Error=[{}]", ctx.channel().toString(), cause.getLocalizedMessage());
+            //关闭
+            ctx.close();
         }
     }
 

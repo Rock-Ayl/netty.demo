@@ -40,15 +40,15 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
         String cookieId = (String) map.get(Const.CookieId);
         //从业务中读取文件
         File file = FileHandler.instance.readDownloadFile(type, fileId, fileName, cookieId);
-        //读取失败，返回
-        if (file == null) {
-            //响应失败
-            ResponseAndEncoderHandler.sendMessageOfJson(ctx, NOT_FOUND, "下载请求失败,文件不存在或用户信息失效.");
-            return;
-        }
         try {
-            //响应成功
-            ResponseAndEncoderHandler.sendFileStream(ctx, request, file, type);
+            //读取失败，返回
+            if (file == null) {
+                //响应失败
+                ResponseAndEncoderHandler.sendMessageOfJson(ctx, NOT_FOUND, "下载请求失败,文件不存在或用户信息失效.");
+            } else {
+                //响应成功
+                ResponseAndEncoderHandler.sendFileStream(ctx, request, file, type);
+            }
         } catch (Exception e) {
             logger.error("响应请求文件流失败:{}", e);
         } finally {
@@ -66,11 +66,10 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        if (ctx.channel().isActive()) {
-            //响应
-            ResponseAndEncoderHandler.sendMessageOfJson(ctx, INTERNAL_SERVER_ERROR, "下载请求异常，连接断开.");
-            logger.error("下载请求异常，连接断开.");
-        }
+        //输入日志
+        logger.error("下载请求异常，连接断开,异常为:" + cause);
+        // 当出现异常就关闭连接
+        ctx.close();
     }
 
 }
