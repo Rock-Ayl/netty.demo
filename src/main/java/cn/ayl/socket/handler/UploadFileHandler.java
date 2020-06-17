@@ -168,7 +168,6 @@ public class UploadFileHandler {
      * @throws Exception
      */
     public void handleHttpContent(ChannelHandlerContext ctx, HttpContent chunk) throws Exception {
-        //
         if (this.isMultipart == false) {
             ByteBuffer buffer = chunk.content().nioBuffer();
             while (buffer.hasRemaining()) {
@@ -186,9 +185,11 @@ public class UploadFileHandler {
         }
         try {
             this.decoder.offer(chunk);
-        } catch (HttpPostRequestDecoder.ErrorDataDecoderException e1) {
+        } catch (Exception e1) {
+            logger.error("handleHttpContent error:", e1);
             //返回错误消息
-            ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, e1.getMessage());
+            ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "文件上传出现错误.");
+            //关闭链接
             ctx.channel().close();
             return;
         }
@@ -199,7 +200,7 @@ public class UploadFileHandler {
             this.readingChunks = false;
             reset();
             //发送消息
-            ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "OK");
+            ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "上传文件出现异常.");
             //关闭
             ctx.channel().close();
             return;
