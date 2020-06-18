@@ -113,7 +113,7 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
             } else {
                 context = Context.createInitContext(RequestType.http, channel);
             }
-            logger.info("decode header={}&contextType={}", header, context.requestType.name());
+            logger.info("decode header={} ,&contextType={}", header, context.requestType.name());
         }
 
         /**

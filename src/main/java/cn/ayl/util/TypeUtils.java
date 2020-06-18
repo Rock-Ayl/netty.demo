@@ -35,7 +35,7 @@ public class TypeUtils {
                 case "css":
                     return "text/css; charset=UTF-8";
                 case "js":
-                    return "application/x-javascript; charset=UTF-8";
+                    return "application/javascript;charset=utf-8";
                 case "svg":
                     return "Image/svg+xml; charset=utf-8";
                 case "jpeg":
