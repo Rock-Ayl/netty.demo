@@ -4,7 +4,6 @@ import cn.ayl.config.Const;
 import cn.ayl.common.entry.FileEntry;
 import cn.ayl.handler.FileHandler;
 import cn.ayl.socket.encoder.ResponseAndEncoderHandler;
-import cn.ayl.util.Base64Utils;
 import cn.ayl.util.IdUtils;
 import cn.ayl.common.json.JsonObject;
 import io.netty.channel.ChannelHandlerContext;
@@ -12,6 +11,7 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +38,8 @@ public class UploadFileHandler {
     private boolean readingChunks;
     private HttpData partialContent;
     private HttpPostRequestDecoder decoder;
-    private Map<String, String> attrs = new ConcurrentHashMap<>();
+    //存储 form-data中的非文件数据(key value)
+    private Map<String, String> formDataTextMap = new ConcurrentHashMap<>();
     //是否为 multipart 请求
     protected boolean isMultipart = true;
     private int fileBufferSize = 0;
@@ -81,7 +82,7 @@ public class UploadFileHandler {
      * @return
      */
     private void uploadService(FileEntry fileEntry) {
-        result = FileHandler.instance.uploadFile(fileEntry);
+        this.result = FileHandler.instance.uploadFile(fileEntry);
     }
 
     public void handleRequest(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
@@ -94,8 +95,10 @@ public class UploadFileHandler {
             //转化为http请求
             HttpRequest request = (HttpRequest) msg;
             //如果是get请求，返回
-            if (request.method().equals(HttpMethod.GET)) {
+            if (HttpMethod.GET == request.method()) {
+                //发送错误消息
                 ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "upload must use post.");
+                //返回
                 return;
             }
             //Post解码
@@ -104,8 +107,9 @@ public class UploadFileHandler {
                 //禁用丢弃字节
                 this.decoder.setDiscardThreshold(0);
             } catch (HttpPostRequestDecoder.ErrorDataDecoderException e1) {
-                //返回错误
+                //返回错误消息
                 ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, e1.getMessage());
+                //返回
                 return;
             }
             //请求头
@@ -118,16 +122,8 @@ public class UploadFileHandler {
                 v = headers.get("content-length");
             }
             this.file.setFileSize(Integer.parseInt(v));
-            //文件名
-            String fileName = headers.get(Const.FileName, "");
-            //如果是中文，用base64解码一下
-            if (fileName.indexOf(".") <= 0) {
-                //解码
-                fileName = Base64Utils.decode64(fileName);
-            }
-            this.file.setFileName(fileName);
             //文件后缀
-            this.file.setFileExt(FilenameUtils.getExtension(fileName));
+            this.file.setFileExt(FilenameUtils.getExtension(this.file.getFileName()));
             //生成一个文件唯一id
             this.file.setFileId(IdUtils.newId());
             //文件创建时间
@@ -191,6 +187,7 @@ public class UploadFileHandler {
             ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "文件上传出现错误.");
             //关闭链接
             ctx.channel().close();
+            //返回
             return;
         }
         //根据文件分块读取请求数据
@@ -199,8 +196,6 @@ public class UploadFileHandler {
         if (chunk instanceof LastHttpContent) {
             this.readingChunks = false;
             reset();
-            //发送消息
-            ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "上传文件出现异常.");
             //关闭
             ctx.channel().close();
             return;
@@ -222,7 +217,7 @@ public class UploadFileHandler {
                     }
                     try {
                         //写数据
-                        writeHttpData(ctx, data);
+                        parsingFormData(ctx, data);
                     } catch (Exception e) {
                     } finally {
                         data.release();
@@ -241,30 +236,34 @@ public class UploadFileHandler {
     }
 
     /**
-     * 写入文件
+     * 解析form-data的参数和文件
      *
      * @param ctx
      * @param data
      * @throws IOException
      */
-    private void writeHttpData(ChannelHandlerContext ctx, InterfaceHttpData data) throws IOException {
-        if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
-            Attribute attribute = (Attribute) data;
-            String value;
-            try {
-                value = attribute.getString(CharsetUtil.UTF_8);
-                this.attrs.put(attribute.getName(), value);
-            } catch (IOException e1) {
-                return;
-            }
-        } else {
-            if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
+    private void parsingFormData(ChannelHandlerContext ctx, InterfaceHttpData data) throws IOException {
+        //判断该数据类型
+        switch (data.getHttpDataType()) {
+            //text
+            case Attribute:
+                //获取text对象
+                Attribute attribute = (Attribute) data;
+                //获取form中的key
+                String key = attribute.getName();
+                //获取form中的value
+                String value = attribute.getString(CharsetUtil.UTF_8);
+                //组装
+                this.formDataTextMap.put(key, value);
+                //跳过
+                break;
+            //文件
+            case FileUpload:
                 FileUpload fileUpload = (FileUpload) data;
+                //如果数据已经存储完毕
                 if (fileUpload.isCompleted()) {
-                    this.file.setFileName(fileUpload.getFilename());
-                    if (org.apache.commons.lang3.StringUtils.isEmpty(this.file.getFileName())) {
-                        this.file.setFileName(fileUpload.getName());
-                    }
+                    //获取文件名
+                    this.file.setFileName(getFileNameFromFileUpload(fileUpload));
                     this.fileBuffer.put(fileUpload.get());
                     this.fileChannel.close();
                     this.fileBuffer.clear();
@@ -272,14 +271,33 @@ public class UploadFileHandler {
                     uploadService(this.file);
                     //响应并关闭
                     if (this.result != null) {
+                        //响应
                         ResponseAndEncoderHandler.sendObject(ctx, HttpResponseStatus.OK, this.result);
                     } else {
                         ResponseAndEncoderHandler.sendObject(ctx, HttpResponseStatus.OK, this.file.toJson());
                     }
                     logger.info("upload FileName=[{}] success.", this.file.getFileName());
                 }
-            }
+                break;
         }
+    }
+
+    /**
+     * 从 FileUpload 对象中获取文件名
+     *
+     * @param fileUpload
+     * @return
+     */
+    private String getFileNameFromFileUpload(FileUpload fileUpload) {
+        //获取文件名
+        String fileName = fileUpload.getFilename();
+        //判空
+        if (StringUtils.isEmpty(fileName)) {
+            //用默认
+            fileName = fileUpload.getName();
+        }
+        //返回
+        return fileName;
     }
 
     public void clear() {

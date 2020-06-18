@@ -99,7 +99,7 @@ public class ResponseAndEncoderHandler {
      * @param ctx
      */
     public static void sendOption(ChannelHandlerContext ctx) {
-        sendObject(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR, "ok");
+        sendObject(ctx, HttpResponseStatus.OK, "ok");
     }
 
     /**
