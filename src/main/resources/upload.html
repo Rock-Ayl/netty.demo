@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>上传文件demo</title>
+</head>
+<script type="text/javascript" src="http://127.0.0.1:8888/jquery.min.js"></script>
+<body>
+<form id="formFileUpload">
+    <p>photo:<input type="file" name="photo" id="photo"></p>
+    <p><input type="button" name="b1" value="submit" onclick="fileUpload()"></p>
+</form>
+<div id="result"></div>
+<script type="text/javascript">
+    //提交方法
+    function fileUpload() {
+        //获取formData
+        var formData = new FormData(document.getElementById("formFileUpload"));
+        console.log(formData)
+        //上传
+        $.ajax({
+            url: "http://127.0.0.1:8888/Upload",
+            type: "POST",
+            data: formData,
+            headers: {
+                cookieId: "1"
+            },
+            processData: false,
+            contentType: false,
+            success:function (data) {
+            
+            }
+        });
+    }
+</script>
+</body>
+</html>
