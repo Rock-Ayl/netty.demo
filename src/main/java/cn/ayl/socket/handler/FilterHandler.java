@@ -17,16 +17,12 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.ReferenceCountUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * created by Rock-Ayl 2019-12-11
  * 过滤器,用来处理一些基础的东西，如请求类型分配、验证身份、解决连接重用bug等
  */
 public class FilterHandler extends ChannelInboundHandlerAdapter {
-
-    private static final Logger logger = LoggerFactory.getLogger(FilterHandler.class);
 
     //请求上下文
     private Context context;
@@ -71,9 +67,11 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             if (!authUser(req)) {
                 //如果身份效验失败,直接发送错误信息
                 ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.UNAUTHORIZED, "身份验证失败.");
+                //不认同
                 return false;
             }
         }
+        //身份确认
         return true;
     }
 

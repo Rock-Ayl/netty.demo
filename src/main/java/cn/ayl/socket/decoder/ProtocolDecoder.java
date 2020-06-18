@@ -33,6 +33,23 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
 
     protected static Logger logger = LoggerFactory.getLogger(ProtocolDecoder.class);
 
+    //http套件
+    private static final String HttpRequestDecoderName = "http-request-decoder";
+    private static final String HttpAuthFilterName = "http-auth-Filter";
+    private static final String HttpResponseEncoderName = "http-response-encoder";
+    private static final String httpChunkAggregatorName = "http-chunk-aggregator";
+    private static final String HttpChunkWriteName = "http-chunk-write";
+
+    //webSocket套件
+    private static final String WebSocketIdleStateName = "webSocket-idleState";
+    private static final String WebSocketHeartBeatName = "webSocket-heartBeat";
+    private static final String WebSocketServerProtocolHandlerName = "webSocket-Server-protocolHandler";
+
+    //业务处理器
+    private static final String HttpHandlerName = "http-handler";
+    private static final String HttpDownloadHandlerName = "http-download-handler";
+    private static final String webSocketHandlerName = "webSocket-handler";
+
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
         //组装实现类
@@ -60,7 +77,9 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
             if (buffer.readableBytes() < 8) {
                 return;
             }
+            //获取通道处理器管道
             ChannelPipeline p = channelCtx.pipeline();
+            //获取通道
             Channel channel = p.channel();
             //断点续传检查一下
             context = channel.attr(Const.AttrContext).get();
@@ -72,6 +91,7 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
             distinguishNetworkProtocol(buffer, channel);
             //根据网络协议分发解析器
             switchProtocol(p);
+            //删除当前处理器
             p.remove(this);
             //通道绑定上下文,以后用get获取
             p.channel().attr(Const.AttrContext).set(context);
@@ -112,13 +132,15 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
                     }
                     bytes.write(b);
                 }
-                String header = StringUtils.toEncodedString(bytes.toByteArray(), CharsetUtil.UTF_8);
-                return header;
+                //获取header并返回
+                return StringUtils.toEncodedString(bytes.toByteArray(), CharsetUtil.UTF_8);
             } finally {
                 try {
+                    //关闭
                     bytes.close();
                 } catch (Exception e) {
-                    logger.error("readHeader close fail.");
+                    logger.error("readHeader close fail:", e);
+                    return null;
                 }
                 buffer.readerIndex(readerIndex);
             }
@@ -211,67 +233,70 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
 
     //所有http必须要用到的套件
     public static void httpAddLast(ChannelPipeline p) {
-        //http基本解码
-        p.addLast("http-request-decoder", new HttpRequestDecoder());
-        //过滤器
-        p.addLast("http-auth", new FilterHandler());
-        //响应编码
-        p.addLast("http-response-encoder", new HttpResponseEncoder());
+        //http请求解码
+        p.addLast(HttpRequestDecoderName, new HttpRequestDecoder());
+        //身份验证/过滤器
+        p.addLast(HttpAuthFilterName, new FilterHandler());
+        //http响应编码
+        p.addLast(HttpResponseEncoderName, new HttpResponseEncoder());
     }
 
     //聚合套件
     public static void aggregatorAddLast(ChannelPipeline p) {
         //netty是基于分段请求的，HttpObjectAggregator的作用是将HTTP消息的多个部分合成一条完整的HTTP消息,参数是聚合字节的最大长度
-        p.addLast("http-chunk-aggregator", new HttpObjectAggregator(Const.MaxContentLength));
+        p.addLast(httpChunkAggregatorName, new HttpObjectAggregator(Const.MaxContentLength));
     }
 
     //心跳套件及处理器
     public static void heartAddLast(ChannelPipeline p) {
         //初始化心跳设置 读、写、读写 以及 心跳单位
-        p.addLast(new IdleStateHandler(Const.ReaderIdleTimeSeconds, Const.WriterIdleTimeSeconds, Const.AllIdleTimeSeconds, TimeUnit.SECONDS));
+        p.addLast(WebSocketIdleStateName, new IdleStateHandler(Const.ReaderIdleTimeSeconds, Const.WriterIdleTimeSeconds, Const.AllIdleTimeSeconds, TimeUnit.SECONDS));
         //心跳处理器
-        p.addLast("webSocket-heartBeat", new HeartBeatHandler());
+        p.addLast(WebSocketHeartBeatName, new HeartBeatHandler());
     }
 
     //升级WebSocket套件及处理器
     public static void webSocketAddLast(ChannelPipeline p) {
         //升级为WebSocket
-        p.addLast("http-WebSocketServer-protocolHandler", new WebSocketServerProtocolHandler(Const.WebSocketPath));
+        p.addLast(WebSocketServerProtocolHandlerName, new WebSocketServerProtocolHandler(Const.WebSocketPath));
         //webSocket处理器
-        p.addLast("webSocket-handler", new WebSocketHandler());
+        p.addLast(webSocketHandlerName, new WebSocketHandler());
     }
 
     //下载套件及处理器
     public static void downloadAddLast(ChannelPipeline p) {
-        //以块的方式来写的处理器，解决大码流的问题，ChunkedWriteHandler：可以向客户端发送HTML5文件
-        if (p.get("http-download-handler") == null) {
-            p.addLast("http-chunk-write", new ChunkedWriteHandler());
+        //判空
+        if (p.get(HttpDownloadHandlerName) == null) {
+            //以块的方式来写的处理器，解决大码流的问题，ChunkedWriteHandler：可以向客户端发送HTML5文件
+            p.addLast(HttpChunkWriteName, new ChunkedWriteHandler());
             //下载处理器
-            p.addLast("http-download-handler", new DownloadFileHandler());
+            p.addLast(HttpDownloadHandlerName, new DownloadFileHandler());
         }
     }
 
     //http处理器
     public static void httpHandlerAddLast(ChannelPipeline p) {
-        if (p.get("http-handler") == null) {
-            p.addLast("http-handler", new HttpHandler());
+        if (p.get(HttpHandlerName) == null) {
+            p.addLast(HttpHandlerName, new HttpHandler());
         }
     }
 
     //清除下载套件及处理器
     public static void clearDownloadAddLast(ChannelPipeline p) {
-        clearPipe(p, "http-chunk-write");
-        clearPipe(p, "http-download-handler");
+        clearPipe(p, HttpChunkWriteName);
+        clearPipe(p, HttpDownloadHandlerName);
     }
 
     //清除http处理器
     public static void clearHttpHandlerAddLast(ChannelPipeline p) {
-        clearPipe(p, "http-handler");
+        clearPipe(p, HttpHandlerName);
     }
 
     //清除解码器
     private static void clearPipe(ChannelPipeline p, String name) {
+        //判空
         if (p.get(name) != null) {
+            //清除
             p.remove(name);
         }
     }

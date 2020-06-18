@@ -12,8 +12,6 @@ import io.netty.handler.codec.http.*;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URLEncoder;
@@ -27,8 +25,6 @@ import java.util.Set;
  * 协议编码器及响应处理器
  */
 public class ResponseAndEncoderHandler {
-
-    private static final Logger logger = LoggerFactory.getLogger(ResponseAndEncoderHandler.class);
 
     private static Set<AsciiString> Headers = new HashSet<>();
 
@@ -53,7 +49,7 @@ public class ResponseAndEncoderHandler {
     private static void setServerHeaders(HttpResponse response) {
         HttpHeaders headers = response.headers();
         headers.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-        headers.set(HttpHeaderNames.SERVER, "netty.demo");
+        headers.set(HttpHeaderNames.SERVER, Const.ServerName);
         headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
         headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS, true);
         headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "GET,POST,PUT,DELETE,OPTIONS");
