@@ -35,8 +35,8 @@ public class UploadFileHandler {
     private final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
     //上传文件时请求header中不需要组装到fileObject对象的信息
     private static final HashSet<String> headerFilters = new HashSet();
-    private boolean readingChunks;
-    private HttpData partialContent;
+    //记录formData
+    private HttpData formData;
     private HttpPostRequestDecoder decoder;
     //存储 form-data中的非文件数据(key value)
     private Map<String, String> formDataTextMap = new ConcurrentHashMap<>();
@@ -152,7 +152,6 @@ public class UploadFileHandler {
             }
             //组装文件对象参数
             this.file.setFileObject(fileObject);
-            this.readingChunks = HttpUtil.isTransferEncodingChunked(request);
         }
     }
 
@@ -194,7 +193,6 @@ public class UploadFileHandler {
         readHttpDataChunkByChunk(ctx);
         //最后一个分快
         if (chunk instanceof LastHttpContent) {
-            this.readingChunks = false;
             reset();
             //关闭
             ctx.channel().close();
@@ -210,25 +208,27 @@ public class UploadFileHandler {
     private void readHttpDataChunkByChunk(ChannelHandlerContext ctx) {
         try {
             while (this.decoder.hasNext()) {
+                //获取当前form-data
                 InterfaceHttpData data = this.decoder.next();
-                if (data != null) {
-                    if (this.partialContent == data) {
-                        this.partialContent = null;
-                    }
+                //判空
+                if (data != null && this.formData == data) {
+                    this.formData = null;
                     try {
                         //写数据
                         parsingFormData(ctx, data);
                     } catch (Exception e) {
+                        logger.error("解析form-data错误:[{}]", e);
                     } finally {
                         data.release();
                     }
                 }
             }
+            //获取form-data
             InterfaceHttpData data = this.decoder.currentPartialHttpData();
-            if (data != null) {
-                if (this.partialContent == null) {
-                    this.partialContent = (HttpData) data;
-                }
+            //判空
+            if (data != null && this.formData == null) {
+                //记录data
+                this.formData = (HttpData) data;
             }
         } catch (HttpPostRequestDecoder.EndOfDataDecoderException e1) {
             logger.error("readHttpDataChunkByChunk", e1);
@@ -267,7 +267,7 @@ public class UploadFileHandler {
                     this.fileBuffer.put(fileUpload.get());
                     this.fileChannel.close();
                     this.fileBuffer.clear();
-                    //处理上传业务
+                    //对该文件进行业务处理
                     uploadService(this.file);
                     //响应并关闭
                     if (this.result != null) {
@@ -283,7 +283,7 @@ public class UploadFileHandler {
     }
 
     /**
-     * 从 FileUpload 对象中获取文件名
+     * 从 FileUpload对象 获取文件名
      *
      * @param fileUpload
      * @return
