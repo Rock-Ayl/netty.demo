@@ -189,8 +189,8 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 }
                 //创建一个上传请求处理器
                 this.uploadFileHandler = new UploadFileHandler();
-                //处理请求
-                this.uploadFileHandler.handleRequest(ctx, req);
+                //过滤上传请求基本逻辑
+                this.uploadFileHandler.filterUpload(ctx, req);
                 break;
             //默认服务请求
             case service:
@@ -259,11 +259,11 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 //处理service和upload请求
                 handleHttpRequest(ctx, (HttpRequest) msg);
             } else if (msg instanceof HttpContent && uploadFileHandler != null) {
-                //处理接受来的upload文件块
-                uploadFileHandler.handleHttpContent(ctx, (HttpContent) msg);
+                //处理接受来的upload的form-data内容
+                uploadFileHandler.handleHttpFormDataContent(ctx, (HttpContent) msg);
             } else {
                 //响应
-                ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "失败的请求.");
+                ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.OK, "失败的请求.");
             }
         } catch (Exception e) {
             logger.error("channelRead", e);

@@ -40,8 +40,6 @@ public class UploadFileHandler {
     protected ByteBuffer fileBuffer;
     //文件实体
     private FileEntry file;
-    //业务返回结果
-    private JsonObject result;
 
     static {
         //设置结束时删除临时文件
@@ -60,7 +58,13 @@ public class UploadFileHandler {
         return FileHandler.instance.uploadFile(fileEntry);
     }
 
-    public void handleRequest(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
+    /**
+     * 处理上传请求基本逻辑,验证请求是否合法
+     *
+     * @param ctx
+     * @param msg
+     */
+    public void filterUpload(ChannelHandlerContext ctx, HttpObject msg) {
         //如果是http请求
         if (msg instanceof HttpRequest) {
             //转化为http请求
@@ -68,25 +72,25 @@ public class UploadFileHandler {
             //如果是get请求，返回
             if (HttpMethod.GET == request.method()) {
                 //发送错误消息
-                ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "upload must use post.");
+                ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.OK, "upload must use post.");
                 //返回
                 return;
             }
             //Post解码
             try {
                 this.decoder = new HttpPostRequestDecoder(this.factory, request);
-                //禁用丢弃字节
+                //禁用应丢弃缓冲区中读取字节的字节数
                 this.decoder.setDiscardThreshold(0);
             } catch (HttpPostRequestDecoder.ErrorDataDecoderException e1) {
                 //返回错误消息
-                ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, e1.getMessage());
+                ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.OK, "upload decoder fail.");
                 //返回
                 return;
             }
             //是否为Multipart请求
             if (this.decoder.isMultipart() == false) {
                 //返回错误消息
-                ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "upload must is Multipart");
+                ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.OK, "upload must is Multipart");
                 //返回
                 return;
             }
@@ -98,22 +102,21 @@ public class UploadFileHandler {
      *
      * @param ctx
      * @param chunk
-     * @throws Exception
      */
-    public void handleHttpContent(ChannelHandlerContext ctx, HttpContent chunk) throws Exception {
+    public void handleHttpFormDataContent(ChannelHandlerContext ctx, HttpContent chunk) {
         try {
             this.decoder.offer(chunk);
         } catch (Exception e1) {
             logger.error("handleHttpContent error:", e1);
             //返回错误消息
-            ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "文件上传出现错误.");
+            ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.OK, "文件上传出现错误.");
             //关闭链接
             ctx.channel().close();
             //返回
             return;
         }
-        //根据文件分块读取请求数据
-        readHttpDataChunkByChunk(ctx);
+        //读取内容并处理
+        readHttpFormDataChunkByChunk(ctx);
         //最后一个分快
         if (chunk instanceof LastHttpContent) {
             reset();
@@ -128,7 +131,7 @@ public class UploadFileHandler {
      *
      * @param ctx
      */
-    private void readHttpDataChunkByChunk(ChannelHandlerContext ctx) {
+    private void readHttpFormDataChunkByChunk(ChannelHandlerContext ctx) {
         try {
             while (this.decoder.hasNext()) {
                 //获取当前form-data
@@ -137,7 +140,7 @@ public class UploadFileHandler {
                 if (data != null && this.formData == data) {
                     this.formData = null;
                     try {
-                        //写数据
+                        //读取form-data并处理业务
                         parsingFormData(ctx, data);
                     } catch (Exception e) {
                         logger.error("解析form-data错误:[{}]", e);
@@ -155,7 +158,7 @@ public class UploadFileHandler {
                 this.formData = (HttpData) data;
             }
         } catch (HttpPostRequestDecoder.EndOfDataDecoderException e1) {
-            logger.error("readHttpDataChunkByChunk", e1);
+            logger.error("readHttpFormDataChunkByChunk", e1);
         }
     }
 
@@ -208,13 +211,13 @@ public class UploadFileHandler {
                     this.fileChannel.close();
                     this.fileBuffer.clear();
                     //对该文件进行业务处理并获得返回值
-                    this.result = uploadService(this.file);
+                    JsonObject result = uploadService(this.file);
                     //响应并关闭
-                    if (this.result != null) {
+                    if (result != null) {
                         //响应
-                        ResponseAndEncoderHandler.sendObject(ctx, HttpResponseStatus.OK, this.result);
+                        ResponseAndEncoderHandler.sendObject(ctx, HttpResponseStatus.OK, result);
                     } else {
-                        ResponseAndEncoderHandler.sendObject(ctx, HttpResponseStatus.OK, "上传失败,业务处理文件响应为空.");
+                        ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.OK, "上传失败,业务处理文件响应为空.");
                     }
                     logger.info("upload FileName=[{}] success.", this.file.getFileName());
                 }

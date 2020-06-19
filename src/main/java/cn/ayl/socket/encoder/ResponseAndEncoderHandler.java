@@ -83,14 +83,14 @@ public class ResponseAndEncoderHandler {
     }
 
     /**
-     * 响应http并返回Json,包含Message
+     * 响应http并返回Json,包含 Fail Message
      *
      * @param ctx
      * @param status
      * @param content
      */
-    public static void sendMessageOfJson(ChannelHandlerContext ctx, HttpResponseStatus status, String content) {
-        sendObject(ctx, status, JsonObject.Success().append(Const.Message, content));
+    public static void sendFailAndMessage(ChannelHandlerContext ctx, HttpResponseStatus status, String content) {
+        sendObject(ctx, status, JsonObject.Fail(content));
     }
 
     /**
