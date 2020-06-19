@@ -189,7 +189,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                     this.uploadFileHandler.clearDecoder();
                 }
                 //创建一个上传请求处理器
-                this.uploadFileHandler = new UploadFileHandler();
+                this.uploadFileHandler = new UploadFileHandler(this.context);
                 //过滤上传请求基本逻辑
                 this.uploadFileHandler.filterUpload(ctx, req);
                 break;
