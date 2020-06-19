@@ -38,10 +38,8 @@ public class UploadFileHandler {
     protected ByteBuffer fileBuffer;
     //post请求的解码类,它负责把字节解码成Http请求
     private HttpPostRequestDecoder decoder;
-    //记录formData
-    private HttpData formData;
     //记录form-data中的非文件数据(key value)
-    private JsonObject formDataTextJson = JsonObject.VOID();
+    private JsonObject formDataParams = JsonObject.VOID();
 
     static {
         //设置结束时删除临时文件
@@ -113,7 +111,7 @@ public class UploadFileHandler {
         //最后一个内容
         if (chunk instanceof LastHttpContent) {
             //对该文件进行业务处理并获得返回值
-            JsonObject result = FileHandler.instance.uploadFile(this.fileEntry, this.formDataTextJson);
+            JsonObject result = FileHandler.instance.uploadFile(this.fileEntry, this.formDataParams);
             //响应并关闭
             if (result != null) {
                 //响应
@@ -175,7 +173,7 @@ public class UploadFileHandler {
                 //获取form中的value
                 String value = attribute.getString(CharsetUtil.UTF_8);
                 //组装
-                this.formDataTextJson.put(key, value);
+                this.formDataParams.append(key, value);
                 //跳过
                 break;
             //文件
