@@ -3,9 +3,12 @@ package cn.ayl.handler;
 import cn.ayl.common.entry.FileEntry;
 import cn.ayl.common.enumeration.FileRequestType;
 import cn.ayl.common.json.JsonObject;
+import cn.ayl.common.json.JsonObjects;
 import cn.ayl.config.Const;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * create by Rock-Ayl 2020/1/16
@@ -48,14 +51,27 @@ public enum FileHandler {
     }
 
     /**
-     * todo 文件上传业务处理
+     * 处理上传
      *
-     * @param fileEntry 文件实体
-     * @param params    其他参数对象
+     * @param fileEntryList 文件实体
+     * @param params        其他参数对象
      * @return
      */
-    public JsonObject uploadFile(FileEntry fileEntry, JsonObject params) {
-        return JsonObject.Success().append(Const.Data, fileEntry.toJson());
+    public JsonObject uploadFile(List<FileEntry> fileEntryList, JsonObject params) {
+        //初始化返回值
+        JsonObjects items = JsonObjects.VOID();
+        //判空
+        if (CollectionUtils.isNotEmpty(fileEntryList)) {
+            //循环
+            for (FileEntry fileEntry : fileEntryList) {
+                //todo 业务逻辑
+                //组装参数
+                JsonObject fileObject = fileEntry.toJson();
+                fileObject.putAll(params);
+                items.add(fileObject);
+            }
+        }
+        return JsonObject.Success().append(Const.Items, items);
     }
 
 }

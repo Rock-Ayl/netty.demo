@@ -11,6 +11,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.util.CharsetUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -20,6 +21,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * created by Rock-Ayl on 2019-11-21
@@ -29,20 +32,22 @@ public class UploadFileHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(UploadFileHandler.class);
 
-    //请求上下文
-    private Context context;
     //解析收到的文件
     private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
-    //文件实体
-    private FileEntry fileEntry;
-    //文件读写通道
-    private FileChannel fileChannel;
-    //文件在内存的缓冲区
-    protected ByteBuffer fileBuffer;
     //post请求的解码类,它负责把字节解码成Http请求
     private HttpPostRequestDecoder decoder;
+
+    //请求上下文
+    private Context context;
+    //文件实体列表
+    public List<FileEntry> fileEntryList = new ArrayList<>();
     //记录所有进来的参数,包括form-data、cookieId
     private JsonObject params = JsonObject.VOID();
+
+    //当前文件读写通道
+    private FileChannel fileChannel;
+    //当前文件内存缓冲区
+    protected ByteBuffer fileBuffer;
 
     static {
         //设置结束时删除临时文件
@@ -121,7 +126,7 @@ public class UploadFileHandler {
         //最后一个内容
         if (chunk instanceof LastHttpContent) {
             //对该文件进行业务处理并获得返回值
-            JsonObject result = FileHandler.instance.uploadFile(this.fileEntry, this.params);
+            JsonObject result = FileHandler.instance.uploadFile(this.fileEntryList, this.params);
             //响应并关闭
             if (result != null) {
                 //响应
@@ -129,7 +134,14 @@ public class UploadFileHandler {
             } else {
                 ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.OK, "上传失败,业务处理文件响应为空.");
             }
-            logger.info("upload FileName=[{}] success.", this.fileEntry.getFileName());
+            //判空
+            if (CollectionUtils.isNotEmpty(this.fileEntryList)) {
+                //循环
+                for (FileEntry fileEntry : this.fileEntryList) {
+                    //打印
+                    logger.info("upload FileName=[{}] success.", fileEntry.getFileName());
+                }
+            }
             //重置解码
             resetDecoder();
             //关闭
@@ -192,21 +204,23 @@ public class UploadFileHandler {
                 //如果数据已经存储完毕
                 if (fileUpload.isCompleted()) {
                     //创建文件实体
-                    this.fileEntry = new FileEntry();
+                    FileEntry fileEntry = new FileEntry();
                     //文件fileId
-                    this.fileEntry.setFileId(IdUtils.newId());
+                    fileEntry.setFileId(IdUtils.newId());
                     //文件名
-                    this.fileEntry.setFileName(getFileNameFromFileUpload(fileUpload));
+                    fileEntry.setFileName(getFileNameFromFileUpload(fileUpload));
                     //文件大小
-                    this.fileEntry.setFileSize(fileUpload.length());
+                    fileEntry.setFileSize(fileUpload.length());
                     //文件后缀
-                    this.fileEntry.setFileExt(FilenameUtils.getExtension(this.fileEntry.getFileName()));
+                    fileEntry.setFileExt(FilenameUtils.getExtension(fileEntry.getFileName()));
                     //文件地址
-                    this.fileEntry.setFilePath(Const.UploadFilePath + this.fileEntry.getFileId() + "." + this.fileEntry.getFileExt());
+                    fileEntry.setFilePath(Const.UploadFilePath + fileEntry.getFileId() + "." + fileEntry.getFileExt());
+                    //存储进List
+                    this.fileEntryList.add(fileEntry);
                     //指定文件本身对象,模式rw为：以读取、写入方式打开指定文件。如果该文件不存在，则尝试创建文件
                     this.fileChannel = new RandomAccessFile(fileEntry.getFilePath(), "rw").getChannel();
                     //文件流读写通道(内存)
-                    this.fileBuffer = this.fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, this.fileEntry.getFileSize());
+                    this.fileBuffer = this.fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileEntry.getFileSize());
                     //写入文件
                     this.fileBuffer.put(fileUpload.get());
                     //关闭读写通道
