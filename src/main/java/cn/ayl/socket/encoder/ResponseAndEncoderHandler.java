@@ -9,7 +9,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
-import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -17,29 +16,12 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Created By Rock-Ayl 2019-11-14
  * 协议编码器及响应处理器
  */
 public class ResponseAndEncoderHandler {
-
-    private static Set<AsciiString> Headers = new HashSet<>();
-
-    static {
-        Headers.add(AsciiString.cached("Origin"));
-        Headers.add(AsciiString.cached("X-Requested-With"));
-        Headers.add(AsciiString.cached("Accept"));
-        //通用参数
-        Headers.add(AsciiString.cached("params"));
-        //cookieId
-        Headers.add(AsciiString.cached("cookieId"));
-        Headers.add(HttpHeaderNames.CONTENT_TYPE);
-        Headers.add(HttpHeaderNames.CONTENT_LENGTH);
-        Headers.add(HttpHeaderNames.AUTHORIZATION);
-    }
 
     /**
      * 设置通用响应headers
@@ -53,7 +35,7 @@ public class ResponseAndEncoderHandler {
         headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
         headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS, true);
         headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "GET,POST,PUT,DELETE,OPTIONS");
-        headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, Collections.unmodifiableSet(Headers));
+        headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, Collections.unmodifiableSet(AccessControlAllowHeaders.getAccessHeaders()));
         headers.set(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE, 86400);
     }
 
