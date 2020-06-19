@@ -7,7 +7,7 @@
 <script type="text/javascript" src="http://127.0.0.1:8888/jquery.min.js"></script>
 <body>
 <form id="formFileUpload">
-    <p>photo:<input type="file" name="photo" id="photo"></p>
+    <p>文件: <input type="file" name="photo" id="photo"></p>
     <p><input type="button" name="b1" value="submit" onclick="fileUpload()"></p>
 </form>
 <div id="result"></div>
@@ -16,7 +16,11 @@
     function fileUpload() {
         //获取formData
         var formData = new FormData(document.getElementById("formFileUpload"));
-        console.log(formData)
+        //获取formData 文本参数
+        formData.append("orgId",1)
+        formData.append("folderId",2)
+        formData.append("companyId",3)
+        formData.append("orgName","景通")
         //上传
         $.ajax({
             url: "http://127.0.0.1:8888/Upload",

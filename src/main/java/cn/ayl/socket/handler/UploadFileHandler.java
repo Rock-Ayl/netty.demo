@@ -112,9 +112,10 @@ public class UploadFileHandler {
         }
         //读取内容并处理
         readHttpFormDataChunkByChunk(ctx);
-        //最后一个分快
+        //最后一个内容
         if (chunk instanceof LastHttpContent) {
-            reset();
+            //重置解码
+            resetDecoder();
             //关闭
             ctx.channel().close();
             return;
@@ -132,8 +133,7 @@ public class UploadFileHandler {
                 //获取当前form-data
                 InterfaceHttpData data = this.decoder.next();
                 //判空
-                if (data != null && this.formData == data) {
-                    this.formData = null;
+                if (data != null) {
                     try {
                         //读取form-data并处理业务
                         parsingFormData(ctx, data);
@@ -144,13 +144,6 @@ public class UploadFileHandler {
                         data.release();
                     }
                 }
-            }
-            //获取form-data
-            InterfaceHttpData data = this.decoder.currentPartialHttpData();
-            //判空
-            if (data != null && this.formData == null) {
-                //记录data
-                this.formData = (HttpData) data;
             }
         } catch (HttpPostRequestDecoder.EndOfDataDecoderException e1) {
             logger.error("readHttpFormDataChunkByChunk", e1);
@@ -239,13 +232,19 @@ public class UploadFileHandler {
         return fileName;
     }
 
-    public void clear() {
+    /**
+     * 清除解码
+     */
+    public void clearDecoder() {
         if (this.decoder != null) {
             this.decoder.cleanFiles();
         }
     }
 
-    private void reset() {
+    /**
+     * 重置解码
+     */
+    private void resetDecoder() {
         this.decoder.destroy();
         this.decoder = null;
     }

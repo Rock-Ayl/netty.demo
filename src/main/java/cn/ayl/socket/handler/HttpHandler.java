@@ -185,7 +185,8 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             //上传请求
             case upload:
                 if (this.uploadFileHandler != null) {
-                    this.uploadFileHandler.clear();
+                    //清除解码
+                    this.uploadFileHandler.clearDecoder();
                 }
                 //创建一个上传请求处理器
                 this.uploadFileHandler = new UploadFileHandler();
@@ -279,7 +280,8 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         super.channelInactive(ctx);
         //判空
         if (uploadFileHandler != null) {
-            uploadFileHandler.clear();
+            //清除请求解码
+            uploadFileHandler.clearDecoder();
         }
     }
 
