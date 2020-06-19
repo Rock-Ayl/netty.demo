@@ -15,20 +15,10 @@ public class FileEntry {
     private String fileName;
     //文件后缀
     private String fileExt;
-    //文件当前实体在服务器下路径
+    //文件path
     private String filePath;
     //文件大小
     private long fileSize = 0L;
-
-    public JsonObject toJson() {
-        JsonObject result = JsonObject.VOID();
-        result.append(Const.FileId, getFileId());
-        result.append(Const.FileName, getFileName());
-        result.append(Const.FileExt, getFileExt());
-        result.append(Const.FilePath, getFilePath());
-        result.append(Const.FileSize, getFileSize());
-        return result;
-    }
 
     public String getFileId() {
         return fileId;
@@ -68,6 +58,16 @@ public class FileEntry {
 
     public void setFileSize(long fileSize) {
         this.fileSize = fileSize;
+    }
+
+    public JsonObject toJson() {
+        JsonObject result = JsonObject.VOID();
+        result.append(Const.FileId, getFileId());
+        result.append(Const.FileName, getFileName());
+        result.append(Const.FileExt, getFileExt());
+        result.append(Const.FilePath, getFilePath());
+        result.append(Const.FileSize, getFileSize());
+        return result;
     }
 
 }

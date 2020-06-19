@@ -30,32 +30,26 @@ public class UploadFileHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(UploadFileHandler.class);
 
-    private final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
+    //解析收到的文件
+    private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
+    //文件实体
+    private FileEntry fileEntry;
+    //文件读写通道
+    private FileChannel fileChannel;
+    //文件在内存的缓冲区
+    protected ByteBuffer fileBuffer;
+    //post请求的解码类,它负责把字节解码成Http请求
+    private HttpPostRequestDecoder decoder;
     //记录formData
     private HttpData formData;
-    private HttpPostRequestDecoder decoder;
-    //存储 form-data中的非文件数据(key value)
+    //记录form-data中的非文件数据(key value)
     private Map<String, String> formDataTextMap = new ConcurrentHashMap<>();
-    private FileChannel fileChannel;
-    protected ByteBuffer fileBuffer;
-    //文件实体
-    private FileEntry file;
 
     static {
         //设置结束时删除临时文件
         DiskFileUpload.deleteOnExitTemporaryFile = true;
         //置空系统临时目录
         DiskFileUpload.baseDirectory = null;
-    }
-
-    /**
-     * 处理上传业务
-     *
-     * @return
-     */
-    private JsonObject uploadService(FileEntry fileEntry) {
-        //处理并返回
-        return FileHandler.instance.uploadFile(fileEntry);
     }
 
     /**
@@ -76,8 +70,9 @@ public class UploadFileHandler {
                 //返回
                 return;
             }
-            //Post解码
+            //post请求解码
             try {
+                //解码请求
                 this.decoder = new HttpPostRequestDecoder(this.factory, request);
                 //禁用应丢弃缓冲区中读取字节的字节数
                 this.decoder.setDiscardThreshold(0);
@@ -190,28 +185,29 @@ public class UploadFileHandler {
                 //如果数据已经存储完毕
                 if (fileUpload.isCompleted()) {
                     //创建文件实体
-                    this.file = new FileEntry();
+                    this.fileEntry = new FileEntry();
                     //文件fileId
-                    this.file.setFileId(IdUtils.newId());
+                    this.fileEntry.setFileId(IdUtils.newId());
                     //文件名
-                    this.file.setFileName(getFileNameFromFileUpload(fileUpload));
+                    this.fileEntry.setFileName(getFileNameFromFileUpload(fileUpload));
                     //文件大小
-                    this.file.setFileSize(fileUpload.length());
+                    this.fileEntry.setFileSize(fileUpload.length());
                     //文件后缀
-                    this.file.setFileExt(FilenameUtils.getExtension(this.file.getFileName()));
+                    this.fileEntry.setFileExt(FilenameUtils.getExtension(this.fileEntry.getFileName()));
                     //文件地址
-                    this.file.setFilePath(Const.UploadFilePath + this.file.getFileId() + "." + this.file.getFileExt());
+                    this.fileEntry.setFilePath(Const.UploadFilePath + this.fileEntry.getFileId() + "." + this.fileEntry.getFileExt());
                     //指定文件本身对象,模式rw为：以读取、写入方式打开指定文件。如果该文件不存在，则尝试创建文件
-                    this.fileChannel = new RandomAccessFile(file.getFilePath(), "rw").getChannel();
-                    //文件流(内存)
-                    this.fileBuffer = this.fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, this.file.getFileSize());
+                    this.fileChannel = new RandomAccessFile(fileEntry.getFilePath(), "rw").getChannel();
+                    //文件流读写通道(内存)
+                    this.fileBuffer = this.fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, this.fileEntry.getFileSize());
                     //写入文件
                     this.fileBuffer.put(fileUpload.get());
-                    //关闭流
+                    //关闭读写通道
                     this.fileChannel.close();
+                    //清除文件缓冲
                     this.fileBuffer.clear();
                     //对该文件进行业务处理并获得返回值
-                    JsonObject result = uploadService(this.file);
+                    JsonObject result = FileHandler.instance.uploadFile(this.fileEntry);
                     //响应并关闭
                     if (result != null) {
                         //响应
@@ -219,7 +215,7 @@ public class UploadFileHandler {
                     } else {
                         ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.OK, "上传失败,业务处理文件响应为空.");
                     }
-                    logger.info("upload FileName=[{}] success.", this.file.getFileName());
+                    logger.info("upload FileName=[{}] success.", this.fileEntry.getFileName());
                 }
                 break;
         }
