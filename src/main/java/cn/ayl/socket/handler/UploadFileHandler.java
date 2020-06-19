@@ -36,9 +36,6 @@ public class UploadFileHandler {
     private HttpPostRequestDecoder decoder;
     //存储 form-data中的非文件数据(key value)
     private Map<String, String> formDataTextMap = new ConcurrentHashMap<>();
-    //是否为 multipart 请求
-    protected boolean isMultipart = true;
-    private int fileBufferSize = 0;
     private FileChannel fileChannel;
     protected ByteBuffer fileBuffer;
     //文件实体
@@ -87,7 +84,12 @@ public class UploadFileHandler {
                 return;
             }
             //是否为Multipart请求
-            this.isMultipart = this.decoder.isMultipart();
+            if (this.decoder.isMultipart() == false) {
+                //返回错误消息
+                ResponseAndEncoderHandler.sendMessageOfJson(ctx, HttpResponseStatus.OK, "upload must is Multipart");
+                //返回
+                return;
+            }
         }
     }
 
@@ -99,21 +101,6 @@ public class UploadFileHandler {
      * @throws Exception
      */
     public void handleHttpContent(ChannelHandlerContext ctx, HttpContent chunk) throws Exception {
-        if (this.isMultipart == false) {
-            ByteBuffer buffer = chunk.content().nioBuffer();
-            while (buffer.hasRemaining()) {
-                this.fileBufferSize += buffer.remaining();
-                this.fileBuffer.put(buffer);
-            }
-            if (this.fileBufferSize == this.file.getFileSize()) {
-                logger.info("upload File[{}] Success", this.file.getFileName());
-                this.fileChannel.close();
-                this.fileBuffer.clear();
-                //处理上传业务
-                this.result = uploadService(this.file);
-            }
-            return;
-        }
         try {
             this.decoder.offer(chunk);
         } catch (Exception e1) {
