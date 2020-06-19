@@ -41,6 +41,8 @@ public class TypeUtils {
                 case "jpeg":
                 case "jpg":
                     return "image/jpeg";
+                case "csv":
+                    return ".csv";
                 case "ico":
                     return "image/x-icon";
                 case "png":
