@@ -8,9 +8,9 @@ import java.util.Set;
 
 /**
  * Created By Rock-Ayl on 2020-06-19
- * 允许headers传入参数列表缓存
+ * 服务器http请求允许的headers参数
  */
-public class AccessControlAllowHeaders {
+public class HttpAccessHeaders {
 
     //缓存Set
     private static Set<AsciiString> Headers = new HashSet<>();
