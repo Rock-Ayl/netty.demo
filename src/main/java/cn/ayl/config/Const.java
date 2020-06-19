@@ -55,6 +55,7 @@ public class Const {
     public final static String TotalCount = "totalCount";
     public final static String Type = "type";
     public final static String FileId = "fileId";
+    public final static String CtxUserId = "ctxUserId";
     public final static String FileCreateTime = "fileCreateTime";
     public final static String FileUpdateTime = "FileUpdateTime";
     public final static String FileName = "fileName";
