@@ -19,8 +19,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * created by Rock-Ayl on 2019-11-21
@@ -43,7 +41,7 @@ public class UploadFileHandler {
     //记录formData
     private HttpData formData;
     //记录form-data中的非文件数据(key value)
-    private Map<String, String> formDataTextMap = new ConcurrentHashMap<>();
+    private JsonObject formDataTextJson = JsonObject.VOID();
 
     static {
         //设置结束时删除临时文件
@@ -111,9 +109,19 @@ public class UploadFileHandler {
             return;
         }
         //读取内容并处理
-        readHttpFormDataChunkByChunk(ctx);
+        readHttpFormDataChunkByChunk();
         //最后一个内容
         if (chunk instanceof LastHttpContent) {
+            //对该文件进行业务处理并获得返回值
+            JsonObject result = FileHandler.instance.uploadFile(this.fileEntry, this.formDataTextJson);
+            //响应并关闭
+            if (result != null) {
+                //响应
+                ResponseAndEncoderHandler.sendObject(ctx, HttpResponseStatus.OK, result);
+            } else {
+                ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.OK, "上传失败,业务处理文件响应为空.");
+            }
+            logger.info("upload FileName=[{}] success.", this.fileEntry.getFileName());
             //重置解码
             resetDecoder();
             //关闭
@@ -124,19 +132,18 @@ public class UploadFileHandler {
 
     /**
      * 根据文件分块读取请求数据
-     *
-     * @param ctx
      */
-    private void readHttpFormDataChunkByChunk(ChannelHandlerContext ctx) {
+    private void readHttpFormDataChunkByChunk() {
         try {
+            //如果存在form-data内容
             while (this.decoder.hasNext()) {
-                //获取当前form-data
+                //获取当前内容
                 InterfaceHttpData data = this.decoder.next();
                 //判空
                 if (data != null) {
                     try {
-                        //读取form-data并处理业务
-                        parsingFormData(ctx, data);
+                        //解析内容并记录
+                        parsingFormData(data);
                     } catch (Exception e) {
                         logger.error("解析form-data错误:[{}]", e);
                     } finally {
@@ -153,11 +160,10 @@ public class UploadFileHandler {
     /**
      * 解析form-data的参数和文件
      *
-     * @param ctx
      * @param data
      * @throws IOException
      */
-    private void parsingFormData(ChannelHandlerContext ctx, InterfaceHttpData data) throws IOException {
+    private void parsingFormData(InterfaceHttpData data) throws IOException {
         //判断该数据类型
         switch (data.getHttpDataType()) {
             //text
@@ -169,7 +175,7 @@ public class UploadFileHandler {
                 //获取form中的value
                 String value = attribute.getString(CharsetUtil.UTF_8);
                 //组装
-                this.formDataTextMap.put(key, value);
+                this.formDataTextJson.put(key, value);
                 //跳过
                 break;
             //文件
@@ -199,16 +205,6 @@ public class UploadFileHandler {
                     this.fileChannel.close();
                     //清除文件缓冲
                     this.fileBuffer.clear();
-                    //对该文件进行业务处理并获得返回值
-                    JsonObject result = FileHandler.instance.uploadFile(this.fileEntry);
-                    //响应并关闭
-                    if (result != null) {
-                        //响应
-                        ResponseAndEncoderHandler.sendObject(ctx, HttpResponseStatus.OK, result);
-                    } else {
-                        ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.OK, "上传失败,业务处理文件响应为空.");
-                    }
-                    logger.info("upload FileName=[{}] success.", this.fileEntry.getFileName());
                 }
                 break;
         }

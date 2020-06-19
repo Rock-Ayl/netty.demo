@@ -51,9 +51,10 @@ public enum FileHandler {
      * todo 文件上传业务处理
      *
      * @param fileEntry 文件实体
+     * @param params    其他参数对象
      * @return
      */
-    public JsonObject uploadFile(FileEntry fileEntry) {
+    public JsonObject uploadFile(FileEntry fileEntry, JsonObject params) {
         return JsonObject.Success().append(Const.Data, fileEntry.toJson());
     }
 
