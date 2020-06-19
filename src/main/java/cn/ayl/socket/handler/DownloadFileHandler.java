@@ -53,18 +53,6 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
         }
     }
 
-    @Override
-    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
-        //log
-        logger.info("handlerAdded:" + ctx.channel().id());
-    }
-
-    @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        //log
-        logger.info("handlerRemoved:" + ctx.channel().id());
-    }
-
     /**
      * 异常抓取
      *
