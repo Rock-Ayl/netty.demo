@@ -13,7 +13,6 @@ import io.netty.handler.codec.http.multipart.*;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,8 +120,8 @@ public class UploadFileHandler {
             //返回
             return;
         }
-        //读取内容并处理
-        readHttpFormDataChunkByChunk();
+        //读取form-data内容并记录
+        readHttpFormData();
         //最后一个内容
         if (chunk instanceof LastHttpContent) {
             //对该文件进行业务处理并获得返回值
@@ -146,6 +145,7 @@ public class UploadFileHandler {
             resetDecoder();
             //关闭
             ctx.channel().close();
+            //返回
             return;
         }
     }
@@ -153,7 +153,7 @@ public class UploadFileHandler {
     /**
      * 根据文件分块读取请求数据
      */
-    private void readHttpFormDataChunkByChunk() {
+    private void readHttpFormData() {
         try {
             //如果存在form-data内容
             while (this.decoder.hasNext()) {
@@ -173,7 +173,7 @@ public class UploadFileHandler {
                 }
             }
         } catch (HttpPostRequestDecoder.EndOfDataDecoderException e1) {
-            logger.error("readHttpFormDataChunkByChunk", e1);
+            logger.error("readHttpFormData", e1);
         }
     }
 
@@ -208,7 +208,7 @@ public class UploadFileHandler {
                     //文件fileId
                     fileEntry.setFileId(IdUtils.newId());
                     //文件名
-                    fileEntry.setFileName(getFileNameFromFileUpload(fileUpload));
+                    fileEntry.setFileName(fileUpload.getFilename());
                     //文件大小
                     fileEntry.setFileSize(fileUpload.length());
                     //文件后缀
@@ -230,24 +230,6 @@ public class UploadFileHandler {
                 }
                 break;
         }
-    }
-
-    /**
-     * 从 FileUpload对象 获取文件名
-     *
-     * @param fileUpload
-     * @return
-     */
-    private String getFileNameFromFileUpload(FileUpload fileUpload) {
-        //获取文件名
-        String fileName = fileUpload.getFilename();
-        //判空
-        if (StringUtils.isEmpty(fileName)) {
-            //用默认
-            fileName = fileUpload.getName();
-        }
-        //返回
-        return fileName;
     }
 
     /**
