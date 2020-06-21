@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * created by Rock-Ayl on 2019-11-18
- * todo WebSocket处理器
+ * WebSocket处理器
  */
 public class WebSocketHandler extends ChannelInboundHandlerAdapter {
 
@@ -24,7 +24,7 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
     private Context context;
 
     //用来关闭WebSocket
-    private WebSocketServerHandshaker webSocketServerHandshaker;
+    protected WebSocketServerHandshaker webSocketServerHandshaker;
 
     //一个群聊所有的人
     public static ChannelGroup channels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
@@ -40,8 +40,9 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
         if (this.context == null) {
             return;
         }
-        //处理WebSocket请求的分别处理
+        //如果是webSocket
         if (msg instanceof WebSocketFrame) {
+            //处理WebSocket请求
             handleWebSocketRequest(ctx, (WebSocketFrame) msg);
         }
     }
@@ -53,17 +54,18 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
      * @param frame
      */
     private void handleWebSocketRequest(ChannelHandlerContext ctx, WebSocketFrame frame) {
-        // 判断是否是关闭链路的指令
+        //判断是否是关闭链路的指令
         if (frame instanceof CloseWebSocketFrame) {
+            //关闭
             this.webSocketServerHandshaker.close(ctx.channel(), (CloseWebSocketFrame) frame.retain());
             return;
         }
-        // 判断是否是Ping消息
+        //判断是否是Ping消息
         if (frame instanceof PingWebSocketFrame) {
             ctx.channel().write(new PongWebSocketFrame(frame.content().retain()));
             return;
         }
-        // 文本消息，不支持二进制消息
+        //文本消息,不支持二进制消息
         if (frame instanceof TextWebSocketFrame) {
             //获取请求文本
             String request = ((TextWebSocketFrame) frame).text();
@@ -73,10 +75,13 @@ public class WebSocketHandler extends ChannelInboundHandlerAdapter {
             Channel incoming = ctx.channel();
             //循环所有通道
             for (Channel channel : this.channels) {
-                if (channel != incoming) {
-                    channel.writeAndFlush(new TextWebSocketFrame("[" + incoming.remoteAddress() + "]:" + request));
-                } else {
+                //如果是自己
+                if (channel == incoming) {
+                    //给自己发送消息
                     channel.writeAndFlush(new TextWebSocketFrame("[you]:" + request));
+                } else {
+                    //给自己发送消息
+                    channel.writeAndFlush(new TextWebSocketFrame("[" + incoming.remoteAddress() + "]:" + request));
                 }
             }
         }
