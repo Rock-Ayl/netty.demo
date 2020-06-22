@@ -11,6 +11,8 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URLEncoder;
@@ -22,6 +24,8 @@ import java.util.Date;
  * 协议编码器及响应处理器
  */
 public class ResponseAndEncoderHandler {
+
+    protected static Logger logger = LoggerFactory.getLogger(ResponseAndEncoderHandler.class);
 
     /**
      * 设置通用响应headers
@@ -168,9 +172,29 @@ public class ResponseAndEncoderHandler {
         //写入响应及对应handlers
         ctx.write(response);
         //获取文件对象-只读
-        final RandomAccessFile onlyReadFile = new RandomAccessFile(file, "r");
+        RandomAccessFile onlyReadFile = new RandomAccessFile(file, "r");
+        //获取该范围文件内容
+        DefaultFileRegion fileRegion = new DefaultFileRegion(onlyReadFile.getChannel(), startOffset, endOffset);
         //http的传输文件方式,零拷贝,高效
-        ctx.write(new DefaultFileRegion(onlyReadFile.getChannel(), startOffset, endOffset), ctx.newProgressivePromise());
+        ChannelFuture sendFuture = ctx.write(fileRegion, ctx.newProgressivePromise());
+        //监听传输
+        sendFuture.addListener(new ChannelProgressiveFutureListener() {
+
+            //当操作完成时
+            @Override
+            public void operationComplete(ChannelProgressiveFuture future) throws Exception {
+                //输入日志
+                logger.info("文件[" + fileName + "]分段传输完成");
+            }
+
+            //传输中
+            @Override
+            public void operationProgressed(ChannelProgressiveFuture future, long progress, long total) {
+                //输入日志
+                logger.info("文件[" + fileName + "]传输:" + progress + " / " + total);
+            }
+
+        });
         //ctx响应并关闭(如果使用Chunked编码，最后则需要发送一个编码结束的看空消息体，进行标记，表示所有消息体已经成功发送完成)
         ctx.channel().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
     }

@@ -287,7 +287,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        logger.error("Client:" + ctx.channel().remoteAddress() + " ,error:", cause);
+        logger.warn("客户端强制中断请求,可以无视该日志 Client:" + ctx.channel().remoteAddress() + " ,thrown Exception:", cause.getMessage());
         ctx.close();
     }
 
