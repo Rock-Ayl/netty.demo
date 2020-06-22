@@ -305,7 +305,15 @@ esac
 - setting.properties
 - Const
 
-## 5.备注
+## 5.接口相关
+
+/netty.demo/src/main/resources目录下
+
+- 文件的上传的html
+- WebSocket聊天室的html
+- postman接口调用导出json(postman的form-data上传有bug,请使用页面上传测试)
+
+## 6.备注
 
 ```
 
