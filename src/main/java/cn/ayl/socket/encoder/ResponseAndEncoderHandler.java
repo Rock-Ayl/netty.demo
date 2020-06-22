@@ -157,6 +157,8 @@ public class ResponseAndEncoderHandler {
         response.headers().set(HttpHeaderNames.CONTENT_LENGTH, endLength);
         //文件内容类型
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
+        //先禁止用缓存
+        response.headers().set(HttpHeaderNames.CACHE_CONTROL, "no-cache");
         //文件名,是否 save as
         response.headers().add(HttpHeaderNames.CONTENT_DISPOSITION, disposition + "; filename*=UTF-8''" + URLEncoder.encode(fileName, "utf-8"));
         //该资源发送的时间
@@ -168,9 +170,9 @@ public class ResponseAndEncoderHandler {
         //写入响应及对应响应报文
         ctx.write(response);
         //http的传输文件方式,零拷贝,高效,
-        ctx.write(new DefaultFileRegion(randomAccessFile.getChannel(), startOffset, endOffset), ctx.newProgressivePromise());
+        ctx.writeAndFlush(new DefaultFileRegion(randomAccessFile.getChannel(), startOffset, endOffset), ctx.newProgressivePromise());
         //ctx响应并关闭(如果使用Chunked编码，最后则需要发送一个编码结束的看空消息体，进行标记，表示所有消息体已经成功发送完成)
-        ctx.channel().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
+        ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
     }
 
 }
