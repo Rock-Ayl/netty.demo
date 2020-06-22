@@ -38,7 +38,7 @@ public class ResponseAndEncoderHandler {
         headers.set(HttpHeaderNames.SERVER, Const.ServerName);
         headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
         headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS, true);
-        headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "GET,POST,PUT,DELETE,OPTIONS");
+        headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "GET,POST,OPTIONS");
         headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, Collections.unmodifiableSet(HttpAccessHeaders.getAccessHeaders()));
         headers.set(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE, 86400);
     }
@@ -103,8 +103,6 @@ public class ResponseAndEncoderHandler {
         long thisTime = System.currentTimeMillis();
         //一个基础的OK请求
         HttpResponse response = new DefaultHttpResponse(Const.CurrentHttpVersion, HttpResponseStatus.OK);
-        //支持告诉客户端支持分片下载,如迅雷等多线程
-        response.headers().set(HttpHeaderNames.ACCEPT_RANGES, HttpHeaderValues.BYTES);
         //文件起始字节位置初始化
         long startOffset = 0;
         //文件结束字节位置初始化
@@ -115,7 +113,7 @@ public class ResponseAndEncoderHandler {
         String range = request.headers().get(HttpHeaderNames.RANGE);
         //Range判空
         if (StringUtils.isNotEmpty(range)) {
-            //设置为分片下载状态
+            //设置为分片下载状态(由正常的200->206)
             response.setStatus(HttpResponseStatus.PARTIAL_CONTENT);
             //解析Range前后区间
             String[] r = range.replace("bytes=", "").split("-");
@@ -131,8 +129,6 @@ public class ResponseAndEncoderHandler {
             //传输文件的实际总长度
             endLength = endOffset - startOffset + 1;
         }
-        //handlers添加文件实际传输长度
-        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, endLength);
         //初始化文件类型
         String contentType;
         //设定化内容处理:以附件的形式下载、文件名、编码
@@ -155,46 +151,24 @@ public class ResponseAndEncoderHandler {
                 disposition = "inline";
                 break;
         }
+        //支持告诉客户端支持分片下载,如迅雷等多线程
+        response.headers().set(HttpHeaderNames.ACCEPT_RANGES, HttpHeaderValues.BYTES);
+        //handlers添加文件实际传输长度
+        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, endLength);
         //文件内容类型
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
         //文件名,是否 save as
         response.headers().add(HttpHeaderNames.CONTENT_DISPOSITION, disposition + "; filename*=UTF-8''" + URLEncoder.encode(fileName, "utf-8"));
         //该资源发送的时间
         response.headers().set(HttpHeaderNames.DATE, DateUtils.SDF_HTTP_DATE_FORMATTER.format(thisTime));
-        //响应过期的日期和时间
-        response.headers().set(HttpHeaderNames.EXPIRES, DateUtils.SDF_HTTP_DATE_FORMATTER.format(thisTime + Const.FileResourceExpiresTime));
-        //设置缓存开关
-        response.headers().set(HttpHeaderNames.CACHE_CONTROL, "private, max-age=" + Const.FileResourceExpiresTime);
         //文件最后修改时间
         response.headers().set(HttpHeaderNames.LAST_MODIFIED, DateUtils.SDF_HTTP_DATE_FORMATTER.format(new Date(file.lastModified())));
         //添加通用参数
         setServerHeaders(response);
-        //写入响应及对应handlers
+        //写入响应及对应响应报文
         ctx.write(response);
-        //获取文件对象-只读
-        RandomAccessFile onlyReadFile = new RandomAccessFile(file, "r");
-        //获取该范围文件内容
-        DefaultFileRegion fileRegion = new DefaultFileRegion(onlyReadFile.getChannel(), startOffset, endOffset);
-        //http的传输文件方式,零拷贝,高效
-        ChannelFuture sendFuture = ctx.write(fileRegion, ctx.newProgressivePromise());
-        //监听传输
-        sendFuture.addListener(new ChannelProgressiveFutureListener() {
-
-            //当操作完成时
-            @Override
-            public void operationComplete(ChannelProgressiveFuture future) throws Exception {
-                //输入日志
-                logger.info("文件[" + fileName + "]分段传输完成");
-            }
-
-            //传输中
-            @Override
-            public void operationProgressed(ChannelProgressiveFuture future, long progress, long total) {
-                //输入日志
-                logger.info("文件[" + fileName + "]传输:" + progress + " / " + total);
-            }
-
-        });
+        //http的传输文件方式,零拷贝,高效,
+        ctx.write(new DefaultFileRegion(new RandomAccessFile(file, "r").getChannel(), startOffset, endOffset), ctx.newProgressivePromise());
         //ctx响应并关闭(如果使用Chunked编码，最后则需要发送一个编码结束的看空消息体，进行标记，表示所有消息体已经成功发送完成)
         ctx.channel().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
     }
