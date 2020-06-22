@@ -18,6 +18,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -36,6 +38,8 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     private UploadFileHandler uploadFileHandler;
     //静态资源处理器
     private ResourceHandler responseHandler;
+    //静态资源文件流
+    private RandomAccessFile randomAccessFile;
 
     /**
      * 根据service请求判断是否需要验证身份
@@ -175,8 +179,8 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             case resource:
                 //创建一个静态资源处理器
                 this.responseHandler = new ResourceHandler();
-                //处理请求
-                this.responseHandler.handleResource(ctx, req, this.context.uriPath);
+                //处理请求并记录文件流
+                this.randomAccessFile = this.responseHandler.handleResource(ctx, req, this.context.uriPath);
                 break;
             //请求页面
             case htmlPage:
@@ -287,7 +291,17 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        logger.warn("客户端强制中断请求,可以无视该日志 Client:" + ctx.channel().remoteAddress() + " ,thrown Exception:", cause.getMessage());
+        //输入日志
+        logger.warn("http请求请求异常，连接断开,异常为:" + cause);
+        //当连接断开的时候 关闭未关闭的文件流
+        if (randomAccessFile != null) {
+            try {
+                randomAccessFile.close();
+            } catch (IOException e) {
+                //输入日志
+                logger.error("静态资源文件流关闭异常:" + cause);
+            }
+        }
         ctx.close();
     }
 

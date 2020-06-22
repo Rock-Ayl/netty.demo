@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.URLDecoder;
 
 /**
@@ -32,7 +33,9 @@ public class ResourceHandler {
      * @param req
      * @param uriPath
      */
-    public void handleResource(ChannelHandlerContext ctx, HttpRequest req, String uriPath) {
+    public RandomAccessFile handleResource(ChannelHandlerContext ctx, HttpRequest req, String uriPath) {
+        //初始化文件流
+        RandomAccessFile randomAccessFile = null;
         try {
             //判空
             if (StringUtils.isNotEmpty(uriPath)) {
@@ -51,8 +54,10 @@ public class ResourceHandler {
                         //文件未被修改,浏览器可以延用缓存
                         ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.NOT_MODIFIED, "Modified false.");
                     } else {
+                        //获取文件流
+                        randomAccessFile = new RandomAccessFile(file, "r");
                         //响应请求文件流
-                        ResponseAndEncoderHandler.sendFileStream(ctx, req, file, FileRequestType.preview);
+                        ResponseAndEncoderHandler.sendFileStream(ctx, req, file, randomAccessFile, FileRequestType.preview);
                     }
                 } else {
                     //不存在文件,响应失败
@@ -60,7 +65,11 @@ public class ResourceHandler {
                 }
             }
         } catch (IOException e) {
+            //错误日志
             logger.error("handleResource IOException.", e);
+        } finally {
+            //返回文件流
+            return randomAccessFile;
         }
     }
 

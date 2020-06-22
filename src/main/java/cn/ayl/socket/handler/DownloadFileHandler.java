@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
@@ -22,6 +24,9 @@ import static io.netty.handler.codec.http.HttpResponseStatus.*;
 public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     protected static Logger logger = LoggerFactory.getLogger(DownloadFileHandler.class);
+
+    //静态资源文件流
+    private RandomAccessFile randomAccessFile;
 
     /**
      * 请求进入点
@@ -40,10 +45,12 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
         //从业务中读取文件
         File file = FileHandler.instance.readDownloadFile(type, fileId, fileName, cookieId);
         try {
+            //初始化文件流
+            this.randomAccessFile = new RandomAccessFile(file, "r");
             //如果成功获取文件
             if (file != null && file.exists() && file.isFile()) {
                 //响应成功
-                ResponseAndEncoderHandler.sendFileStream(ctx, request, file, type);
+                ResponseAndEncoderHandler.sendFileStream(ctx, request, file, this.randomAccessFile, type);
             } else {
                 //响应失败
                 ResponseAndEncoderHandler.sendFailAndMessage(ctx, NOT_FOUND, "下载请求失败,文件不存在或用户信息失效.");
@@ -63,8 +70,16 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         //输入日志
-        logger.error("下载请求异常，连接断开,异常为:" + cause);
-        // 当出现异常就关闭连接
+        logger.warn("下载请求异常,连接断开,异常为:" + cause);
+        //当连接断开的时候 关闭未关闭的文件流
+        if (randomAccessFile != null) {
+            try {
+                randomAccessFile.close();
+            } catch (IOException e) {
+                //输入日志
+                logger.error("下载请求关闭文件流异常:" + cause);
+            }
+        }
         ctx.close();
     }
 

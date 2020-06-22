@@ -94,7 +94,7 @@ public class ResponseAndEncoderHandler {
      * @param ctx
      * @throws IOException
      */
-    public static void sendFileStream(ChannelHandlerContext ctx, HttpRequest request, File file, FileRequestType fileRequestType) throws IOException {
+    public static void sendFileStream(ChannelHandlerContext ctx, HttpRequest request, File file, RandomAccessFile randomAccessFile, FileRequestType fileRequestType) throws IOException {
         //文件名
         String fileName = file.getName();
         //文件长度
@@ -168,7 +168,7 @@ public class ResponseAndEncoderHandler {
         //写入响应及对应响应报文
         ctx.write(response);
         //http的传输文件方式,零拷贝,高效,
-        ctx.write(new DefaultFileRegion(new RandomAccessFile(file, "r").getChannel(), startOffset, endOffset), ctx.newProgressivePromise());
+        ctx.write(new DefaultFileRegion(randomAccessFile.getChannel(), startOffset, endOffset), ctx.newProgressivePromise());
         //ctx响应并关闭(如果使用Chunked编码，最后则需要发送一个编码结束的看空消息体，进行标记，表示所有消息体已经成功发送完成)
         ctx.channel().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
     }
