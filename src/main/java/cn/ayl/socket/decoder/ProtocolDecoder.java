@@ -91,7 +91,7 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
             distinguishNetworkProtocol(buffer, channel);
             //根据网络协议分发解析器
             switchProtocol(p);
-            //删除当前处理器
+            //将所有所需的ChannelHandler添加到pipeline之后,一定要将自身移除掉,否则该Channel之后的请求仍会重新执行协议的分发，而这是要避免的
             p.remove(this);
             //通道绑定上下文,以后用get获取
             p.channel().attr(Const.AttrContext).set(context);
