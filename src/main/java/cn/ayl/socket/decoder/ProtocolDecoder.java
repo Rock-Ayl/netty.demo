@@ -67,18 +67,18 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
         /**
          * 请求先从这里走，识别各类协议请求
          *
-         * @param channelCtx
+         * @param ctx
          * @param buffer
          * @param out
          */
         @Override
-        protected void decode(ChannelHandlerContext channelCtx, ByteBuf buffer, List<Object> out) {
+        protected void decode(ChannelHandlerContext ctx, ByteBuf buffer, List<Object> out) {
             //过滤请求大小
             if (buffer.readableBytes() < 8) {
                 return;
             }
             //获取通道处理器管道
-            ChannelPipeline p = channelCtx.pipeline();
+            ChannelPipeline p = ctx.pipeline();
             //获取通道
             Channel channel = p.channel();
             //断点续传检查一下
