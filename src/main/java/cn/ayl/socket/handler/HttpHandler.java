@@ -287,8 +287,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        //todo 出现异常
-        logger.error("Client:" + ctx.channel().remoteAddress() + " ,error:[{}]", cause.getMessage());
+        logger.error("Client:" + ctx.channel().remoteAddress() + " ,error:", cause);
         ctx.close();
     }
 
