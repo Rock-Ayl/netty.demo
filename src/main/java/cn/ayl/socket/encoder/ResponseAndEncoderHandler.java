@@ -98,7 +98,7 @@ public class ResponseAndEncoderHandler {
         //文件名
         String fileName = file.getName();
         //文件长度
-        long fileLength = file.length();
+        long fileLength = randomAccessFile.length();
         //当前时间
         long thisTime = System.currentTimeMillis();
         //一个基础的OK请求
@@ -170,7 +170,7 @@ public class ResponseAndEncoderHandler {
         //写入响应及对应响应报文
         ctx.write(response);
         //http的传输文件方式,零拷贝,高效,
-        ctx.writeAndFlush(new DefaultFileRegion(randomAccessFile.getChannel(), startOffset, endOffset), ctx.newProgressivePromise());
+        ctx.writeAndFlush(new DefaultFileRegion(randomAccessFile.getChannel(), startOffset, endLength), ctx.newProgressivePromise());
         //ctx响应并关闭(如果使用Chunked编码，最后则需要发送一个编码结束的看空消息体，进行标记，表示所有消息体已经成功发送完成)
         ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
     }
