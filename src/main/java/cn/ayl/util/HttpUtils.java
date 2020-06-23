@@ -5,6 +5,7 @@ import cn.ayl.common.enumeration.ContentType;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.common.json.JsonUtil;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -13,6 +14,7 @@ import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryAttribute;
+import io.netty.handler.ssl.SslHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +31,19 @@ import java.util.Map;
 public class HttpUtils {
 
     protected static Logger logger = LoggerFactory.getLogger(HttpUtils.class);
+
+    /**
+     * 判断一个请求是否为https即拥有SSL
+     *
+     * @param ctx
+     * @return
+     */
+    public static boolean isHttps(ChannelHandlerContext ctx) {
+        if (ctx.pipeline().get(SslHandler.class) != null) {
+            return true;
+        }
+        return false;
+    }
 
     /**
      * 从请求中获取参数

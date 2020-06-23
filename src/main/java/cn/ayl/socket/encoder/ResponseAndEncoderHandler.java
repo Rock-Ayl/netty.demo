@@ -4,11 +4,13 @@ import cn.ayl.common.enumeration.FileRequestType;
 import cn.ayl.config.Const;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.util.DateUtils;
+import cn.ayl.util.HttpUtils;
 import cn.ayl.util.TypeUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -169,8 +171,14 @@ public class ResponseAndEncoderHandler {
         setServerHeaders(response);
         //写入响应及对应响应报文
         ctx.write(response);
-        //http的传输文件方式,零拷贝,高效,
-        ctx.writeAndFlush(new DefaultFileRegion(randomAccessFile.getChannel(), startOffset, endLength), ctx.newProgressivePromise());
+        //判断是否为https
+        if (HttpUtils.isHttps(ctx)) {
+            //https的传输文件方式,非零拷贝,低效,不推荐
+            ctx.writeAndFlush(new HttpChunkedInput(new ChunkedFile(randomAccessFile, startOffset, endLength, 8192)), ctx.newProgressivePromise());
+        } else {
+            //http默认的传输文件方式,零拷贝,高效
+            ctx.writeAndFlush(new DefaultFileRegion(randomAccessFile.getChannel(), startOffset, endLength), ctx.newProgressivePromise());
+        }
         //ctx响应并关闭(如果使用Chunked编码，最后则需要发送一个编码结束的看空消息体，进行标记，表示所有消息体已经成功发送完成)
         ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
     }
