@@ -22,7 +22,6 @@ public class MD5Utils {
      *
      * @param file
      * @return MD5值
-     * @throws IOException
      */
     public static String getFileMd5(File file) {
         try {
