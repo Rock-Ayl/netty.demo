@@ -105,6 +105,8 @@ public class ResponseAndEncoderHandler {
         String fileExt = FilenameUtils.getExtension(fileName);
         //文件长度
         long fileLength = randomAccessFile.length();
+        //国际标准文件最后修改时间
+        String fileLastModified = DateUtils.SDF_HTTP_DATE_FORMATTER.format(new Date(file.lastModified()));
         //当前时间
         long thisTime = System.currentTimeMillis();
         //一个基础的OK请求
@@ -167,11 +169,18 @@ public class ResponseAndEncoderHandler {
                 //文件实体标签,用于效验文件未修改性
                 response.headers().set(HttpHeaderNames.ETAG, MD5Utils.getFileMd5(file));
                 break;
-            default:
+            case "js":
+            case "css":
                 //设置缓存时间为1年
                 cacheControl = "max-age=31536000";
                 //设置文件最后修改时间
-                response.headers().set(HttpHeaderNames.LAST_MODIFIED, DateUtils.SDF_HTTP_DATE_FORMATTER.format(new Date(file.lastModified())));
+                response.headers().set(HttpHeaderNames.LAST_MODIFIED, fileLastModified);
+                break;
+            default:
+                //设置缓存时间为1天
+                cacheControl = "max-age=86400";
+                //设置文件最后修改时间
+                response.headers().set(HttpHeaderNames.LAST_MODIFIED, fileLastModified);
                 break;
         }
         //支持告诉客户端支持分片下载,如迅雷等多线程
