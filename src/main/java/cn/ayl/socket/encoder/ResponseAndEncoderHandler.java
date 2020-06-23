@@ -5,6 +5,7 @@ import cn.ayl.config.Const;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.util.DateUtils;
 import cn.ayl.util.HttpUtils;
+import cn.ayl.util.MD5Utils;
 import cn.ayl.util.TypeUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -12,6 +13,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.CharsetUtil;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,6 +101,8 @@ public class ResponseAndEncoderHandler {
     public static void sendFileStream(ChannelHandlerContext ctx, HttpRequest request, File file, RandomAccessFile randomAccessFile, FileRequestType fileRequestType) throws IOException {
         //文件名
         String fileName = file.getName();
+        //获取文件后缀
+        String fileExt = FilenameUtils.getExtension(fileName);
         //文件长度
         long fileLength = randomAccessFile.length();
         //当前时间
@@ -135,7 +139,9 @@ public class ResponseAndEncoderHandler {
         String contentType;
         //设定化内容处理:以附件的形式下载、文件名、编码
         String disposition;
-        //根据文件请求类型判定
+        //指定缓存机制
+        String cacheControl;
+        //根据文件请求类型设置headers
         switch (fileRequestType) {
             //只是下载
             case download:
@@ -153,20 +159,33 @@ public class ResponseAndEncoderHandler {
                 disposition = "inline";
                 break;
         }
+        //根据文件后缀操作设置headers
+        switch (fileExt) {
+            case "html":
+                //设置必须资源效验
+                cacheControl = "no-cache";
+                //文件实体标签,用于效验文件未修改性
+                response.headers().set(HttpHeaderNames.ETAG, MD5Utils.getFileMd5(file));
+                break;
+            default:
+                //设置缓存时间为1年
+                cacheControl = "max-age=31536000";
+                //设置文件最后修改时间
+                response.headers().set(HttpHeaderNames.LAST_MODIFIED, DateUtils.SDF_HTTP_DATE_FORMATTER.format(new Date(file.lastModified())));
+                break;
+        }
         //支持告诉客户端支持分片下载,如迅雷等多线程
         response.headers().set(HttpHeaderNames.ACCEPT_RANGES, HttpHeaderValues.BYTES);
         //handlers添加文件实际传输长度
         response.headers().set(HttpHeaderNames.CONTENT_LENGTH, endLength);
         //文件内容类型
         response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
-        //先禁止用缓存
-        response.headers().set(HttpHeaderNames.CACHE_CONTROL, "no-cache");
+        //指定缓存机制
+        response.headers().set(HttpHeaderNames.CACHE_CONTROL, cacheControl);
         //文件名,是否 save as
         response.headers().add(HttpHeaderNames.CONTENT_DISPOSITION, disposition + "; filename*=UTF-8''" + URLEncoder.encode(fileName, "utf-8"));
         //该资源发送的时间
         response.headers().set(HttpHeaderNames.DATE, DateUtils.SDF_HTTP_DATE_FORMATTER.format(thisTime));
-        //文件最后修改时间
-        response.headers().set(HttpHeaderNames.LAST_MODIFIED, DateUtils.SDF_HTTP_DATE_FORMATTER.format(new Date(file.lastModified())));
         //添加通用参数
         setServerHeaders(response);
         //写入响应及对应响应报文
