@@ -16,19 +16,30 @@ public class Context {
     public String ip;
     //UriPath
     public String uriPath;
-
     //ChannelId
     public ChannelId channelId;
     //Channel
     public Channel channel;
-    //Channel cookieId
-    public String cookieId = null;
 
-    //认证的用户Id
-    public long ctxUserId;
+    //用户信息
+    public User user = new User();
 
     /**
-     * 基础上下文
+     * 用户信息
+     */
+    public class User {
+        //用户的cookieId
+        public String cookieId = null;
+        //用户id
+        public long userId;
+    }
+
+    //受保护的,不允许new,但允许继承
+    protected Context() {
+    }
+
+    /**
+     * 初始化context
      *
      * @param type
      * @param channel

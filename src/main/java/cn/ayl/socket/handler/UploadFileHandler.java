@@ -97,8 +97,8 @@ public class UploadFileHandler {
                 return;
             }
             //存放cookieId、当前登录用户id到参数中
-            this.params.append(Const.CookieId, this.context.cookieId);
-            this.params.append(Const.CtxUserId, this.context.ctxUserId);
+            this.params.append(Const.CookieId, this.context.user.cookieId);
+            this.params.append(Const.CtxUserId, this.context.user.cookieId);
         }
     }
 

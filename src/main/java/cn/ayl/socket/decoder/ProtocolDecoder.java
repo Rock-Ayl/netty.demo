@@ -82,9 +82,9 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
             //获取通道
             Channel channel = p.channel();
             //断点续传检查一下
-            context = channel.attr(Const.AttrContext).get();
+            this.context = channel.attr(Const.AttrContext).get();
             //如果上下文存在空，直接返回
-            if (context != null) {
+            if (this.context != null) {
                 return;
             }
             //区分下网络协议并创建上下文
@@ -94,26 +94,27 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
             //将所有所需的ChannelHandler添加到pipeline之后,一定要将自身移除掉,否则该Channel之后的请求仍会重新执行协议的分发，而这是要避免的
             p.remove(this);
             //通道绑定上下文,以后用get获取
-            p.channel().attr(Const.AttrContext).set(context);
+            p.channel().attr(Const.AttrContext).set(this.context);
         }
 
         /**
-         * 区分网络协议，目前仅仅识别http和websocket
+         * 区分网络协议
+         * 目前支持:http、webSocket
          */
         private void distinguishNetworkProtocol(ByteBuf buffer, Channel channel) {
             String header = this.readHeader(buffer);
             //判断是否为webSocket
             if (isWebSocket(header)) {
-                context = Context.createInitContext(RequestType.websocket, channel);
+                this.context = Context.createInitContext(RequestType.websocket, channel);
                 /*如下为Http请求,进行upload,download,service归类并绑定上下文*/
             } else if (header.startsWith("POST " + Const.UploadPath)) {
-                context = Context.createInitContext(RequestType.upload, channel);
+                this.context = Context.createInitContext(RequestType.upload, channel);
             } else if (header.startsWith("GET " + Const.DownloadPath)) {
-                context = Context.createInitContext(RequestType.download, channel);
+                this.context = Context.createInitContext(RequestType.download, channel);
             } else {
-                context = Context.createInitContext(RequestType.http, channel);
+                this.context = Context.createInitContext(RequestType.http, channel);
             }
-            logger.info("decode header={} ,&contextType={}", header, context.requestType.name());
+            logger.info("decode header={} ,&contextType={}", header, this.context.requestType.name());
         }
 
         /**

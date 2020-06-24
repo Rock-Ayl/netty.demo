@@ -19,7 +19,7 @@ public class UserService extends Context implements User {
     @Override
     public JsonObject readUserList(String keyword, Integer pageIndex, Integer pageSize) {
         //验证权限为root
-        if (!UserCommons.isRoot(this.ctxUserId)) {
+        if (!UserCommons.isRoot(this.user.userId)) {
             return Const.Json_No_Permission;
         }
         //验证关键词

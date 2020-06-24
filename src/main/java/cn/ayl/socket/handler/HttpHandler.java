@@ -137,9 +137,8 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             Object service = noArgConstructor.newInstance();
             //如果服务继承了上下文
             if (service instanceof Context) {
-                //赋予业务类可用的参数
-                ((Context) service).ctxUserId = this.context.ctxUserId;
-                ((Context) service).cookieId = this.context.cookieId;
+                //赋予用户信息
+                ((Context) service).user = this.context.user;
             }
             //组装参数和参数类型
             Object[] valueArr = new Object[paramList.size()];
