@@ -13,6 +13,7 @@ import io.netty.handler.codec.http.multipart.*;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -211,10 +212,21 @@ public class UploadFileHandler {
                     fileEntry.setFileName(fileUpload.getFilename());
                     //文件大小
                     fileEntry.setFileSize(fileUpload.length());
+                    //如果文件大小为0或者文件名为null
+                    if (fileEntry.getFileSize() == 0 || StringUtils.isBlank(fileEntry.getFileName())) {
+                        //丢弃空文件
+                        return;
+                    }
                     //文件后缀
                     fileEntry.setFileExt(FilenameUtils.getExtension(fileEntry.getFileName()));
-                    //文件地址
-                    fileEntry.setFilePath(Const.UploadFilePath + fileEntry.getFileId() + "." + fileEntry.getFileExt());
+                    //如果文件存在后缀名
+                    if (StringUtils.isNotBlank(fileEntry.getFileExt())) {
+                        //有后缀的文件地址
+                        fileEntry.setFilePath(Const.UploadFilePath + fileEntry.getFileId() + "." + fileEntry.getFileExt());
+                    } else {
+                        //无后缀的文件地址
+                        fileEntry.setFilePath(Const.UploadFilePath + fileEntry.getFileId());
+                    }
                     //存储进List
                     this.fileEntryList.add(fileEntry);
                     //指定文件本身对象,模式rw为：以读取、写入方式打开指定文件。如果该文件不存在，则尝试创建文件
@@ -225,7 +237,7 @@ public class UploadFileHandler {
                     this.fileBuffer.put(fileUpload.get());
                     //关闭读写通道
                     this.fileChannel.close();
-                    //清除文件缓冲
+                    //初始化文件缓冲位置
                     this.fileBuffer.clear();
                 }
                 break;
