@@ -224,8 +224,10 @@ public class UploadFileHandler {
                     }
                     //存储进List
                     this.fileEntryList.add(fileEntry);
+                    //创建RandomAccessFile对象
+                    RandomAccessFile randomAccessFile = new RandomAccessFile(fileEntry.getFilePath(), "rw");
                     //指定文件本身对象,模式rw为：以读取、写入方式打开指定文件。如果该文件不存在，则尝试创建文件
-                    FileChannel fileChannel = new RandomAccessFile(fileEntry.getFilePath(), "rw").getChannel();
+                    FileChannel fileChannel = randomAccessFile.getChannel();
                     //获取文件的内存缓冲:读写、起始字节位置、文件大小
                     ByteBuffer fileBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileEntry.getFileSize());
                     //写入byte[]
@@ -234,6 +236,8 @@ public class UploadFileHandler {
                     fileChannel.close();
                     //初始化文件缓冲位置
                     fileBuffer.clear();
+                    //关闭RandomAccessFile
+                    randomAccessFile.close();
                 }
                 break;
         }
