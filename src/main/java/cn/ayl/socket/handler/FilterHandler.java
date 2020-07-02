@@ -1,4 +1,4 @@
-package cn.ayl.socket.inboundHandler;
+package cn.ayl.socket.handler;
 
 import cn.ayl.common.db.redis.Redis;
 import cn.ayl.common.enumeration.RequestType;
