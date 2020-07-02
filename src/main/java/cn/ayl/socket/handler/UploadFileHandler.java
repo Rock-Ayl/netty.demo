@@ -32,7 +32,7 @@ public class UploadFileHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(UploadFileHandler.class);
 
-    //解析收到的文件
+    //解析收到的文件方式
     private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
     //post请求的解码类,它负责把字节解码成Http请求
     private HttpPostRequestDecoder decoder;
@@ -44,8 +44,6 @@ public class UploadFileHandler {
     //记录所有进来的参数,包括form-data、cookieId
     private JsonObject params = JsonObject.VOID();
 
-    //当前文件读写通道
-    private FileChannel fileChannel;
     //当前文件内存缓冲区
     protected ByteBuffer fileBuffer;
 
@@ -230,13 +228,13 @@ public class UploadFileHandler {
                     //存储进List
                     this.fileEntryList.add(fileEntry);
                     //指定文件本身对象,模式rw为：以读取、写入方式打开指定文件。如果该文件不存在，则尝试创建文件
-                    this.fileChannel = new RandomAccessFile(fileEntry.getFilePath(), "rw").getChannel();
+                    FileChannel fileChannel = new RandomAccessFile(fileEntry.getFilePath(), "rw").getChannel();
                     //文件流读写通道(内存)
-                    this.fileBuffer = this.fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileEntry.getFileSize());
+                    this.fileBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileEntry.getFileSize());
                     //写入文件
                     this.fileBuffer.put(fileUpload.get());
-                    //关闭读写通道
-                    this.fileChannel.close();
+                    //关闭这个通道
+                    fileChannel.close();
                     //初始化文件缓冲位置
                     this.fileBuffer.clear();
                 }
