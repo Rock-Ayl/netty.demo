@@ -1,4 +1,4 @@
-package cn.ayl.socket.handler;
+package cn.ayl.socket.inboundHandler;
 
 import cn.ayl.config.Const;
 import cn.ayl.socket.rpc.Context;

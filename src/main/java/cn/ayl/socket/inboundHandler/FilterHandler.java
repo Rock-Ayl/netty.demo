@@ -1,4 +1,4 @@
-package cn.ayl.socket.handler;
+package cn.ayl.socket.inboundHandler;
 
 import cn.ayl.common.db.redis.Redis;
 import cn.ayl.common.enumeration.RequestType;
@@ -148,9 +148,8 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
      * <p>
      * 1.upload开头,视为上传文件请求
      * 2.download开头,视为下载文件请求
-     * 3.htmlPage开头,视为页面请求
-     * 4.文件后缀结尾,视为静态文件资源请求
-     * 5.默认看做接口服务
+     * 3.文件后缀结尾,视为静态文件资源请求
+     * 4.默认看做接口服务
      * </p>
      *
      * @param path
@@ -161,8 +160,6 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             return RequestType.upload;
         } else if (path.startsWith(Const.DownloadPath)) {
             return RequestType.download;
-        } else if (path.startsWith(Const.HttpPagePath)) {
-            return RequestType.htmlPage;
         } else if (StringUtils.isNotEmpty(FilenameUtils.getExtension(path))) {
             return RequestType.resource;
         } else {

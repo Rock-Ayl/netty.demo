@@ -74,8 +74,6 @@ public class Const {
     public static final String UploadPath = "/Upload";
     //下载地址
     public static final String DownloadPath = "/Download";
-    //HttpPage地址
-    public static final String HttpPagePath = "/HtmlPage";
     //默认的服务初始化
     public static List<String> DefaultService;
 
@@ -84,7 +82,6 @@ public class Const {
         DefaultService.add(WebSocketPath.replace('/', '.'));
         DefaultService.add(UploadPath.replace('/', '.'));
         DefaultService.add(DownloadPath.replace('/', '.'));
-        DefaultService.add(HttpPagePath.replace('/', '.'));
     }
 
     /**

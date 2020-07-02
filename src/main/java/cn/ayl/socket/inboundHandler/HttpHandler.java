@@ -1,4 +1,4 @@
-package cn.ayl.socket.handler;
+package cn.ayl.socket.inboundHandler;
 
 import cn.ayl.config.Const;
 import cn.ayl.common.entry.MethodEntry;
@@ -6,6 +6,8 @@ import cn.ayl.common.entry.ParamEntry;
 import cn.ayl.common.entry.RegistryEntry;
 import cn.ayl.common.entry.ServiceEntry;
 import cn.ayl.socket.encoder.ResponseAndEncoderHandler;
+import cn.ayl.socket.handler.ResourceHandler;
+import cn.ayl.socket.handler.UploadFileHandler;
 import cn.ayl.socket.rpc.Context;
 import cn.ayl.util.HttpUtils;
 import cn.ayl.util.ScanClassUtils;
@@ -180,10 +182,6 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 this.responseHandler = new ResourceHandler();
                 //处理请求并记录文件流
                 this.randomAccessFile = this.responseHandler.handleResource(ctx, req, this.context.uriPath);
-                break;
-            //请求页面
-            case htmlPage:
-                //todo
                 break;
             //上传请求
             case upload:
