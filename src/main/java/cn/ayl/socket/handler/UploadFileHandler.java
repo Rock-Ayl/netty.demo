@@ -44,9 +44,6 @@ public class UploadFileHandler {
     //记录所有进来的参数,包括form-data、cookieId
     private JsonObject params = JsonObject.VOID();
 
-    //当前文件内存缓冲区
-    protected ByteBuffer fileBuffer;
-
     static {
         //设置结束时删除临时文件
         DiskFileUpload.deleteOnExitTemporaryFile = true;
@@ -229,14 +226,14 @@ public class UploadFileHandler {
                     this.fileEntryList.add(fileEntry);
                     //指定文件本身对象,模式rw为：以读取、写入方式打开指定文件。如果该文件不存在，则尝试创建文件
                     FileChannel fileChannel = new RandomAccessFile(fileEntry.getFilePath(), "rw").getChannel();
-                    //文件流读写通道(内存)
-                    this.fileBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileEntry.getFileSize());
-                    //写入文件
-                    this.fileBuffer.put(fileUpload.get());
+                    //获取文件的内存缓冲:读写、起始字节位置、文件大小
+                    ByteBuffer fileBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileEntry.getFileSize());
+                    //写入byte[]
+                    fileBuffer.put(fileUpload.get());
                     //关闭这个通道
                     fileChannel.close();
                     //初始化文件缓冲位置
-                    this.fileBuffer.clear();
+                    fileBuffer.clear();
                 }
                 break;
         }
