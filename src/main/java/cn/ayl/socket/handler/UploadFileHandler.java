@@ -12,15 +12,14 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,10 +44,10 @@ public class UploadFileHandler {
     private JsonObject params = JsonObject.VOID();
 
     static {
-        //设置结束时删除临时文件
-        DiskFileUpload.deleteOnExitTemporaryFile = true;
-        //置空系统临时目录
-        DiskFileUpload.baseDirectory = null;
+        //设置formData传入的文件路径
+        DiskFileUpload.baseDirectory = Const.UploadFilePath;
+        //请求处理结束后是否删除临时文件
+        DiskFileUpload.deleteOnExitTemporaryFile = false;
     }
 
     public UploadFileHandler(Context context) {
@@ -224,20 +223,8 @@ public class UploadFileHandler {
                     }
                     //存储进List
                     this.fileEntryList.add(fileEntry);
-                    //创建RandomAccessFile对象
-                    RandomAccessFile randomAccessFile = new RandomAccessFile(fileEntry.getFilePath(), "rw");
-                    //指定文件本身对象,模式rw为：以读取、写入方式打开指定文件。如果该文件不存在，则尝试创建文件
-                    FileChannel fileChannel = randomAccessFile.getChannel();
-                    //获取文件的内存缓冲:读写、起始字节位置、文件大小
-                    ByteBuffer fileBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, fileEntry.getFileSize());
-                    //写入byte[]
-                    fileBuffer.put(fileUpload.get());
-                    //关闭这个通道
-                    fileChannel.close();
-                    //初始化文件缓冲位置
-                    fileBuffer.clear();
-                    //关闭RandomAccessFile
-                    randomAccessFile.close();
+                    //复制文件到你指定的目录
+                    FileUtils.copyFile(fileUpload.getFile(), new File(fileEntry.getFilePath()));
                 }
                 break;
         }
