@@ -31,8 +31,8 @@ public class UploadFileHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(UploadFileHandler.class);
 
-    //解析收到的文件方式
-    private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
+    //解析文件大小(如果是:minSize则会过滤掉16K以下的文件,这个则不限制文件最小长度)
+    private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MAXSIZE);
     //post请求的解码类,它负责把字节解码成Http请求
     private HttpPostRequestDecoder decoder;
 
