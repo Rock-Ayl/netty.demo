@@ -43,13 +43,6 @@ public class UploadFileHandler {
     //记录所有进来的参数,包括form-data、cookieId
     private JsonObject params = JsonObject.VOID();
 
-    static {
-        //设置formData传入的文件路径
-        DiskFileUpload.baseDirectory = Const.UploadFilePath;
-        //请求处理结束后是否删除临时文件
-        DiskFileUpload.deleteOnExitTemporaryFile = false;
-    }
-
     public UploadFileHandler(Context context) {
         this.context = context;
     }
@@ -223,7 +216,7 @@ public class UploadFileHandler {
                     }
                     //存储进List
                     this.fileEntryList.add(fileEntry);
-                    //复制文件到你指定的目录
+                    //将临时文件复制到你指定的目录(临时文件会自动删除,不用去理会)
                     FileUtils.copyFile(fileUpload.getFile(), new File(fileEntry.getFilePath()));
                 }
                 break;
