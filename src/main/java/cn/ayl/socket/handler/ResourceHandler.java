@@ -8,7 +8,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import jodd.io.FileNameUtil;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,9 +40,9 @@ public class ResourceHandler {
             //判空
             if (StringUtils.isNotEmpty(uriPath)) {
                 //解析文件名称
-                String fileBaseName = FileNameUtil.getBaseName(uriPath);
+                String fileBaseName = FilenameUtils.getBaseName(uriPath);
                 //解析文件后缀
-                String fileExt = FileNameUtil.getExtension(uriPath);
+                String fileExt = FilenameUtils.getExtension(uriPath);
                 //解码并组装成静态文件path
                 String resourceFilePath = URLDecoder.decode(fileBaseName, "UTF-8") + "." + fileExt;
                 //获取服务器中的静态文件
