@@ -3,7 +3,7 @@ package cn.ayl.socket.handler;
 import cn.ayl.common.db.redis.Redis;
 import cn.ayl.common.enumeration.RequestType;
 import cn.ayl.common.json.JsonObject;
-import cn.ayl.common.json.JsonUtil;
+import cn.ayl.util.JsonUtils;
 import cn.ayl.config.Const;
 import cn.ayl.socket.encoder.ResponseAndEncoderHandler;
 import cn.ayl.socket.rpc.Context;
@@ -125,7 +125,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             //判空
             if (StringUtils.isNotBlank(cookieId)) {
                 //从Redis中获取用户登录信息并解析成Json
-                JsonObject userInfo = JsonUtil.parse(Redis.user.get(cookieId));
+                JsonObject userInfo = JsonUtils.parse(Redis.user.get(cookieId));
                 //获取用户id
                 long userId = userInfo.getLong("userId", 0L);
                 //如果是真实用户id

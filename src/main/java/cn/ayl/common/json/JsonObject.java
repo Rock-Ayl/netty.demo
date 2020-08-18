@@ -1,7 +1,7 @@
 package cn.ayl.common.json;
 
-import cn.ayl.config.Const;
 import cn.ayl.util.GsonUtils;
+import cn.ayl.util.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -9,6 +9,10 @@ import org.bson.types.ObjectId;
 import java.util.*;
 
 public class JsonObject extends Document {
+
+    private JsonObject() {
+
+    }
 
     public static JsonObject VOID() {
         return new JsonObject();
@@ -89,7 +93,7 @@ public class JsonObject extends Document {
     }
 
     public JsonObjects list(String keyFieldName) {
-        JsonObjects result = new JsonObjects();
+        JsonObjects result = JsonObjects.VOID();
         for (Iterator<Map.Entry<String, Object>> i = this.entrySet().iterator(); i.hasNext(); ) {
             Map.Entry<String, Object> entry = i.next();
             JsonObject item = (JsonObject) entry.getValue();
@@ -107,7 +111,7 @@ public class JsonObject extends Document {
 
 
     public HashSet<String> hashSet(String fieldName) {
-        List<String> items = JsonUtil.parseStrings(this.getString(fieldName));
+        List<String> items = JsonUtils.parseStrings(this.getString(fieldName));
         HashSet<String> set = new HashSet();
         for (int i = 0; items != null && i < items.size(); i++) {
             set.add(items.get(i));
@@ -156,7 +160,7 @@ public class JsonObject extends Document {
     public List<String> getStrings(final String key) {
         Object result = this.get(key);
         if (result instanceof String) {
-            return JsonUtil.parseStrings(String.valueOf(result));
+            return JsonUtils.parseStrings(String.valueOf(result));
         } else {
             return (List<String>) result;
         }
@@ -166,7 +170,7 @@ public class JsonObject extends Document {
         Object result = this.get(key);
         List<String> values;
         if (result instanceof String) {
-            values = JsonUtil.parseStrings(String.valueOf(result));
+            values = JsonUtils.parseStrings(String.valueOf(result));
             return arrayToStrings(values);
         } else if (result instanceof List) {
             values = (List<String>) this.get(key);
@@ -180,7 +184,7 @@ public class JsonObject extends Document {
         Object result = this.get(key);
         List<JsonObject> values;
         if (result instanceof String) {
-            values = JsonUtil.parses(String.valueOf(result));
+            values = JsonUtils.parses(String.valueOf(result));
             return arrayToObjects(values);
         } else if (result instanceof List) {
             values = (List<JsonObject>) this.get(key);
@@ -194,7 +198,7 @@ public class JsonObject extends Document {
         Object result = this.get(key);
         List<Integer> values;
         if (result instanceof String) {
-            values = JsonUtil.parseIntegers(String.valueOf(result));
+            values = JsonUtils.parseIntegers(String.valueOf(result));
             return values;
         } else {
             return (List<Integer>) result;
@@ -205,7 +209,7 @@ public class JsonObject extends Document {
         Object result = this.get(key);
         List<Long> values;
         if (result instanceof String) {
-            values = JsonUtil.parseLongs(String.valueOf(result));
+            values = JsonUtils.parseLongs(String.valueOf(result));
             return values;
         } else {
             return (List<Long>) result;
@@ -220,7 +224,7 @@ public class JsonObject extends Document {
         Object result = this.get(key);
         List<Float> values;
         if (result instanceof String) {
-            values = JsonUtil.parseFloats(String.valueOf(result));
+            values = JsonUtils.parseFloats(String.valueOf(result));
             return values;
         } else {
             return (List<Float>) result;
@@ -230,7 +234,7 @@ public class JsonObject extends Document {
     public JsonObject getObject(final String key) {
         Object v = this.get(key);
         if (v instanceof String) {
-            return JsonUtil.parse((String) v);
+            return JsonUtils.parse((String) v);
         } else {
             return (JsonObject) v;
         }
@@ -251,7 +255,7 @@ public class JsonObject extends Document {
         if (result == null) {
             return null;
         } else if (result instanceof String) {
-            return JsonUtil.parses(String.valueOf(result));
+            return JsonUtils.parses(String.valueOf(result));
         } else if (result instanceof JsonObjects) {
             return (JsonObjects) result;
         } else if (result instanceof ArrayList && ((ArrayList) result).size() == 0) {
@@ -357,7 +361,7 @@ public class JsonObject extends Document {
     }
 
     public JsonObject clone() {
-        return JsonUtil.parse(this.toJson());
+        return JsonUtils.parse(this.toJson());
     }
 
     public JsonObject select() {
@@ -461,26 +465,26 @@ public class JsonObject extends Document {
 
     public JsonObject parseObject(String fieldName) {
         String content = this.getString(fieldName);
-        JsonObject fieldValue = JsonUtil.parse(content);
+        JsonObject fieldValue = JsonUtils.parse(content);
         this.append(fieldName, fieldValue);
         return fieldValue;
     }
 
     public JsonObjects parseObjects(String fieldName) {
         String content = this.getString(fieldName);
-        JsonObjects fieldValue = JsonUtil.parses(content);
+        JsonObjects fieldValue = JsonUtils.parses(content);
         this.append(fieldName, fieldValue);
         return fieldValue;
     }
 
     @Override
     public String toString() {
-        return JsonUtil.toJson(this);
+        return JsonUtils.toJson(this);
     }
 
     @Override
     public String toJson() {
-        return JsonUtil.toJson(this);
+        return JsonUtils.toJson(this);
     }
 
     public static String[] arrayToStrings(List<String> values) {

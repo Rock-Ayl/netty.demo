@@ -1,5 +1,6 @@
-package cn.ayl.common.json;
+package cn.ayl.util;
 
+import cn.ayl.common.json.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.AbstractBsonWriter;
 import org.bson.codecs.DecoderContext;
@@ -13,11 +14,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class JsonUtil {
+/**
+ * Json工具类
+ */
+public class JsonUtils {
 
     private static JsonCodec parser = new JsonCodec();
 
-    protected static Logger logger = LoggerFactory.getLogger(JsonUtil.class);
+    protected static Logger logger = LoggerFactory.getLogger(JsonUtils.class);
 
     public static JsonObject merge(JsonObject source, JsonObject dest) {
         boolean b1 = source == null;
@@ -171,14 +175,14 @@ public class JsonUtil {
     public static JsonObject parse(JsonObject obj, String fieldName) {
         String content = obj.getString(fieldName);
         if (org.apache.commons.lang3.StringUtils.isEmpty(content)) {
-            return new JsonObject();
+            return JsonObject.VOID();
         }
         return parse(content);
     }
 
 
     public static JsonObject parse(String content) {
-        if (StringUtils.isEmpty(content)) return new JsonObject();
+        if (StringUtils.isEmpty(content)) return JsonObject.VOID();
         content = content.replaceAll("\n", "");
         JsonReader reader = new JsonReader(content);
         try {
@@ -192,7 +196,7 @@ public class JsonUtil {
     }
 
     public static JsonObjects parses(String content) {
-        if (StringUtils.isEmpty(content)) return new JsonObjects();
+        if (StringUtils.isEmpty(content)) return JsonObjects.VOID();
         content = content.replaceAll("\n", "");
         JsonReader reader = new JsonReader(content);
         try {
@@ -208,7 +212,7 @@ public class JsonUtil {
     public static JsonObjects parses(JsonObject obj, String fieldName) {
         Object o = obj.get(fieldName);
         if (o == null) {
-            return new JsonObjects();
+            return JsonObjects.VOID();
         }
         if (o instanceof String) {
             return parses((String) o);

@@ -21,7 +21,7 @@ import java.util.List;
  */
 public class MongoTable {
 
-    public static JsonObject VOID = new JsonObject();
+    public static JsonObject VOID = JsonObject.VOID();
 
     private MongoCollection<JsonObject> collection;
 
@@ -111,7 +111,7 @@ public class MongoTable {
     }
 
     public JsonObjects find(Bson query, Bson projection, Bson sort, int skip, int limit) {
-        JsonObjects results = new JsonObjects();
+        JsonObjects results = JsonObjects.VOID();
         find(query, projection, sort, skip, limit, results);
         return results;
     }

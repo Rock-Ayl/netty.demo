@@ -1,5 +1,6 @@
 package cn.ayl.common.json;
 
+import cn.ayl.util.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -7,12 +8,16 @@ import java.util.HashMap;
 
 public class JsonObjects extends ArrayList<JsonObject> {
 
+    private JsonObjects() {
+
+    }
+
     public static JsonObjects VOID() {
         return new JsonObjects();
     }
 
     public JsonObject map(String keyField) {
-        JsonObject result = new JsonObject();
+        JsonObject result = JsonObject.VOID();
         for (JsonObject o : this) {
             String key = (String) o.remove(keyField);
             result.append(key, o);
@@ -55,9 +60,8 @@ public class JsonObjects extends ArrayList<JsonObject> {
     }
 
     public String toJson() {
-        return JsonUtil.toJson(this);
+        return JsonUtils.toJson(this);
     }
-
 
 
 }

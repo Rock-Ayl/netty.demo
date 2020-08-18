@@ -7,6 +7,7 @@ import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 
 public class JsonWithScopeCodec implements Codec<JsonWithScope> {
+
     private final Codec<JsonObject> documentCodec;
 
     public JsonWithScopeCodec(final Codec<JsonObject> documentCodec) {
@@ -30,4 +31,5 @@ public class JsonWithScopeCodec implements Codec<JsonWithScope> {
     public Class<JsonWithScope> getEncoderClass() {
         return JsonWithScope.class;
     }
+
 }

@@ -102,7 +102,7 @@ public class SqlTable extends Table {
             try {
                 ResultSetMetaData meta = rs.getMetaData();
                 while (rs.next()) {
-                    JsonObject record = new JsonObject();
+                    JsonObject record = JsonObject.VOID();
                     this.parseRecord(rs, meta, fieldCount, record);
                     records.add(record);
                 }

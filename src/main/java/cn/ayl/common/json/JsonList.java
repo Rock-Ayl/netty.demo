@@ -1,11 +1,13 @@
 package cn.ayl.common.json;
 
+import cn.ayl.util.JsonUtils;
 import org.bson.BsonType;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class JsonList<T> {
+
     private BsonType type = BsonType.NULL;
     public List<T> values;
     public JsonObjects objects = null;
@@ -30,7 +32,7 @@ public class JsonList<T> {
     public void init(BsonType type) {
         this.type = type;
         if (type == BsonType.DOCUMENT) {
-            objects = new JsonObjects();
+            objects = JsonObjects.VOID();
         } else {
             values = new ArrayList();
         }
@@ -89,7 +91,7 @@ public class JsonList<T> {
 
 
     public String toJson() {
-        return JsonUtil.toJson(this);
+        return JsonUtils.toJson(this);
     }
 
 }

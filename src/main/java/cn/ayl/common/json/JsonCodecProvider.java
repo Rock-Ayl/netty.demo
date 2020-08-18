@@ -14,16 +14,18 @@ import java.util.Map;
 import static org.bson.assertions.Assertions.notNull;
 
 public class JsonCodecProvider implements CodecProvider {
+
     private final BsonTypeClassMap bsonTypeClassMap;
     private final Transformer valueTransformer;
-    public static Map<BsonType, Class<?>> replacementsForDefaults=new HashMap();
-    public static BsonTypeClassMap DEFAULT_BSON_TYPE_CLASS_MAP ;
+    public static Map<BsonType, Class<?>> replacementsForDefaults = new HashMap();
+    public static BsonTypeClassMap DEFAULT_BSON_TYPE_CLASS_MAP;
 
     static {
         replacementsForDefaults.put(BsonType.DOCUMENT, JsonObject.class);
         replacementsForDefaults.put(BsonType.ARRAY, JsonObjects.class);
-        DEFAULT_BSON_TYPE_CLASS_MAP=new BsonTypeClassMap(replacementsForDefaults);
+        DEFAULT_BSON_TYPE_CLASS_MAP = new BsonTypeClassMap(replacementsForDefaults);
     }
+
     /**
      * Construct a new instance with a default {@code BsonTypeClassMap}.
      */

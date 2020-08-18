@@ -3,7 +3,6 @@ package cn.ayl.util;
 import cn.ayl.common.entry.ParamEntry;
 import cn.ayl.common.enumeration.ContentType;
 import cn.ayl.common.json.JsonObject;
-import cn.ayl.common.json.JsonUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -189,7 +188,7 @@ public class HttpUtils {
         //读取成字符并转化为Json
         JsonObject jsonParams;
         try {
-            jsonParams = JsonUtil.parse(new String(reqContent, "UTF-8"));
+            jsonParams = JsonUtils.parse(new String(reqContent, "UTF-8"));
         } catch (UnsupportedEncodingException e) {
             //报错
             logger.error("解析byte[]为String出现异常:[{}]", e);

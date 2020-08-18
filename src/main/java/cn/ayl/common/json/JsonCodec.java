@@ -14,10 +14,8 @@ import static java.util.Arrays.asList;
 import static org.bson.assertions.Assertions.notNull;
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 
-/**
- * DocumentCodec的逻辑
- **/
 public class JsonCodec implements CollectibleCodec<JsonObject> {
+
     private static final String ID_FIELD_NAME = "_id";
     private static final CodecRegistry DEFAULT_REGISTRY = fromProviders(asList(new ValueCodecProvider(),
             new BsonValueCodecProvider(),
@@ -116,7 +114,7 @@ public class JsonCodec implements CollectibleCodec<JsonObject> {
 
     @Override
     public JsonObject decode(final BsonReader reader, final DecoderContext decoderContext) {
-        JsonObject result = new JsonObject();
+        JsonObject result = JsonObject.VOID();
 
         reader.readStartDocument();
         while (reader.readBsonType() != BsonType.END_OF_DOCUMENT) {
@@ -248,7 +246,7 @@ public class JsonCodec implements CollectibleCodec<JsonObject> {
 
     public JsonObjects parseDocs(final BsonReader reader, final DecoderContext decoderContext) {
         reader.readStartArray();
-        JsonObjects list = new JsonObjects();
+        JsonObjects list = JsonObjects.VOID();
         while (reader.readBsonType() != BsonType.END_OF_DOCUMENT) {
             list.add((JsonObject) readValue(reader, decoderContext));
         }

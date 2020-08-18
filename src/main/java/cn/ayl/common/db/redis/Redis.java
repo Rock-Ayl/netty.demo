@@ -4,7 +4,7 @@ import cn.ayl.config.Const;
 
 import cn.ayl.util.GsonUtils;
 import cn.ayl.common.json.JsonObject;
-import cn.ayl.common.json.JsonUtil;
+import cn.ayl.util.JsonUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,7 +126,7 @@ public class Redis {
             if (org.apache.commons.lang3.StringUtils.isEmpty(content)) {
                 return null;
             }
-            return JsonUtil.parse(content);
+            return JsonUtils.parse(content);
         } catch (Exception e) {
             logger.error("message", e);
             return null;
@@ -160,9 +160,9 @@ public class Redis {
         try {
             String content = readContent(key);
             if (!org.apache.commons.lang3.StringUtils.isEmpty(content)) {
-                oJson = JsonUtil.parse(content);
+                oJson = JsonUtils.parse(content);
             } else {
-                oJson = new JsonObject();
+                oJson = JsonObject.VOID();
             }
             oJson.putAll(value);
             update(key, oJson.toJson());
