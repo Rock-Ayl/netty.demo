@@ -46,8 +46,8 @@ public class IndexTable {
     /**
      * 一个学习、测试用的查询例子
      *
-     * @param pageIndex
-     * @param pageSize
+     * @param pageIndex 分页-页码
+     * @param pageSize  分页-每页数据量
      * @return
      */
     public static JsonObject selPhoneList(Integer pageIndex, Integer pageSize) {
@@ -84,7 +84,7 @@ public class IndexTable {
         }
         //设置超时时间
         sourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
-        //取消默认最大查询数量上限（默认10000）
+        //取消默认最大查询数量上限(默认10000)
         sourceBuilder.trackTotalHits(true);
         //构造请求发起对象,这里直接配置索引名即可
         SearchRequest searchRequest = new SearchRequest("file");
