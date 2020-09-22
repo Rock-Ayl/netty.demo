@@ -1,0 +1,859 @@
+{
+	"info": {
+		"_postman_id": "f475b6df-7943-41bb-b7e9-b130cb35f892",
+		"name": "netty.demo",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "ES-7.9.1",
+			"item": [
+				{
+					"name": "索引",
+					"item": [
+						{
+							"name": "读取索引",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "127.0.0.1:9200/file",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "9200",
+									"path": [
+										"file"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "创建索引",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t//设置\n\t\"settings\": {\n\t\t//索引\n\t\t\"index\": {\n\t\t\t//是数据分片数,默认为5\n\t\t\t\"number_of_shards\": 5,\n\t\t\t//数据备份数,如果只有一台机器,设置为0\n\t\t\t\"number_of_replicas\": 1\n\t\t}\n\t},\n    //映射\n\t\"mappings\": {\n\t\t//参数组\n\t\t\"properties\": {\n\t\t\t//文件fileId\n\t\t\t\"fileId\": {\n\t\t\t\t//类型\n\t\t\t\t\"type\": \"text\"\n\t\t\t},\n\t\t\t//文件名称\n\t\t\t\"fileName\": {\n\t\t\t\t//类型\n\t\t\t\t\"type\": \"text\"\n\t\t\t}\n\t\t}\n\t}\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "127.0.0.1:9200/file",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "9200",
+									"path": [
+										"file"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "更新索引",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t//参数组\n\t\"properties\": {\n\t\t//文件fileId\n\t\t\"fileId\": {\n\t\t\t//类型\n\t\t\t\"type\": \"text\"\n\t\t},\n\t\t//文件名称\n\t\t\"fileName\": {\n\t\t\t//类型\n\t\t\t\"type\": \"text\"\n\t\t},\n        //文件名称\n\t\t\"fileSize\": {\n\t\t\t//类型\n\t\t\t\"type\": \"integer\"\n\t\t}\n\t}\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "127.0.0.1:9200/file/_mapping/",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "9200",
+									"path": [
+										"file",
+										"_mapping",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "删除索引",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "127.0.0.1:9200/file",
+									"host": [
+										"127",
+										"0",
+										"0",
+										"1"
+									],
+									"port": "9200",
+									"path": [
+										"file"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "数据",
+					"item": [
+						{
+							"name": "维护",
+							"item": [
+								{
+									"name": "创建数据",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"fileId\":\"file-4\",\n    \"fileName\" : \"测试3.xls\",\n    \"fileSize\" : 245000,\n    \"fileMD5\" : \"fb40f92ff504d7303d04f6f5515344c2\",\n    \"fileExt\" : \"xls\",\n    \"fileUploadTime\" : 1600425177916,\n    \"master\":true\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "127.0.0.1:9200/file/_doc",
+											"host": [
+												"127",
+												"0",
+												"0",
+												"1"
+											],
+											"port": "9200",
+											"path": [
+												"file",
+												"_doc"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "更新数据",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t//基于查询\n\t\"query\": {\n\t\t//分词\n\t\t\"term\": {\n\t\t\t//_id\n\t\t\t\"_id\": \"2IfXkHQBkjGHyHW7-rFJ\"\n\t\t}\n\t},\n\t//更新\n\t\"script\": {\n\t\t//将查询出来的数据的 fileExt 字段value修改为 下方 params 的 fileExt字段value\n\t\t\"source\": \"ctx._source.fileExt=params.fileExt\",\n\t\t//参数\n\t\t\"params\": {\n\t\t\t//数据该字段修改为对应value\n\t\t\t\"fileExt\": \"xls\"\n\t\t}\n\t}\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "127.0.0.1:9200/file/_update_by_query",
+											"host": [
+												"127",
+												"0",
+												"0",
+												"1"
+											],
+											"port": "9200",
+											"path": [
+												"file",
+												"_update_by_query"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "删除数据",
+									"request": {
+										"method": "POST",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    //删除\n    \"query\": {\n        //范围\n        \"terms\": {\n            //key\n            \"fileId\": [\n                //value\n                \"1\",\"2\"\n            ]\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "127.0.0.1:9200/file/_delete_by_query",
+											"host": [
+												"127",
+												"0",
+												"0",
+												"1"
+											],
+											"port": "9200",
+											"path": [
+												"file",
+												"_delete_by_query"
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						},
+						{
+							"name": "查询",
+							"item": [
+								{
+									"name": "查询数据-搜索分页排序(all-paging-sort)",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t//查询\n\t\"query\": {\n\t\t//查询所有字段\n\t\t\"match_all\": {}\n\t},\n\t//从哪个位置取,0为第一条数据,默认为0\n\t\"from\": 0,\n\t//取几条数据,默认为10\n\t\"size\": 10,\n\t//排序\n\t\"sort\": {\n\t\t//按哪个字段字段排序\n\t\t\"fileSize\": {\n\t\t\t//排序方式: 升序-asc,降序-desc\n\t\t\t\"order\": \"desc\"\n\t\t}\n\t}\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "127.0.0.1:9200/file/_search",
+											"host": [
+												"127",
+												"0",
+												"0",
+												"1"
+											],
+											"port": "9200",
+											"path": [
+												"file",
+												"_search"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "查询数据-缓存搜索(filter)",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t//过滤查询,该查询会做缓存,如果下一次这么查,直接使用缓存\n\t\"filter\": {\n\t\t//词语查询\n\t\t\"term\": {\n\t\t\t//key\n\t\t\t\"fileExt\": \"docx\"\n\t\t}\n\t}\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "127.0.0.1:9200/file/_search",
+											"host": [
+												"127",
+												"0",
+												"0",
+												"1"
+											],
+											"port": "9200",
+											"path": [
+												"file",
+												"_search"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "查询数据-布尔搜索(bool)",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t//查询\n\t\"query\": {\n\t\t//查询类型-布尔查询\n\t\t\"bool\": {\n\t\t\t//必须满足\n\t\t\t\"must\": [{\n\t\t\t\t//范围搜索\n\t\t\t\t\"range\": {\n\t\t\t\t\t//key\n\t\t\t\t\t\"fileSize\": {\n\t\t\t\t\t\t//大于等于\n\t\t\t\t\t\t\"gte\": 0,\n\t\t\t\t\t\t//小于等于\n\t\t\t\t\t\t\"lte\": 20000\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}],\n\t\t\t//必须不满足\n\t\t\t\"must_not\": [{\n\t\t\t\t//通配符\n\t\t\t\t\"wildcard\": {\n\t\t\t\t\t//key\n\t\t\t\t\t\"fileName\": \"*2*\"\n\t\t\t\t}\n\t\t\t}],\n\t\t\t//可选满足项,由minimum_should_match控制\n\t\t\t\"should\": [{\n\t\t\t\t//通配符\n\t\t\t\t\"wildcard\": {\n\t\t\t\t\t//key\n\t\t\t\t\t\"fileId\": \"*4\"\n\t\t\t\t}\n\t\t\t}],\n\t\t\t//至少匹配几项should子句,默认为0\n\t\t\t\"minimum_should_match\": 1\n\t\t}\n\t}\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "127.0.0.1:9200/file/_search",
+											"host": [
+												"127",
+												"0",
+												"0",
+												"1"
+											],
+											"port": "9200",
+											"path": [
+												"file",
+												"_search"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "查询数据-多分词搜索(terms)",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t//查询\n\t\"query\": {\n\t\t//多个分词查询\n\t\t\"terms\": {\n\t\t\t//key\n\t\t\t\"fileExt\": [\n\t\t\t\t//values,满足一个即可\n\t\t\t\t\"docx\",\n\t\t\t\t\"doc\"\n\t\t\t]\n\t\t}\n\t}\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "127.0.0.1:9200/file/_search",
+											"host": [
+												"127",
+												"0",
+												"0",
+												"1"
+											],
+											"port": "9200",
+											"path": [
+												"file",
+												"_search"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "查询数据-分词搜索(term)",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    //查询\n    \"query\": {\n        //分词查询\n        \"term\": {\n            //key\n            \"fileExt\": {\n                //value\n                \"value\": \"docx\"\n            }\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "127.0.0.1:9200/file/_search",
+											"host": [
+												"127",
+												"0",
+												"0",
+												"1"
+											],
+											"port": "9200",
+											"path": [
+												"file",
+												"_search"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "查询数据-范围搜索(range)",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t//查询\n\t\"query\": {\n\t\t//范围搜索\n\t\t\"range\": {\n\t\t\t//key\n\t\t\t\"fileSize\": {\n\t\t\t\t//大于等于,如果是 gt 则为大于\n\t\t\t\t\"gte\": 0,\n\t\t\t\t//小于等于,如果是 lt 则为小于\n\t\t\t\t\"lte\": 25000000\n\t\t\t}\n\t\t}\n\t}\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "127.0.0.1:9200/file/_search",
+											"host": [
+												"127",
+												"0",
+												"0",
+												"1"
+											],
+											"port": "9200",
+											"path": [
+												"file",
+												"_search"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "查询数据-通配符查询(wildcard)",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t//查询\n\t\"query\": {\n\t\t//通配符查询  *代表任意个字符,?代表任意一个字符,尽量避免*、?开头,甚至尽量别用*\n\t\t\"wildcard\": {\n\t\t\t//key\n\t\t\t\"fileExt\": \"do??\"\n\t\t}\n\t}\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "127.0.0.1:9200/file/_search",
+											"host": [
+												"127",
+												"0",
+												"0",
+												"1"
+											],
+											"port": "9200",
+											"path": [
+												"file",
+												"_search"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "查询数据-正则查询(regexp)",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    //查询\n    \"query\": {\n        //正则表达式查询,具体需要看规则了\n        \"regexp\": {\n            //key\n            \"user\": {\n                //value\n                \"value\": \"d.*x\",\n                //启用的运算符,默认ALL=全部\n                \"flags\" : \"ALL\",\n                //限制determinized,默认10000\n                \"max_determinized_states\": 10000\n            }\n        }\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "127.0.0.1:9200/file/_search",
+											"host": [
+												"127",
+												"0",
+												"0",
+												"1"
+											],
+											"port": "9200",
+											"path": [
+												"file",
+												"_search"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "查询数据-前缀查询(prefix)",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t//查询\n\t\"query\": {\n\t\t//前缀\n\t\t\"prefix\": {\n\t\t\t//key\n\t\t\t\"fileName\": {\n\t\t\t\t//value\n\t\t\t\t\"value\": \"标\"\n\t\t\t}\n\t\t}\n\t}\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "127.0.0.1:9200/file/_search",
+											"host": [
+												"127",
+												"0",
+												"0",
+												"1"
+											],
+											"port": "9200",
+											"path": [
+												"file",
+												"_search"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "查询数据-模糊搜索(fuzzy)",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t//查询\n\t\"query\": {\n\t\t//模糊查询\n\t\t\"fuzzy\": {\n\t\t\t//key\n\t\t\t\"fileExt\": {\n\t\t\t\t//value\n\t\t\t\t\"value\": \"dox\",\n\t\t\t\t//模糊性,可以被设置为 AUTO、1、2,推荐AUTO,它会根据value长度决定,1代表一个字符的误差\n\t\t\t\t\"fuzziness\": \"AUTO\",\n\t\t\t\t//创建变体的最大数量,默认50,过高会导致性能不好\n\t\t\t\t\"max_expansions\": 50,\n\t\t\t\t//创建变体时保留不变的开始字符数,默认0\n\t\t\t\t\"prefix_length\": 0,\n\t\t\t\t//是否包括相邻字符的置换 ab->ba,默认true\n\t\t\t\t\"transpositions\": true\n\t\t\t}\n\t\t}\n\t}\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "127.0.0.1:9200/file/_search",
+											"host": [
+												"127",
+												"0",
+												"0",
+												"1"
+											],
+											"port": "9200",
+											"path": [
+												"file",
+												"_search"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "查询数据-验证存在搜索(exists)",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n\t//查询\n\t\"query\": {\n\t\t//验证存在查询\n\t\t\"exists\": {\n\t\t\t//要验证是否存在数据的key\n\t\t\t\"field\": \"master\"\n\t\t}\n\t}\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "127.0.0.1:9200/file/_search",
+											"host": [
+												"127",
+												"0",
+												"0",
+												"1"
+											],
+											"port": "9200",
+											"path": [
+												"file",
+												"_search"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "查询数据-_ID查询(ids)",
+									"protocolProfileBehavior": {
+										"disableBodyPruning": true
+									},
+									"request": {
+										"method": "GET",
+										"header": [],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    //查询\n    \"query\": {\n        //_id查询\n        \"ids\" : {\n            //_id的值\n            \"values\" : [\"2IfXkHQBkjGHyHW7-rFJ\"]\n        }\n    }\n}\n",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "127.0.0.1:9200/file/_search",
+											"host": [
+												"127",
+												"0",
+												"0",
+												"1"
+											],
+											"port": "9200",
+											"path": [
+												"file",
+												"_search"
+											]
+										}
+									},
+									"response": []
+								}
+							],
+							"protocolProfileBehavior": {},
+							"_postman_isSubFolder": true
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "File",
+			"item": [
+				{
+					"name": "下载文件",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "127.0.0.1:8888/Download?type=file&fileId=123&fileName=QC-水印.doc",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8888",
+							"path": [
+								"Download"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "file"
+								},
+								{
+									"key": "fileId",
+									"value": "123"
+								},
+								{
+									"key": "fileName",
+									"value": "QC-水印.doc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "请求静态资源",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "127.0.0.1:8888/仓鼠吃萝卜.mp4",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8888",
+							"path": [
+								"仓鼠吃萝卜.mp4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "上传文件",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "cookieId",
+								"value": "1"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/Users/ayl/workspace/download/QC-水印.doc"
+								},
+								{
+									"key": "参数1",
+									"value": "参数内容1",
+									"type": "text"
+								},
+								{
+									"key": "参数2",
+									"value": "参数内容2",
+									"type": "text"
+								}
+							],
+							"options": {
+								"formdata": {}
+							}
+						},
+						"url": {
+							"raw": "http://127.0.0.1:8888/Upload",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8888",
+							"path": [
+								"Upload"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Service",
+			"item": [
+				{
+					"name": "用户登录",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"account\":\"18513682235\",\n\t\"password\":123456\n}"
+						},
+						"url": {
+							"raw": "127.0.0.1:8888/User/login",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8888",
+							"path": [
+								"User",
+								"login"
+							]
+						},
+						"description": "{\n\t\"account\":账号，必填\n\t\"password\":密码，必填\n}"
+					},
+					"response": []
+				},
+				{
+					"name": "获取用户列表",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "cookieId",
+								"value": "1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {}
+							}
+						},
+						"url": {
+							"raw": "127.0.0.1:8888/User/readUserList",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "8888",
+							"path": [
+								"User",
+								"readUserList"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
