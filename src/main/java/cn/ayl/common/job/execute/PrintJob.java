@@ -1,4 +1,4 @@
-package cn.ayl.common.job;
+package cn.ayl.common.job.execute;
 
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;

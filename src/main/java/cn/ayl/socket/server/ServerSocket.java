@@ -47,7 +47,7 @@ public enum ServerSocket {
                      * 请参考ChannelOption和ChannelConfig文档来获取更多可用的 Channel 配置选项，并对此有个大概的了解。
                      * BACKLOG用于构造服务端套接字ServerSocket对象，标识当服务器请求处理线程全满时，用于临时存放已完成三次握手的请求的队列的最大长度。如果未设置或所设置的值小于1，Java将使用默认值50。
                      */
-                    .option(ChannelOption.SO_BACKLOG, Const.ChannelOptionSoBacklogValue)
+                    .option(ChannelOption.SO_BACKLOG, 1024)
                     /**
                      * 注意到option()和childOption()了吗？
                      * option()用来配置NioServerSocketChannel(负责接收到来的connection)，

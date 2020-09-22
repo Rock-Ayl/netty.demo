@@ -249,7 +249,7 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
     //聚合套件
     public static void aggregatorAddLast(ChannelPipeline p) {
         //netty是基于分段请求的，HttpObjectAggregator的作用是将HTTP消息的多个部分合成一条完整的HTTP消息,参数是聚合字节的最大长度
-        p.addLast(httpChunkAggregatorName, new HttpObjectAggregator(Const.MaxContentLength));
+        p.addLast(httpChunkAggregatorName, new HttpObjectAggregator(1024 * 1048576));
     }
 
     //心跳套件及处理器

@@ -7,6 +7,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,8 +19,26 @@ public class RegistryEntry {
 
     protected static Logger logger = LoggerFactory.getLogger(RegistryEntry.class);
 
-    //存放所有服务
+    //主要功能
+    public static List<String> DefaultService = init();
+    //所有服务
     public static ConcurrentHashMap<String, ServiceEntry> serviceMap = new ConcurrentHashMap();
+
+    /**
+     * 初始化功能列表
+     */
+    public static List<String> init() {
+        //创建
+        List<String> function = new ArrayList<>();
+        //组装 webSocket
+        function.add(Const.WebSocketPath.replace('/', '.'));
+        //组装 upload
+        function.add(Const.UploadPath.replace('/', '.'));
+        //组装 download
+        function.add(Const.DownloadPath.replace('/', '.'));
+        //返回
+        return function;
+    }
 
     //扫描所有服务
     public static void scanServices() {
@@ -28,8 +47,8 @@ public class RegistryEntry {
         if (names.size() > 0) {
             //获取当前服务
             for (String className : names) {
-                //循环所有默认服务
-                for (String otherService : Const.DefaultService) {
+                //循环所有功能功能
+                for (String otherService : DefaultService) {
                     //如果默认服务被占用
                     if (className.endsWith(otherService)) {
                         logger.error("默认服务被占用,被占用者:" + otherService + "占用者:" + className);
@@ -52,6 +71,7 @@ public class RegistryEntry {
                 serviceEntry.init();
                 //组装至List存放
                 serviceMap.put(cls.getSimpleName(), serviceEntry);
+                //日志
                 logger.info("[{}] Register Success", cls.getName());
             }
         }
