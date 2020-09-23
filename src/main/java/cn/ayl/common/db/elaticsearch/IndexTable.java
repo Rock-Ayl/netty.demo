@@ -39,6 +39,10 @@ public class IndexTable {
 
     protected static Logger logger = LoggerFactory.getLogger(IndexTable.class);
 
+    /**
+     * config
+     */
+
     //协议名称
     private static final String SchemeName = "http";
     //IP
@@ -48,8 +52,13 @@ public class IndexTable {
     //索引名称
     private static final String IndexName = "file";
 
-    //bucket的排序规则
+    /**
+     * bucket的排序规则
+     */
+
+    //升序
     private static final BucketOrder ASC = BucketOrder.key(true);
+    //降序
     private static final BucketOrder DSEC = BucketOrder.key(false);
 
     /**
@@ -97,16 +106,16 @@ public class IndexTable {
     public static JsonObject selPhoneList(Integer pageIndex, Integer pageSize) {
         //创建连接
         RestHighLevelClient esClient = client();
-        //创建一个 bool 查询对象
-        BoolQueryBuilder query = QueryBuilders.boolQuery();
-        //放入一个 must 查询条件
-        query.must(QueryBuilders.rangeQuery("fileSize").gte(0).lte(1245000));
         //创建查询函数构造对象
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        SearchSourceBuilder builder = new SearchSourceBuilder();
+        //创建一个 bool 查询对象
+        BoolQueryBuilder bool = QueryBuilders.boolQuery();
+        //随便放入一个 must 查询条件, 根据文件大小查询
+        bool.must(QueryBuilders.rangeQuery("fileSize").gte(0).lte(1245000));
         //把父查询对象放入函数构造对象中
-        sourceBuilder.query(query);
-        //聚合查询,设置为根据fileSize、筛选出10个来、并排序
-        sourceBuilder.aggregation(AggregationBuilders.terms("fileSize").field("fileSize").size(10).order(ASC));
+        builder.query(bool);
+        //随便放一个 聚合 查询条件,设置为根据fileSize、筛选出10个来、并排序
+        builder.aggregation(AggregationBuilders.terms("fileSize").field("fileSize").size(10).order(ASC));
         //如果分页
         if (pageIndex != null && pageSize != null) {
             //计算位置
@@ -116,24 +125,24 @@ public class IndexTable {
             //如果起始位置为0
             if (pageIndex == 0) {
                 //从哪个位置读
-                sourceBuilder.from(pageIndex);
+                builder.from(pageIndex);
                 //读几条数据
-                sourceBuilder.size(pageSize);
+                builder.size(pageSize);
             } else {
                 //从哪个位置读
-                sourceBuilder.from(pageIndex * pageSize);
+                builder.from(pageIndex * pageSize);
                 //读几条数据
-                sourceBuilder.size(pageSize);
+                builder.size(pageSize);
             }
         }
         //设置超时时间
-        sourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
+        builder.timeout(new TimeValue(60, TimeUnit.SECONDS));
         //取消默认最大查询数量上限(默认10000)
-        sourceBuilder.trackTotalHits(true);
+        builder.trackTotalHits(true);
         //构造请求发起对象,这里直接配置索引名即可
         SearchRequest searchRequest = new SearchRequest(IndexName);
         //把查询函数构造对象注入查询请求中
-        searchRequest.source(sourceBuilder);
+        searchRequest.source(builder);
         //初始化result
         JsonObject result = JsonObject.Success();
         //初始化items
