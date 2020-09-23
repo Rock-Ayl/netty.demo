@@ -85,6 +85,7 @@ public class Const {
      * 常用魔法变量
      */
 
+    public final static String SPACE = " ";
     public final static String Message = "message";
     public final static String Items = "items";
     public final static String CookieId = "cookieId";
