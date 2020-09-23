@@ -4,6 +4,7 @@ import cn.ayl.common.json.JsonObject;
 import cn.ayl.common.json.JsonObjects;
 import cn.ayl.config.Const;
 import cn.ayl.util.JsonUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchRequest;
@@ -14,15 +15,20 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.BucketOrder;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -41,6 +47,10 @@ public class IndexTable {
     private static final int Port = 9200;
     //索引名称
     private static final String IndexName = "file";
+
+    //bucket的排序规则
+    private static final BucketOrder ASC = BucketOrder.key(true);
+    private static final BucketOrder DSEC = BucketOrder.key(false);
 
     /**
      * 创建一个ES连接
@@ -87,16 +97,16 @@ public class IndexTable {
     public static JsonObject selPhoneList(Integer pageIndex, Integer pageSize) {
         //创建连接
         RestHighLevelClient esClient = client();
-        //创建父查询对象
+        //创建一个 bool 查询对象
         BoolQueryBuilder query = QueryBuilders.boolQuery();
-        //创建子查询对象
-        QueryBuilder childQuery = QueryBuilders.termQuery("fileName", "标");
-        //子查询对象放入父查询对象中
-        query.must(childQuery);
+        //放入一个 must 查询条件
+        query.must(QueryBuilders.rangeQuery("fileSize").gte(0).lte(1245000));
         //创建查询函数构造对象
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
         //把父查询对象放入函数构造对象中
         sourceBuilder.query(query);
+        //聚合查询,设置为根据fileSize、筛选出10个来、并排序
+        sourceBuilder.aggregation(AggregationBuilders.terms("fileSize").field("fileSize").size(10).order(ASC));
         //如果分页
         if (pageIndex != null && pageSize != null) {
             //计算位置
@@ -127,14 +137,14 @@ public class IndexTable {
         //初始化result
         JsonObject result = JsonObject.Success();
         //初始化items
-        JsonObjects items = JsonObjects.VOID();
+        JsonObjects queryItems = JsonObjects.VOID();
         try {
             //创建响应对象
             SearchResponse searchResponse = esClient.search(searchRequest, RequestOptions.DEFAULT);
             //获取响应中的列表数据
             SearchHits searchHits = searchResponse.getHits();
             //获取响应中的列表数据总数
-            String total = searchHits.getTotalHits().toString();
+            String queryCount = searchHits.getTotalHits().toString();
             //循环参数
             for (SearchHit hit : searchHits.getHits()) {
                 //获取该参数
@@ -142,12 +152,43 @@ public class IndexTable {
                 //解析成Json
                 JsonObject valueJson = JsonUtils.parse(value);
                 //组装进items
-                items.add(valueJson);
+                queryItems.add(valueJson);
             }
             //items组装至result
-            result.put(Const.Items, items);
+            result.put("queryItems", queryItems);
             //组装总数
-            result.put(Const.TotalCount, total);
+            result.put("queryCount", queryCount);
+            //初始化聚合
+            JsonObjects aggregationItems = JsonObjects.VOID();
+            //获取聚合返回的数据
+            Map<String, Aggregation> map = searchResponse.getAggregations().asMap();
+            //循环
+            for (Map.Entry<String, Aggregation> entry : map.entrySet()) {
+                //获取聚合名
+                String aggregationName = entry.getKey();
+                //强转成 Terms ,并获取聚合返回的buckets
+                List<? extends Terms.Bucket> buckets = ((Terms) entry.getValue()).getBuckets();
+                //判空
+                if (CollectionUtils.isEmpty(buckets)) {
+                    //略过
+                    continue;
+                }
+                //初始化一个子数据对象
+                JsonObjects childItems = JsonObjects.VOID();
+                //循环
+                for (Terms.Bucket bucket : buckets) {
+                    //取出count和value并组装上
+                    childItems.add(JsonObject.Create("count", bucket.getDocCount()).append("value", bucket.getKeyAsString()));
+                }
+                //buckets解析并处理成Jsons格式
+                JsonObjects bucketJsons = childItems;
+                //承载label和bucketJsons的Json
+                JsonObject oAgg = JsonObject.Create("name", aggregationName).append(Const.Items, bucketJsons);
+                //组装
+                aggregationItems.add(oAgg);
+            }
+            //组装
+            result.put("aggregationItems", aggregationItems);
         } catch (IOException e) {
             //日志
             logger.error("查询失败,出现异常:[{}]", e);
