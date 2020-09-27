@@ -1,6 +1,6 @@
 package cn.ayl.common.user;
 
-import cn.ayl.common.StringCommons;
+import cn.ayl.common.String.StringCommons;
 import cn.ayl.common.db.jdbc.SqlTable;
 import cn.ayl.common.json.JsonObject;
 

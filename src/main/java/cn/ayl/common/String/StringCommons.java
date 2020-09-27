@@ -1,4 +1,4 @@
-package cn.ayl.common;
+package cn.ayl.common.String;
 
 import cn.ayl.common.db.jdbc.SqlTable;
 import cn.ayl.common.json.JsonObject;

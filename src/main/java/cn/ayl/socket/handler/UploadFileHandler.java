@@ -1,5 +1,6 @@
 package cn.ayl.socket.handler;
 
+import cn.ayl.common.file.FileCommons;
 import cn.ayl.config.Const;
 import cn.ayl.common.entry.FileEntry;
 import cn.ayl.handler.FileHandler;
@@ -7,6 +8,7 @@ import cn.ayl.socket.encoder.ResponseAndEncoderHandler;
 import cn.ayl.socket.rpc.Context;
 import cn.ayl.util.IdUtils;
 import cn.ayl.common.json.JsonObject;
+import cn.ayl.util.MD5Utils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.*;
@@ -204,20 +206,18 @@ public class UploadFileHandler {
                         //丢弃空文件
                         return;
                     }
-                    //文件后缀
+                    //读取文件MD5值,并记录
+                    fileEntry.setFileMD5(MD5Utils.getFileMd5(fileUpload.getFile()));
+                    //读取文件后缀
                     fileEntry.setFileExt(FilenameUtils.getExtension(fileEntry.getFileName()));
-                    //如果文件存在后缀名
-                    if (StringUtils.isNotBlank(fileEntry.getFileExt())) {
-                        //有后缀的文件地址
-                        fileEntry.setFilePath(Const.UploadFilePath + fileEntry.getFileId() + "." + fileEntry.getFileExt());
-                    } else {
-                        //无后缀的文件地址
-                        fileEntry.setFilePath(Const.UploadFilePath + fileEntry.getFileId());
-                    }
+                    //拼装文件存储path,规则: path + md5 + "-" + 文件大小
+                    fileEntry.setFilePath(Const.UploadFilePath + fileEntry.getFileId() + "-" + fileEntry.getFileSize());
                     //存储进List
                     this.fileEntryList.add(fileEntry);
                     //将临时文件复制到你指定的目录(临时文件会自动删除,不用去理会)
                     FileUtils.copyFile(fileUpload.getFile(), new File(fileEntry.getFilePath()));
+                    //文件信息记录至Mysql
+                    FileCommons.insertFileInfoToMySql(fileEntry);
                 }
                 break;
         }
