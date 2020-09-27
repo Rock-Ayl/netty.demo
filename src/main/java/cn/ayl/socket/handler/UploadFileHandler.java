@@ -217,7 +217,9 @@ public class UploadFileHandler {
                     //将临时文件复制到你指定的目录(临时文件会自动删除,不用去理会)
                     FileUtils.copyFile(fileUpload.getFile(), new File(fileEntry.getFilePath()));
                     //文件信息记录至Mysql
-                    FileCommons.insertFileInfoToMySql(fileEntry);
+                    FileCommons.insertFileInfo(fileEntry);
+                    //文件信息记录至ES
+                    FileCommons.addFileIndexToES(fileEntry.getFileId());
                 }
                 break;
         }

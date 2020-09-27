@@ -71,7 +71,7 @@ public class IndexTable {
     }
 
     /**
-     * 新建一个索引数据例子
+     * 创建一个索引数据
      *
      * @param indexJson 数据对象
      * @return
