@@ -56,7 +56,7 @@ public class UserService extends Context implements User {
         //删除密码
         userInfo.remove("password");
         //将用户登录缓存写入redis中
-        Redis.user.set(cookieId, userInfo.toString());
+        Redis.user.setExpire(cookieId, userInfo.toString(), Const.CookieIdExpiredTime);
         //返回用户数据
         return JsonObject.Success().append(Const.Data, userInfo);
     }

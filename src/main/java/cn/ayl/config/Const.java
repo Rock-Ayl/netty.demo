@@ -13,14 +13,21 @@ import io.netty.util.AttributeKey;
 public class Const {
 
     /**
-     * netty
+     * Netty
      */
 
     //channel的上下文 AttributeKey
     public final static AttributeKey<Context> AttrContext = AttributeKey.valueOf("Context");
 
+    //WebSocket读空闲时间闲置/秒
+    public static final int ReaderIdleTimeSeconds = 80;
+    //WebSocket写空闲时间闲置/秒
+    public static final int WriterIdleTimeSeconds = 100;
+    //WebSocket所有空闲时间闲置/秒
+    public static final int AllIdleTimeSeconds = 120;
+
     /**
-     * server
+     * Server
      */
 
     //服务器名
@@ -37,7 +44,7 @@ public class Const {
     public final static PropertyUtils properties = new PropertyUtils().use("setting.properties");
 
     /**
-     * service
+     * Service
      */
 
     //WebSocket地址
@@ -48,7 +55,7 @@ public class Const {
     public static final String DownloadPath = "/Download";
 
     /**
-     * config
+     * System Config
      */
 
     //Redis-pool Redisson-pool
@@ -74,12 +81,8 @@ public class Const {
     //当前Http协议
     public static final HttpVersion CurrentHttpVersion = HttpVersion.HTTP_1_1;
 
-    //WebSocket读空闲时间闲置/秒
-    public static final int ReaderIdleTimeSeconds = 80;
-    //WebSocket写空闲时间闲置/秒
-    public static final int WriterIdleTimeSeconds = 100;
-    //WebSocket所有空闲时间闲置/秒
-    public static final int AllIdleTimeSeconds = 120;
+    //用户CookieId登过期时间:2个小时
+    public static int CookieIdExpiredTime = 3600 * 2;
 
     /**
      * 常用魔法变量
