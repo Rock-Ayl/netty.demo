@@ -211,7 +211,7 @@ public class UploadFileHandler {
                     //读取文件后缀
                     fileEntry.setFileExt(FilenameUtils.getExtension(fileEntry.getFileName()));
                     //拼装文件存储path,规则: path + md5 + "-" + 文件大小
-                    fileEntry.setFilePath(Const.UploadFilePath + fileEntry.getFileId() + "-" + fileEntry.getFileSize());
+                    fileEntry.setFilePath(Const.UploadFilePath + fileEntry.getFileMD5() + "-" + fileEntry.getFileSize());
                     //存储进List
                     this.fileEntryList.add(fileEntry);
                     //将临时文件复制到你指定的目录(临时文件会自动删除,不用去理会)
