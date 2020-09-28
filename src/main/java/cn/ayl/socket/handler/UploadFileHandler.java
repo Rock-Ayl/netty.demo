@@ -193,33 +193,37 @@ public class UploadFileHandler {
                 FileUpload fileUpload = (FileUpload) data;
                 //如果数据已经存储完毕
                 if (fileUpload.isCompleted()) {
+                    //获取文件对象
+                    File file = fileUpload.getFile();
+                    //获取文件名
+                    String fileName = fileUpload.getFilename();
+                    //生成一个fileId(UUID)
+                    String fileId = IdUtils.newId();
+                    //获取文件大小
+                    long fileSize = fileUpload.length();
                     //创建文件实体
                     FileEntry fileEntry = new FileEntry();
-                    //文件fileId
-                    fileEntry.setFileId(IdUtils.newId());
-                    //文件名
-                    fileEntry.setFileName(fileUpload.getFilename());
-                    //文件大小
-                    fileEntry.setFileSize(fileUpload.length());
+                    //文件fileId插入实体
+                    fileEntry.setFileId(fileId);
+                    //文件名插入实体
+                    fileEntry.setFileName(fileName);
+                    //文件大小插入实体
+                    fileEntry.setFileSize(fileSize);
                     //如果文件大小为0或者文件名为null
-                    if (fileEntry.getFileSize() == 0 || StringUtils.isBlank(fileEntry.getFileName())) {
-                        //丢弃空文件
+                    if (fileSize == 0 || StringUtils.isBlank(fileName)) {
+                        //直接丢弃空文件
                         return;
                     }
-                    //读取文件MD5值,并记录
-                    fileEntry.setFileMD5(MD5Utils.getFileMd5(fileUpload.getFile()));
+                    //读取文件MD5值,并插入实体
+                    fileEntry.setFileMD5(MD5Utils.getFileMd5(file));
                     //读取文件后缀
-                    fileEntry.setFileExt(FilenameUtils.getExtension(fileEntry.getFileName()));
+                    fileEntry.setFileExt(FilenameUtils.getExtension(fileName));
                     //拼装文件存储path,规则: path + md5 + "-" + 文件大小
                     fileEntry.setFilePath(Const.UploadFilePath + fileEntry.getFileMD5() + "-" + fileEntry.getFileSize());
                     //存储进List
                     this.fileEntryList.add(fileEntry);
                     //将临时文件复制到你指定的目录(临时文件会自动删除,不用去理会)
-                    FileUtils.copyFile(fileUpload.getFile(), new File(fileEntry.getFilePath()));
-                    //文件信息记录至Mysql
-                    FileCommons.insertFileInfo(fileEntry);
-                    //文件信息记录至ES
-                    FileCommons.addFileIndexToES(fileEntry.getFileId());
+                    FileUtils.copyFile(file, new File(fileEntry.getFilePath()));
                 }
                 break;
         }

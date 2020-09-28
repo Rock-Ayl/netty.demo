@@ -2,6 +2,7 @@ package cn.ayl.handler;
 
 import cn.ayl.common.entry.FileEntry;
 import cn.ayl.common.enumeration.FileRequestType;
+import cn.ayl.common.file.FileCommons;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.common.json.JsonObjects;
 import cn.ayl.config.Const;
@@ -64,10 +65,17 @@ public enum FileHandler {
         if (CollectionUtils.isNotEmpty(fileEntryList)) {
             //循环
             for (FileEntry fileEntry : fileEntryList) {
-                //todo 业务逻辑
-                //组装参数
+                //获取文件fileId
+                String fileId = fileEntry.getFileId();
+                //文件实体转Json
                 JsonObject fileObject = fileEntry.toJson();
+                //将传过来的额外参数组装进实体
                 fileObject.putAll(params);
+                //文件信息记录至Mysql
+                FileCommons.insertFileInfo(fileEntry);
+                //文件信息记录至ES
+                FileCommons.addFileIndexToES(fileId);
+                //组装返回值
                 items.add(fileObject);
             }
         }
