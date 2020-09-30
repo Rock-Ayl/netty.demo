@@ -95,19 +95,24 @@ public class ResponseAndEncoderHandler {
     /**
      * 响应并返回请求下载文件的文件流
      *
-     * @param ctx
+     * @param ctx              netty通道
+     * @param range            断点续传范围
+     * @param file             文件本体
+     * @param randomAccessFile 文件本体
+     * @param fileRequestType  文件请求类型(下载、预览)等等
+     * @param realFileName     返回给对方的真实文件名
      * @throws IOException
      */
-    public static void sendFileStream(ChannelHandlerContext ctx, HttpRequest request, File file, RandomAccessFile randomAccessFile, FileRequestType fileRequestType, String fileName) throws IOException {
-        //获取文件后缀
-        String fileExt = FilenameUtils.getExtension(fileName);
+    public static void sendFileStream(ChannelHandlerContext ctx, String range, File file, RandomAccessFile randomAccessFile, FileRequestType fileRequestType, String realFileName) throws IOException {
+        //获取真实的文件后缀
+        String realFileExt = FilenameUtils.getExtension(realFileName);
         //文件长度
         long fileLength = randomAccessFile.length();
-        //国际标准文件最后修改时间
-        String fileLastModified = DateUtils.SDF_HTTP_DATE_FORMATTER.format(new Date(file.lastModified()));
         //当前时间
         long thisTime = System.currentTimeMillis();
-        //一个基础的OK请求
+        //国际标准文件最后修改时间
+        String fileLastModified = DateUtils.SDF_HTTP_DATE_FORMATTER.format(new Date(file.lastModified()));
+        //初始化一个200请求
         HttpResponse response = new DefaultHttpResponse(Const.CurrentHttpVersion, HttpResponseStatus.OK);
         //文件起始字节位置初始化
         long startOffset = 0;
@@ -115,11 +120,9 @@ public class ResponseAndEncoderHandler {
         long endOffset = fileLength - 1;
         //传输文件的实际总长度
         long endLength = fileLength;
-        //获取range值
-        String range = request.headers().get(HttpHeaderNames.RANGE);
         //Range判空
         if (StringUtils.isNotEmpty(range)) {
-            //设置为分片下载状态(由正常的200->206)
+            //设置为分片下载状态(由200->206)
             response.setStatus(HttpResponseStatus.PARTIAL_CONTENT);
             //解析Range前后区间
             String[] r = range.replace("bytes=", "").split("-");
@@ -154,13 +157,13 @@ public class ResponseAndEncoderHandler {
             case preview:
             default:
                 //按文件类别区分文件类型
-                contentType = TypeUtils.parseHttpResponseContentType(fileName);
+                contentType = TypeUtils.parseHttpResponseContentType(realFileName);
                 //告诉浏览器是预览
                 disposition = "inline";
                 break;
         }
         //根据文件后缀操作设置headers
-        switch (fileExt) {
+        switch (realFileExt) {
             case "html":
                 //设置必须资源效验
                 cacheControl = "no-cache";
@@ -190,7 +193,7 @@ public class ResponseAndEncoderHandler {
         //指定缓存机制
         response.headers().set(HttpHeaderNames.CACHE_CONTROL, cacheControl);
         //文件名,是否 save as
-        response.headers().add(HttpHeaderNames.CONTENT_DISPOSITION, disposition + "; filename*=UTF-8''" + URLEncoder.encode(fileName, "utf-8"));
+        response.headers().add(HttpHeaderNames.CONTENT_DISPOSITION, disposition + "; filename*=UTF-8''" + URLEncoder.encode(realFileName, "utf-8"));
         //该资源发送的时间
         response.headers().set(HttpHeaderNames.DATE, DateUtils.SDF_HTTP_DATE_FORMATTER.format(thisTime));
         //添加通用参数

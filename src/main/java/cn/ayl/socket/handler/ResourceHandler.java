@@ -56,8 +56,10 @@ public class ResourceHandler {
                     } else {
                         //获取文件流
                         randomAccessFile = new RandomAccessFile(file, "r");
+                        //获取Http-Headers-Range
+                        String range = req.headers().get(HttpHeaderNames.RANGE);
                         //响应请求文件流
-                        ResponseAndEncoderHandler.sendFileStream(ctx, req, file, randomAccessFile, FileRequestType.preview, file.getName());
+                        ResponseAndEncoderHandler.sendFileStream(ctx, range, file, randomAccessFile, FileRequestType.preview, file.getName());
                     }
                 } else {
                     //不存在文件,响应失败

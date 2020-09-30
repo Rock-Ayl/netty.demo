@@ -49,8 +49,10 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
             this.randomAccessFile = new RandomAccessFile(file, "r");
             //如果成功获取文件
             if (file != null && file.exists() && file.isFile()) {
+                //获取range值
+                String range = request.headers().get(HttpHeaderNames.RANGE);
                 //响应成功
-                ResponseAndEncoderHandler.sendFileStream(ctx, request, file, this.randomAccessFile, type, fileName);
+                ResponseAndEncoderHandler.sendFileStream(ctx, range, file, this.randomAccessFile, type, fileName);
             } else {
                 //响应失败
                 ResponseAndEncoderHandler.sendFailAndMessage(ctx, NOT_FOUND, "下载请求失败,文件不存在或用户信息失效.");
