@@ -98,9 +98,7 @@ public class ResponseAndEncoderHandler {
      * @param ctx
      * @throws IOException
      */
-    public static void sendFileStream(ChannelHandlerContext ctx, HttpRequest request, File file, RandomAccessFile randomAccessFile, FileRequestType fileRequestType) throws IOException {
-        //文件名
-        String fileName = file.getName();
+    public static void sendFileStream(ChannelHandlerContext ctx, HttpRequest request, File file, RandomAccessFile randomAccessFile, FileRequestType fileRequestType, String fileName) throws IOException {
         //获取文件后缀
         String fileExt = FilenameUtils.getExtension(fileName);
         //文件长度

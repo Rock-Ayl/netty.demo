@@ -36,10 +36,8 @@ public class Const {
     public static final int SocketPort = 8888;
     //服务器-静态资源路径
     public static final String ResourceFilePath = "/Users/ayl/workspace/resource/";
-    //服务器-上传时临时文件路径
+    //服务器-上传、下载时临时文件路径
     public static final String UploadFilePath = "/Users/ayl/workspace/upload/";
-    //服务器-下载文件路径
-    public static final String DownloadFilePath = "/Users/ayl/workspace/download/";
     //todo 服务器-配置文件,如果部署至服务器需要做适配
     public final static PropertyUtils properties = new PropertyUtils().use("setting.properties");
 

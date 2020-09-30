@@ -57,7 +57,7 @@ public class ResourceHandler {
                         //获取文件流
                         randomAccessFile = new RandomAccessFile(file, "r");
                         //响应请求文件流
-                        ResponseAndEncoderHandler.sendFileStream(ctx, req, file, randomAccessFile, FileRequestType.preview);
+                        ResponseAndEncoderHandler.sendFileStream(ctx, req, file, randomAccessFile, FileRequestType.preview, file.getName());
                     }
                 } else {
                     //不存在文件,响应失败

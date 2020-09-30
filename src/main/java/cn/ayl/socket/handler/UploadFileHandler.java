@@ -218,12 +218,14 @@ public class UploadFileHandler {
                     fileEntry.setFileMD5(MD5Utils.getFileMd5(file));
                     //读取文件后缀
                     fileEntry.setFileExt(FilenameUtils.getExtension(fileName));
-                    //拼装文件存储path,规则: path + md5 + "-" + 文件大小
-                    fileEntry.setFilePath(Const.UploadFilePath + fileEntry.getFileMD5() + "-" + fileEntry.getFileSize());
-                    //存储进List
+                    //生辰文件存储path
+                    String filePath = FileCommons.initFilePath(fileEntry.getFileMD5(), fileSize);
+                    //拼装文件存储path
+                    fileEntry.setFilePath(filePath);
+                    //存储进Lists
                     this.fileEntryList.add(fileEntry);
                     //将临时文件复制到你指定的目录(临时文件会自动删除,不用去理会)
-                    FileUtils.copyFile(file, new File(fileEntry.getFilePath()));
+                    FileUtils.copyFile(file, new File(filePath));
                 }
                 break;
         }

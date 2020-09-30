@@ -4,12 +4,20 @@ import cn.ayl.common.db.elaticsearch.IndexTable;
 import cn.ayl.common.db.jdbc.SqlTable;
 import cn.ayl.common.entry.FileEntry;
 import cn.ayl.common.json.JsonObject;
+import cn.ayl.config.Const;
 
 /**
  * Created By Rock-Ayl on 2020-09-27
  * 文件业务的共有逻辑
  */
 public class FileCommons {
+
+    /**
+     * 生成文件存储路径
+     */
+    public static String initFilePath(String fileMD5, long fileSize) {
+        return Const.UploadFilePath + fileMD5 + "-" + fileSize;
+    }
 
     /**
      * 获取文件信息
