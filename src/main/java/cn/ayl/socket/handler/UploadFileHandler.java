@@ -218,14 +218,19 @@ public class UploadFileHandler {
                     fileEntry.setFileMD5(MD5Utils.getFileMd5(file));
                     //读取文件后缀
                     fileEntry.setFileExt(FilenameUtils.getExtension(fileName));
-                    //生辰文件存储path
+                    //生成文件存储path
                     String filePath = FileCommons.initFilePath(fileEntry.getFileMD5(), fileSize);
                     //拼装文件存储path
                     fileEntry.setFilePath(filePath);
                     //存储进Lists
                     this.fileEntryList.add(fileEntry);
-                    //将临时文件复制到你指定的目录(临时文件会自动删除,不用去理会)
-                    FileUtils.copyFile(file, new File(filePath));
+                    //获取存储文件的对象
+                    File uploadFile = new File(filePath);
+                    //如果不存在(重用特性),视为服务器未拥有的新文件
+                    if (!uploadFile.exists()) {
+                        //将临时文件复制到你指定的目录(临时文件会自动删除,不用去理会)
+                        FileUtils.copyFile(file, new File(filePath));
+                    }
                 }
                 break;
         }
