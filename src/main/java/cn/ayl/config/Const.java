@@ -76,6 +76,11 @@ public class Const {
     public static final String MongoPort = properties.getProperty("MongoPort");
     public static final String MongoDBName = properties.getProperty("MongoDBName");
 
+    //ElasticSearch
+    public static final String ElasticSearchIp = properties.getProperty("ElasticSearchIp");
+    public static final int ElasticSearchPort = Integer.parseInt(properties.getProperty("ElasticSearchPort"));
+    public static final String ElasticSearchIndexName = properties.getProperty("ElasticSearchIndexName");
+
     //当前Http协议
     public static final HttpVersion CurrentHttpVersion = HttpVersion.HTTP_1_1;
 

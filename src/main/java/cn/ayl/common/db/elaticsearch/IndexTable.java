@@ -39,18 +39,8 @@ public class IndexTable {
 
     protected static Logger logger = LoggerFactory.getLogger(IndexTable.class);
 
-    /**
-     * config
-     */
-
-    //协议名称
-    private static final String SchemeName = "http";
-    //IP
-    private static final String Ip = "127.0.0.1";
-    //端口
-    private static final int Port = 9200;
-    //索引名称
-    private static final String IndexName = "file";
+    //创建一个ES连接
+    private static RestHighLevelClient Client = new RestHighLevelClient(RestClient.builder(new HttpHost(Const.ElasticSearchIp, Const.ElasticSearchPort, "http")));
 
     /**
      * bucket的排序规则
@@ -62,15 +52,6 @@ public class IndexTable {
     private static final BucketOrder DSEC = BucketOrder.key(false);
 
     /**
-     * 创建一个ES连接
-     *
-     * @return
-     */
-    public static RestHighLevelClient client() {
-        return new RestHighLevelClient(RestClient.builder(new HttpHost(Ip, Port, SchemeName)));
-    }
-
-    /**
      * 创建一个索引数据
      *
      * @param indexJson 数据对象
@@ -78,9 +59,9 @@ public class IndexTable {
      */
     public static boolean addIndexData(JsonObject indexJson) {
         //创建连接
-        RestHighLevelClient esClient = client();
+        RestHighLevelClient esClient = Client;
         //创建索引请求
-        IndexRequest indexRequest = new IndexRequest(IndexName);
+        IndexRequest indexRequest = new IndexRequest(Const.ElasticSearchIndexName);
         //组装并设置索引类型
         indexRequest.source(indexJson, XContentType.JSON);
         try {
@@ -105,7 +86,7 @@ public class IndexTable {
      */
     public static JsonObject selPhoneList(Integer pageIndex, Integer pageSize) {
         //创建连接
-        RestHighLevelClient esClient = client();
+        RestHighLevelClient esClient = Client;
         //创建查询函数构造对象
         SearchSourceBuilder builder = new SearchSourceBuilder();
         //创建一个 bool 查询对象
@@ -140,7 +121,7 @@ public class IndexTable {
         //取消默认最大查询数量上限(默认10000)
         builder.trackTotalHits(true);
         //构造请求发起对象,这里直接配置索引名即可
-        SearchRequest searchRequest = new SearchRequest(IndexName);
+        SearchRequest searchRequest = new SearchRequest(Const.ElasticSearchIndexName);
         //把查询函数构造对象注入查询请求中
         searchRequest.source(builder);
         //初始化result
