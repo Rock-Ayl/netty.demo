@@ -1,5 +1,7 @@
 package cn.ayl.common.db.neo4j;
 
+import cn.ayl.common.json.JsonObject;
+import cn.ayl.common.json.JsonObjects;
 import org.neo4j.driver.v1.*;
 
 /**
@@ -15,22 +17,39 @@ public class Neo4jTable {
      */
     public static void main(String[] args) {
         //创建连接
-        Driver driver = GraphDatabase.driver("bolt://127.0.0.1:7687", AuthTokens.basic("neo4j", "123456"));
-        try (Session session = driver.session()) {
-            try (Transaction transaction = session.beginTransaction()) {
-                transaction.run("create(n:A1{NAME:{NAME},TITLE:{TITLE}})", Values.parameters("NAME", "james", "TITLE", "King"));
-                transaction.success();
-            }
-            try (Transaction tx = session.beginTransaction()) {
-                StatementResult result = tx.run("match(a:A1) WHERE a.NAME = {NAME} RETURN a.NAME AS NAME,a.TITLE AS TITLE", Values.parameters("NAME", "james"));
-                while (result.hasNext()) {
-                    Record record = result.next();
-                    System.out.println(String.format("%s %s", record.get("TITLE").asString(), record.get("NAME").asString()));
-
+        try (Driver driver = GraphDatabase.driver("bolt://127.0.0.1:7687", AuthTokens.basic("neo4j", "123456"))) {
+            //建立会话
+            try (Session session = driver.session()) {
+                //新增事务
+                try (Transaction transaction = session.beginTransaction()) {
+                    //新增逻辑
+                    transaction.run("create(n:A1{NAME:{NAME},TITLE:{TITLE}})", Values.parameters("NAME", "james", "TITLE", "King"));
+                    //提交
+                    transaction.success();
+                }
+                //查询结果
+                JsonObjects items = JsonObjects.VOID();
+                //查询事务
+                try (Transaction tx = session.beginTransaction()) {
+                    //查询逻辑
+                    StatementResult result = tx.run("match(a:A1) WHERE a.NAME = {NAME} RETURN a.NAME AS NAME,a.TITLE AS TITLE", Values.parameters("NAME", "james"));
+                    //编辑
+                    while (result.hasNext()) {
+                        //获取当前查询记录
+                        Record record = result.next();
+                        //初始化记录对象
+                        JsonObject data = JsonObject.VOID();
+                        //组装
+                        data.append("TITLE", record.get("TITLE").asString());
+                        data.append("NAME", record.get("NAME").asString());
+                        //记录至结果
+                        items.add(data);
+                    }
+                    //输出
+                    System.out.println(items.toJson());
                 }
             }
         }
-        driver.close();
     }
 
 }
