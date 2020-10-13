@@ -3,12 +3,16 @@ package cn.ayl.common.db.neo4j;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.common.json.JsonObjects;
 import org.neo4j.driver.v1.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created By Rock-Ayl on 2020-10-10
  * Neo4j-非关系图形数据库
  */
 public class Neo4jTable {
+
+    protected static Logger logger = LoggerFactory.getLogger(Neo4jTable.class);
 
     //Neo4j连接
     private static Driver driver;
@@ -17,10 +21,14 @@ public class Neo4jTable {
 
     //初始化
     static {
-        //连接
-        driver = GraphDatabase.driver("bolt://127.0.0.1:7687", AuthTokens.basic("neo4j", "123456"));
-        //会话
-        session = driver.session();
+        try {
+            //连接
+            driver = GraphDatabase.driver("bolt://127.0.0.1:7687", AuthTokens.basic("neo4j", "123456"));
+            //会话
+            session = driver.session();
+        } catch (Exception e) {
+            logger.error("Neo4j连接初始化失败,可能1:Neo4j服务未启动,可能2:用户身份不被认证.");
+        }
     }
 
     /**
