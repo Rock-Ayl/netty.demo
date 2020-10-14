@@ -34,7 +34,9 @@ start(){
     else
         # pid为空 执行java -jar 命令启动服务
         nohup java -jar $APP_NAME >/dev/null 2>&1 &
-        echo "${APP_NAME} 正在启动了."
+        echo "${APP_NAME} 启动成功."
+        checkPID
+        echo "${APP_NAME} PID:${pid}"
     fi
     echo "#########End#############"
 }
