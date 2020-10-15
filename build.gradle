@@ -56,16 +56,37 @@ dependencies {
 
 }
 
-//jar包设置
+
+/**
+ * jar包在服务器跑有两种方法:
+ * 1-打包项目,包括所有依赖,命令启动.
+ * 2-单独打包项目,不包含依赖,将依赖自己放入服务器,通过MANIFEST.MF文件扫描,命令启动.
+ * 当前使用:方法2
+ */
 jar {
 
-    //这个是将所有依赖在打包时候放入jar包中,方便直接启动,如果不需要刻意注掉
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    //启动main
+    String mainPath = 'cn.ayl.Server'
+    //依赖的路径,该参数及对应逻辑,在方法2使用,1注掉
+    String libsPath = '/demo/libs/'
+
+    //将所有依赖在打包时候放入jar包中,在方法1使用,2注掉
+    //from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+
+    //依赖的路径,该参数及对应逻辑,方法2使用,1注掉
+    String someString = ''
+    //遍历项目的所有依赖的jar包赋值给变量someString
+    configurations.runtime.each {
+        //组装
+        someString = someString + " " + libsPath + it.name
+    }
 
     //告诉gradle,我的Main是什么,打包时候有用
     manifest {
         //主程序是这个
-        attributes('Main-Class': 'cn.ayl.Server')
+        attributes('Main-Class': mainPath)
+        //未打包依赖时扫描的依赖路径
+        attributes 'Class-Path': someString
     }
 
 }

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #jar包路径(基于当前路径)
-APP_NAME="build/libs/netty.demo-1.0.jar"
+APP_NAME="/demo/libs/netty.demo-1.0.jar"
 
 #进程PID
 pid=0
