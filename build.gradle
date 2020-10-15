@@ -59,7 +59,7 @@ dependencies {
 //jar包设置
 jar {
 
-    //这个是将所有依赖在打包时候放入jar包中,方便直接启动
+    //这个是将所有依赖在打包时候放入jar包中,方便直接启动,如果不需要刻意注掉
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 
     //告诉gradle,我的Main是什么,打包时候有用
@@ -76,4 +76,10 @@ compileJava {
     //等价于:require -parameters,please add '-parameters' in [preferences]->[Build.JavaCompiler]->[Additional Parameters]
     options.compilerArgs << '-parameters'
 
+}
+
+//将所有项目jar包导出至目标目录 执行命令: gradle build outJar
+task outJar(type: Copy) {
+    // 执行到处目录
+    from configurations.runtime into 'libs'
 }
