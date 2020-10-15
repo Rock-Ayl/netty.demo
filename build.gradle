@@ -100,7 +100,7 @@ compileJava {
 }
 
 //将所有项目jar包导出至目标目录 执行命令: gradle build outJar
-task outJar(type: Copy) {
+task copyJar(type: Copy) {
     // 执行到处目录
     from configurations.runtime into 'libs'
 }
