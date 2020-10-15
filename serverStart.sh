@@ -6,6 +6,9 @@ APP_NAME="build/libs/netty.demo-1.0.jar"
 #进程PID
 pid=0
 
+#远程调试端口
+remotePort=5005
+
 Help() {
     echo "case: sh run.sh [start|stop|restart|status]"
     echo "请类似这样执行 ./*.sh start   or  ./*sh restart"
@@ -32,11 +35,28 @@ start(){
     if [ $? -eq "0" ]; then
         echo "${APP_NAME} 已经启动,PID:${pid}"
     else
-        # pid为空 执行java -jar 命令启动服务
+        # 执行java -jar 正常启动服务
         nohup java -jar $APP_NAME >/dev/null 2>&1 &
-        echo "${APP_NAME} 启动成功."
         checkPID
+        echo "${APP_NAME} 启动成功."
         echo "${APP_NAME} PID:${pid}"
+    fi
+    echo "#########End#############"
+}
+
+# 远程调试
+remote(){
+     echo "#######进程启动-远程调试##########"
+    checkPID
+     # [$? -eq "0"] pid存在 说明服务正在运行中，将进程号打印出来
+    if [ $? -eq "0" ]; then
+        echo "${APP_NAME} 已经启动,可以调试,PID:${pid}"
+    else
+        # 执行java -jar 远程调试启动服务
+        nohup java -jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${remotePort} $APP_NAME >/dev/null 2>&1 &
+        checkPID
+        echo "${APP_NAME} 启动成功."
+        echo "${APP_NAME} 调试端口:${remotePort} PID:${pid}"
     fi
     echo "#########End#############"
 }
@@ -79,6 +99,9 @@ restart(){
 case "$1" in
     "start")
         start
+        ;;
+     "remote")
+        remote
         ;;
     "stop")
         stop
