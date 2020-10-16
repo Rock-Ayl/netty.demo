@@ -94,6 +94,11 @@ restart(){
     start
 }
 
+# 重启远程调试
+restartRemote(){
+    stop
+    remote
+}
 
 # 命令表
 case "$1" in
@@ -111,6 +116,9 @@ case "$1" in
         ;;
     "restart")
         restart
+        ;;
+    "restartRemote")
+        restartRemote
         ;;
     *)
     Help
