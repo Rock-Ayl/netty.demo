@@ -154,6 +154,10 @@ public class SqlTable extends Table {
         return this.queryObjects(sql.toString(), sql.parameters(), 0, 0, true);
     }
 
+    public JsonObjects queryObjects(String sql) {
+        return queryObjects(sql, this.toList(new Object[]{}), 0, 0, false);
+    }
+
     public JsonObjects queryObjects(String sql, List<Object> values) {
         return queryObjects(sql, values, 0, 0, true);
     }
