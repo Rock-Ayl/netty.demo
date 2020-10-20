@@ -12,6 +12,8 @@ public class PatternUtils {
 
     //验证用户名
     private final static String USER_NAME = "^(?!_)(?!.*?_$)[a-zA-Z0-9_\\u4e00-\\u9fa5]+$";
+    //验证密码
+    private final static String Pwd = "^[\\w_]{6,20}$";
     //验证邮箱
     private static final String EMAIL_REGEX = "\\w+@\\w+\\.[a-z]+(\\.[a-z]+)?";
     //验证是否是汉字
@@ -24,6 +26,19 @@ public class PatternUtils {
     private static final String URL_REGEX = "(https?://(w{3}\\.)?)?\\w+\\.\\w+(\\.[a-zA-Z]+)*(:\\d{1,5})?(/\\w*)*(\\??(.+=.*)?(&.+=.*)?)?";
     //验证身份证号码,居民身份证号码15位或18位，最后一位可能是数字或字母
     private static final String ID_CARD_REGEX = "[1-9]\\d{13,16}[a-zA-Z0-9]{1}";
+
+    /**
+     * 密码验证
+     *
+     * @param pwd
+     * @return
+     */
+    public static boolean isPwd(String pwd) {
+        if (StringUtils.isBlank(pwd)) {
+            return false;
+        }
+        return Pattern.matches(Pwd, pwd);
+    }
 
     /**
      * 验证中文
