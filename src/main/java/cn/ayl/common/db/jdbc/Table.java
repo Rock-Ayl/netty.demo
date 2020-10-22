@@ -16,7 +16,7 @@ import java.util.List;
 public class Table {
 
     protected static Logger logger = LoggerFactory.getLogger(Table.class);
-    protected Connection connect = init();
+    protected static Connection connect = init();
     protected static List<Object> VOIDS = new ArrayList();
     protected boolean autoClose;
 
@@ -73,7 +73,7 @@ public class Table {
         }
     }
 
-    protected Connection init() {
+    protected static Connection init() {
         Connection conn = null;
         try {
             Class.forName(Const.JdbcDriver);
