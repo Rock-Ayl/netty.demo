@@ -77,7 +77,7 @@ public class Table {
         Connection conn = null;
         try {
             Class.forName(Const.JdbcDriver);
-            conn = DriverManager.getConnection("jdbc:mysql://" + Const.JdbcHost + ":" + Const.JdbcPort + "/" + Const.JdbcDBName + "?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone = GMT", Const.JdbcUser, Const.JdbcPassword);
+            conn = DriverManager.getConnection("jdbc:mysql://" + Const.JdbcHost + ":" + Const.JdbcPort + "/" + Const.JdbcDBName + "?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false&serverTimezone = GMT", Const.JdbcUser, Const.JdbcPassword);
         } catch (Exception e) {
             logger.error("" + e);
         }
