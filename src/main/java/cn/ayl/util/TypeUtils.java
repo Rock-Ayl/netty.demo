@@ -1,6 +1,6 @@
 package cn.ayl.util;
 
-import com.alibaba.fastjson.JSON;
+import com.google.gson.Gson;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -9,6 +9,9 @@ import org.apache.commons.lang3.StringUtils;
  * 类型工具类
  */
 public class TypeUtils {
+
+    //创建个静态的工具
+    public static com.google.gson.Gson Gson = new Gson();
 
     /**
      * 根据文件名 返回 CONTENT_TYPE
@@ -74,8 +77,7 @@ public class TypeUtils {
         if (null == o) {
             return null;
         }
-        //fastJson的强转,值得信赖
-        return JSON.parseObject(JSON.toJSONString(o), clz);
+        return Gson.fromJson(Gson.toJson(o), clz);
     }
 
 }

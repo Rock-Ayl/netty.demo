@@ -61,8 +61,8 @@ eg:127.0.0.1:8888/Calendar/readCalendarList?keyword=QC-水印.doc
        compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.25'
        //gitHub的 超轻量级的Java类路径和模块路径扫描器
        compile group: 'io.github.lukehutch', name: 'fast-classpath-scanner', version: '2.18.1'
-       //阿里的fastJson，这里仅仅用来做类型强转
-       compile group: 'com.alibaba', name: 'fastjson', version: '1.2.58'
+       //谷歌-Gson
+       compile group: 'com.google.code.gson', name: 'gson', version: '2.8.5'
        //定时器 quartz
        compile group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.0'
        //mongo-Bson
