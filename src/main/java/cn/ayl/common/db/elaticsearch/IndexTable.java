@@ -5,6 +5,7 @@ import cn.ayl.common.json.JsonObjects;
 import cn.ayl.config.Const;
 import cn.ayl.util.JsonUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchRequest;
@@ -16,6 +17,8 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.index.reindex.DeleteByQueryRequest;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
@@ -52,24 +55,18 @@ public class IndexTable {
     private static final BucketOrder DSEC = BucketOrder.key(false);
 
     /**
-     * 创建一个索引数据
+     * 创建文件索引
      *
-     * @param indexJson 数据对象
+     * @param fileInfoJson 文件信息对象
      * @return
      */
-    public static boolean addIndexData(JsonObject indexJson) {
-        //创建连接
-        RestHighLevelClient esClient = Client;
-        //创建索引请求
-        IndexRequest indexRequest = new IndexRequest(Const.ElasticSearchIndexName);
-        //组装并设置索引类型
-        indexRequest.source(indexJson, XContentType.JSON);
+    public static boolean addFileIndex(JsonObject fileInfoJson) {
         try {
-            //新建索引
-            esClient.index(indexRequest, RequestOptions.DEFAULT);
+            //创建索引
+            Client.index(new IndexRequest(Const.ElasticSearchIndexName).source(fileInfoJson, XContentType.JSON), RequestOptions.DEFAULT);
         } catch (IOException e) {
             //日志
-            logger.error("新增失败,出现异常:[{}]", e);
+            logger.error("新增文件索引失败,出现异常:[{}]", e);
             //返回失败
             return false;
         }
@@ -78,26 +75,55 @@ public class IndexTable {
     }
 
     /**
-     * 一个学习、测试用的查询例子
+     * 批量删除文件索引
      *
-     * @param pageIndex 分页-页码
-     * @param pageSize  分页-每页数据量
+     * @param key   字段
+     * @param value 内容
      * @return
      */
-    public static JsonObject selPhoneList(Integer pageIndex, Integer pageSize) {
+    public static boolean deleteFileIndex(String key, String value) {
+        try {
+            //创建索引
+            Client.deleteByQuery(new DeleteByQueryRequest(Const.ElasticSearchIndexName).setQuery(new TermQueryBuilder(key, value)), RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            //日志
+            logger.error("删除文件索引失败,出现异常:[{}]", e);
+            //返回失败
+            return false;
+        }
+        //返回成功
+        return true;
+    }
+
+    /**
+     * 一个基础的查询
+     *
+     * @param keyword         关键词搜索
+     * @param takeAggregation 是否开启聚合查询
+     * @param pageIndex       分页-页码
+     * @param pageSize        分页-每页数据量
+     * @return
+     */
+    public static JsonObject queryFileIndex(String keyword, boolean takeAggregation, Integer pageIndex, Integer pageSize) {
         //创建连接
         RestHighLevelClient esClient = Client;
         //创建查询函数构造对象
         SearchSourceBuilder builder = new SearchSourceBuilder();
-        //创建一个 bool 查询对象
+        //最外层是布尔查询
         BoolQueryBuilder bool = QueryBuilders.boolQuery();
-        //随便放入一个 must 查询条件, 根据文件大小查询
-        bool.must(QueryBuilders.rangeQuery("fileSize").gte(0).lte(1245000));
+        //判空
+        if (StringUtils.isNotBlank(keyword)) {
+            //限制文件名称(先这么写实现功能,如果考虑到性能,需要优化通配符*)
+            bool.must(QueryBuilders.wildcardQuery("fileName.keyword", "*" + keyword + "*"));
+        }
         //把父查询对象放入函数构造对象中
         builder.query(bool);
-        //随便放一个 聚合 查询条件,设置为根据fileSize、筛选出10个来、并排序
-        builder.aggregation(AggregationBuilders.terms("fileSize").field("fileSize").size(10).order(ASC));
-        //如果分页
+        //如果采用聚合查询
+        if (takeAggregation) {
+            //先随便放一个 聚合 查询条件,例如设置为根据fileSize、筛选出10个来、并排序
+            builder.aggregation(AggregationBuilders.terms("fileSize").field("fileSize").size(10).order(ASC));
+        }
+        //如果分页(非特殊情况,调用时务必分页)
         if (pageIndex != null && pageSize != null) {
             //计算位置
             pageIndex = pageIndex - 1 < 0 ? 0 : pageIndex - 1;
@@ -134,7 +160,7 @@ public class IndexTable {
             //获取响应中的列表数据
             SearchHits searchHits = searchResponse.getHits();
             //获取响应中的列表数据总数
-            String queryCount = searchHits.getTotalHits().toString();
+            long queryCount = searchHits.getTotalHits().value;
             //循环参数
             for (SearchHit hit : searchHits.getHits()) {
                 //获取该参数
@@ -145,9 +171,9 @@ public class IndexTable {
                 queryItems.add(valueJson);
             }
             //items组装至result
-            result.put("queryItems", queryItems);
+            result.put(Const.Items, queryItems);
             //组装总数
-            result.put("queryCount", queryCount);
+            result.put(Const.TotalCount, queryCount);
             //初始化聚合
             JsonObjects aggregationItems = JsonObjects.VOID();
             //获取聚合返回的数据
@@ -178,12 +204,12 @@ public class IndexTable {
                 aggregationItems.add(oAgg);
             }
             //组装
-            result.put("aggregationItems", aggregationItems);
+            result.put("aggregations", aggregationItems);
         } catch (IOException e) {
             //日志
             logger.error("查询失败,出现异常:[{}]", e);
             //返回失败
-            return JsonObject.Fail("查询失败.");
+            return Const.Json_Query_Fail;
         }
         //返回数据
         return result;
@@ -197,7 +223,7 @@ public class IndexTable {
     public static void main(String[] args) {
 
         //查询
-        System.out.println(selPhoneList(1, 10).toString());
+        System.out.println(queryFileIndex("", true, 1, 10).toString());
 
         //初始化索引Json
         JsonObject indexJson = JsonObject.VOID();
@@ -209,7 +235,8 @@ public class IndexTable {
         indexJson.append("master", 10);
         indexJson.append("time", 1600353921128L);
         //新建数据
-        System.out.println(addIndexData(indexJson));
+        System.out.println(addFileIndex(indexJson));
 
     }
+
 }

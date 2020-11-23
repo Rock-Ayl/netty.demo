@@ -145,5 +145,6 @@ public class Const {
     public final static JsonObject Json_No_User = JsonObject.Fail("用户不存在.");
     public final static JsonObject Json_Not_Keyword = JsonObject.Fail("关键词不正确.");
     public final static JsonObject Json_No_Permission = JsonObject.Fail("没有权限.");
+    public final static JsonObject Json_Query_Fail = JsonObject.Fail("查询失败.");
 
 }
