@@ -4,6 +4,7 @@ package cn.ayl.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -22,14 +23,20 @@ public class PropertyUtils extends Properties {
         defaults = new Properties();
     }
 
-    public PropertyUtils use(String fileName) {
+    /**
+     * 使用
+     *
+     * @param filePath 文件绝对路径
+     * @return
+     */
+    public PropertyUtils use(String filePath) {
         try {
-            InputStream stream = PropertyUtils.class.getResourceAsStream("/" + fileName);
+            InputStream stream = new FileInputStream(filePath);
             InputStreamReader in = new InputStreamReader(stream, "UTF-8");
             defaults.load(in);
             in.close();
         } catch (IOException e) {
-            logger.error(fileName, e);
+            logger.error(filePath, e);
         }
         return this;
     }

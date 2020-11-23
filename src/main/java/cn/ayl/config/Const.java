@@ -5,6 +5,8 @@ import cn.ayl.util.PropertyUtils;
 import cn.ayl.common.json.JsonObject;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.AttributeKey;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * created by Rock-Ayl 2019-11-5
@@ -12,12 +14,33 @@ import io.netty.util.AttributeKey;
  */
 public class Const {
 
+    protected static Logger logger = LoggerFactory.getLogger(Const.class);
+
     /**
      * Netty
      */
 
     //channel的上下文 AttributeKey
     public final static AttributeKey<Context> AttrContext = AttributeKey.valueOf("Context");
+
+    //服务器-配置路径
+    public static final String ConfigPath = System.getProperty("user.dir") + "/conf/";
+    //服务器-系统配置文件
+    public static PropertyUtils properties;
+
+    //初始化配置文件
+    static {
+        //配置文件绝对路径
+        String settingPath = ConfigPath + "setting.properties";
+        try {
+            //读取配置文件
+            properties = new PropertyUtils().use(settingPath);
+        } catch (Exception e) {
+            logger.error("读取不到配置文件:[" + settingPath + "],系统关闭.");
+            //直接终止
+            System.exit(-1);
+        }
+    }
 
     //WebSocket读空闲时间闲置/秒
     public static final int ReaderIdleTimeSeconds = 80;
@@ -32,14 +55,14 @@ public class Const {
 
     //服务器名
     public static final String ServerName = "netty.demo";
+    //服务地址 or Ip
+    public static final String SocketAddress = properties.getProperty("SocketAddress");
     //服务端口
-    public static final int SocketPort = 8888;
+    public static final int SocketPort = Integer.parseInt(properties.getProperty("SocketPort"));
     //服务器-静态资源路径
-    public static final String ResourceFilePath = "/Users/ayl/workspace/resource/";
+    public static final String ResourceFilePath = properties.getProperty("ResourceFilePath");
     //服务器-上传、下载时临时文件路径
-    public static final String UploadFilePath = "/Users/ayl/workspace/upload/";
-    //todo 服务器-配置文件,如果部署至服务器需要做适配
-    public final static PropertyUtils properties = new PropertyUtils().use("setting.properties");
+    public static final String UploadFilePath = properties.getProperty("UploadFilePath");
 
     /**
      * Service
