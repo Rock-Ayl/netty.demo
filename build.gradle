@@ -10,6 +10,11 @@ version '1.0'
 //指定编译.java文件的jdk版本
 sourceCompatibility = 1.8
 
+//启动main
+String mainPath = 'cn.ayl.Server'
+//部署时依赖的路径,该参数及对应逻辑,在方法2使用,1注掉
+String libsPath = '/netty-demo/libs/'
+
 //使用的库
 repositories {
     //默认的库
@@ -58,22 +63,15 @@ dependencies {
 
 
 /**
- * jar包在服务器跑有两种方法:
- * 1-打包项目,包括所有依赖,命令启动.
- * 2-单独打包项目,不包含依赖,将依赖自己放入服务器,通过MANIFEST.MF文件扫描,命令启动.
- * 当前使用:方法2
+ * 打包方式:Jar
+ * 是否排除依赖:排除
  */
 jar {
 
-    //启动main
-    String mainPath = 'cn.ayl.Server'
-    //依赖的路径,该参数及对应逻辑,在方法2使用,1注掉
-    String libsPath = '/demo/libs/'
-
-    //将所有依赖在打包时候放入jar包中,在方法1使用,2注掉
+    //不排除依赖的方法
     //from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 
-    //依赖的路径,该参数及对应逻辑,方法2使用,1注掉
+    //依赖的路径,该参数及对应逻辑
     String someString = ''
     //遍历项目的所有依赖的jar包赋值给变量someString
     configurations.runtime.each {
