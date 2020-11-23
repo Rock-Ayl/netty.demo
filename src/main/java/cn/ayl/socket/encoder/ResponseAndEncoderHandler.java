@@ -43,7 +43,6 @@ public class ResponseAndEncoderHandler {
         headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_CREDENTIALS, true);
         headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "GET,POST,OPTIONS");
         headers.set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_HEADERS, "origin,accept,cookieId,authorization,DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,content-length");
-        ;
         headers.set(HttpHeaderNames.ACCESS_CONTROL_MAX_AGE, 86400);
     }
 
