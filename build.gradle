@@ -58,6 +58,8 @@ dependencies {
     compile group: 'org.elasticsearch.client', name: 'elasticsearch-rest-high-level-client', version: '7.9.1'
     //neo4j-服务器开发依赖
     compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.5.1'
+    //apache tika-文本抽取
+    compile group: 'org.apache.tika', name: 'tika-parsers', version: '1.24.1'
 
 }
 
