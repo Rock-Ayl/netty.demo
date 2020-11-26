@@ -1,5 +1,6 @@
 package cn.ayl.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
@@ -57,8 +58,13 @@ public class TikaUtils {
                         for (XWPFRun r : para.getRuns()) {
                             //当前文本位置
                             int i = 0;
-                            //记录
-                            str.append(r.getText(i++));
+                            //当前段
+                            String thisStr = r.getText(i++);
+                            //判空
+                            if (StringUtils.isNotEmpty(thisStr)) {
+                                //组装
+                                str.append(thisStr);
+                            }
                         }
                     }
                     //返回docx全内容
