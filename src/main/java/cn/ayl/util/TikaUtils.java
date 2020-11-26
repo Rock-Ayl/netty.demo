@@ -1,17 +1,15 @@
 package cn.ayl.util;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.ooxml.POIXMLDocument;
+import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
+import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
+import org.apache.xmlbeans.XmlException;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,7 +35,7 @@ public class TikaUtils {
      * @throws IOException
      * @throws TikaException
      */
-    public static String getContext(File file) throws IOException, TikaException {
+    public static String getContext(File file) throws IOException, TikaException, OpenXML4JException, XmlException {
         //创建一个tika
         Tika tika = new Tika();
         //文件真实类型
@@ -48,27 +46,8 @@ public class TikaUtils {
             switch (fileRealExt) {
                 //docx由于重复、乱码问题,需要这么做
                 case "docx":
-                    //结果初始化
-                    StringBuffer str = new StringBuffer();
-                    //获取docx
-                    List<XWPFParagraph> paraGraph = new XWPFDocument(new FileInputStream(file)).getParagraphs();
-                    //循环
-                    for (XWPFParagraph para : paraGraph) {
-                        //循环
-                        for (XWPFRun r : para.getRuns()) {
-                            //当前文本位置
-                            int i = 0;
-                            //当前段
-                            String thisStr = r.getText(i++);
-                            //判空
-                            if (StringUtils.isNotEmpty(thisStr)) {
-                                //组装
-                                str.append(thisStr);
-                            }
-                        }
-                    }
-                    //返回docx全内容
-                    return str.toString();
+                    ///抽取并返回
+                    return new XWPFWordExtractor(POIXMLDocument.openPackage(file.getPath())).getText();
             }
         }
         //默认抽取并返回
