@@ -17,6 +17,8 @@ String libsPath = '/netty-demo/libs/'
 
 //使用的库
 repositories {
+    //阿里的库
+    maven { url 'https://maven.aliyun.com/repository/public/' }
     //默认的库
     mavenCentral()
 }
