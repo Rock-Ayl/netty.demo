@@ -51,7 +51,7 @@ public class FileCommons {
         //判空
         if (fileInfo != null) {
             //插入至ES
-            IndexTable.addIndexData(fileInfo);
+            IndexTable.addFileIndex(fileInfo);
         }
     }
 

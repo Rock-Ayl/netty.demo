@@ -13,12 +13,15 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Jdbc核心
+ * sql连接实现
+ */
 public class Table {
 
     protected static Logger logger = LoggerFactory.getLogger(Table.class);
-    protected static Connection connect = init();
+    protected static Connection Connect = init();
     protected static List<Object> VOIDS = new ArrayList();
-    protected boolean autoClose;
 
     protected static class RowObserve implements IObserveRecord {
         protected ListResult rows = new ListResult();
@@ -119,30 +122,31 @@ public class Table {
         }
     }
 
+    /**
+     * 关闭数据库连接
+     */
     public void close() {
         try {
-            connect.close();
+            Connect.close();
         } catch (Exception e) {
-            logger.error("Connection", e);
+            logger.error("Connection fail:", e);
         }
     }
 
     public void close(ResultSet rs, PreparedStatement statement) {
         this.close(statement);
         try {
-            if (rs != null) {
-                rs.close();
-            }
-        } catch (SQLException ex) {
+            rs.close();
+        } catch (SQLException e) {
+            logger.error("ResultSet fail:", e);
         }
     }
 
     public void close(PreparedStatement statement) {
         try {
-            if (statement != null) {
-                statement.close();
-            }
-        } catch (SQLException ex) {
+            statement.close();
+        } catch (SQLException e) {
+            logger.error("PreparedStatement fail:", e);
         }
     }
 
@@ -182,7 +186,7 @@ public class Table {
         ResultSet rs = null;
         PreparedStatement statement = null;
         try {
-            statement = connect.prepareStatement(sql);
+            statement = Connect.prepareStatement(sql);
             if (values instanceof List) {
                 updateStatement(statement, (List) values);
             } else {
@@ -199,14 +203,14 @@ public class Table {
             throw new RuntimeException(e);
         } finally {
             close(rs, statement);
-            if (this.autoClose) close();
+            close();
         }
         return AutoId;
     }
 
     private PreparedStatement createStatement(String sql) {
         try {
-            return connect.prepareStatement(sql);
+            return Connect.prepareStatement(sql);
         } catch (Exception e) {
             logger.error(sql, e);
             return null;
@@ -243,7 +247,7 @@ public class Table {
             throw new RuntimeException(e);
         } finally {
             close(statement);
-            if (this.autoClose) close();
+            close();
         }
     }
 
@@ -299,7 +303,7 @@ public class Table {
                 params.add(count);
                 params.add(offset);
             }
-            stmt = connect.prepareStatement(q.toString());
+            stmt = Connect.prepareStatement(q.toString());
             if (params != null) {
                 for (int i = 0; i < params.size(); i++) {
                     stmt.setObject(i + 1, params.get(i));
@@ -313,7 +317,7 @@ public class Table {
             throw new RuntimeException(e);
         } finally {
             close(rs, stmt);
-            if (this.autoClose) close();
+            close();
         }
     }
 
@@ -336,7 +340,6 @@ public class Table {
         String result = this.get(sql, params, true);
         return result == null ? 0 : Integer.parseInt(result);
     }
-
 
     public int getInt(String sql, Object[] params) {
         String result = this.get(sql, this.toList(params), false);

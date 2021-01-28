@@ -221,10 +221,8 @@ public class IndexTable {
      * @param args
      */
     public static void main(String[] args) {
-
         //查询
         System.out.println(queryFileIndex("", true, 1, 10).toString());
-
         //初始化索引Json
         JsonObject indexJson = JsonObject.VOID();
         //组装一些参数
@@ -236,7 +234,6 @@ public class IndexTable {
         indexJson.append("time", 1600353921128L);
         //新建数据
         System.out.println(addFileIndex(indexJson));
-
     }
 
 }

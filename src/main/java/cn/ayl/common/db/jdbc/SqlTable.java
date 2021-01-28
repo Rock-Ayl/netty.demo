@@ -9,19 +9,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 /**
- * jdbc核心
- * create by Rock-Ayl 2019-6-11
+ * Jdbc核心
+ * sql查询实现
  */
 public class SqlTable extends Table {
 
     protected static Logger logger = LoggerFactory.getLogger(SqlTable.class);
 
     protected static class ObjectObserve implements IObserveRecord {
+
         public JsonObjects records = JsonObjects.VOID();
         protected boolean wrapperParam = true;
 
@@ -187,44 +187,5 @@ public class SqlTable extends Table {
         execute(sql, params, offset, count, observe);
         return observe.records;
     }
-
-    public boolean copyRecord(String sourceTable, String destTable, String keyField, String keyId) {
-        try {
-            this.autoClose = false;
-            DatabaseMetaData metadata = connect.getMetaData();
-            ResultSet columns = metadata.getColumns(null, "%", destTable, "%");
-            JsonObject record = this.queryObject("select * from " + sourceTable + " where " + keyField + "=?", new Object[]{keyId});
-            StringBuilder sql = new StringBuilder();
-            sql.append("insert into " + destTable);
-            sql.append("(");
-            List<String> names = new ArrayList();
-            while (columns.next()) {
-                String name = columns.getString("COLUMN_NAME");
-                if (!record.containsKey(name)) continue;
-                if (names.size() > 0) sql.append(",");
-                sql.append(name);
-                names.add(name);
-            }
-            sql.append(")");
-            columns.close();
-            sql.append("values(");
-            sql.append(StringUtils.repeat("?", ",", names.size()));
-            sql.append(")");
-
-            PreparedStatement statement = connect.prepareStatement(sql.toString());
-            for (int i = 1; i <= names.size(); i++) {
-                statement.setObject(i, record.get(names.get(i - 1)));
-            }
-            boolean result = statement.executeUpdate() > 0;
-            statement.close();
-            return result;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            close();
-        }
-
-    }
-
 
 }
