@@ -58,7 +58,7 @@ public class Redis {
     }
 
     protected String redisKey(String id) {
-        if (org.apache.commons.lang3.StringUtils.isEmpty(name)) {
+        if (StringUtils.isEmpty(name)) {
             return id;
         } else {
             return name + "@" + id;
@@ -125,7 +125,7 @@ public class Redis {
         String key = redisKey(id);
         try {
             String content = readContent(key);
-            if (org.apache.commons.lang3.StringUtils.isEmpty(content)) {
+            if (StringUtils.isEmpty(content)) {
                 return null;
             }
             return JsonUtils.parse(content);
@@ -161,7 +161,7 @@ public class Redis {
         JsonObject oJson;
         try {
             String content = readContent(key);
-            if (!org.apache.commons.lang3.StringUtils.isEmpty(content)) {
+            if (StringUtils.isNotEmpty(content)) {
                 oJson = JsonUtils.parse(content);
             } else {
                 oJson = JsonObject.VOID();
@@ -173,30 +173,12 @@ public class Redis {
         }
     }
 
-
-    public void updateJson(String id, com.google.gson.JsonObject value) {
-        String key = redisKey(id);
-        com.google.gson.JsonObject oJson;
-        try {
-            String content = readContent(key);
-            if (!org.apache.commons.lang3.StringUtils.isEmpty(content)) {
-                oJson = GsonUtils.parse(content);
-            } else {
-                oJson = new com.google.gson.JsonObject();
-            }
-            oJson = GsonUtils.merge(oJson, value);
-            update(key, oJson.toString());
-        } catch (Exception e) {
-            logger.error("message", e);
-        }
-    }
-
     public com.google.gson.JsonObject readJson(String id) {
         String redisKey = redisKey(id);
         com.google.gson.JsonObject oJson = null;
         try {
             String content = readContent(redisKey);
-            if (!org.apache.commons.lang3.StringUtils.isEmpty(content)) {
+            if (StringUtils.isNotEmpty(content)) {
                 oJson = GsonUtils.parse(content);
             } else {
                 oJson = new com.google.gson.JsonObject();
@@ -235,7 +217,7 @@ public class Redis {
     }
 
     public void expire(String id, int seconds) {
-        if (org.apache.commons.lang3.StringUtils.isEmpty(id)) return;
+        if (StringUtils.isEmpty(id)) return;
         String key = redisKey(id);
         try {
             if (isPoolMode) {
@@ -251,7 +233,7 @@ public class Redis {
     }
 
     public void delete(String id) {
-        if (org.apache.commons.lang3.StringUtils.isEmpty(id)) return;
+        if (StringUtils.isEmpty(id)) return;
         String key = redisKey(id);
         try {
             if (isPoolMode) {

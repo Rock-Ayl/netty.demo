@@ -2,39 +2,33 @@ package cn.ayl.util;
 
 import com.google.gson.*;
 
-import java.util.Iterator;
-import java.util.Map;
-
 /**
  * 谷歌 工具类
  * create by Rock-Ayl 2019-6-13
  */
 public class GsonUtils {
 
-    public static Gson gson = new GsonBuilder().create();
-    protected static JsonParser parser = new JsonParser();
+    private static Gson Gson = new GsonBuilder().create();
+    private static JsonParser Parser = new JsonParser();
 
+    /**
+     * 解析对象为Json
+     *
+     * @param o 可以转化为JsonString的对象
+     * @return
+     */
     public static String toJson(Object o) {
-        return gson.toJson(o);
+        return Gson.toJson(o);
     }
 
-    public static JsonObject merge(JsonObject o1, JsonObject o2) {
-        JsonObject result = new JsonObject();
-        Iterator<Map.Entry<String, JsonElement>> i1 = o1.entrySet().iterator();
-        Iterator<Map.Entry<String, JsonElement>> i2 = o2.entrySet().iterator();
-        Map.Entry<String, JsonElement> temp;
-        while (i1.hasNext()) {
-            temp = i1.next();
-            result.add(temp.getKey(), temp.getValue());
-        }
-        while (i2.hasNext()) {
-            temp = i2.next();
-            result.add(temp.getKey(), temp.getValue());
-        }
-        return result;
-    }
-
+    /**
+     * 解析String为Json
+     *
+     * @param content 可以转化为Json的String
+     * @return
+     */
     public static JsonObject parse(String content) {
-        return (JsonObject) parser.parse(content);
+        return (JsonObject) Parser.parse(content);
     }
+
 }
