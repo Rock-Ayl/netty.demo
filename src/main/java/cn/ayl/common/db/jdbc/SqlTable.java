@@ -14,7 +14,7 @@ import java.util.Map;
 
 /**
  * Jdbc核心
- * sql查询实现
+ * sql实现
  */
 public class SqlTable extends Table {
 

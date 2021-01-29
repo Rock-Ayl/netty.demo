@@ -43,14 +43,13 @@ public class Table {
      * 获取默认的数据库连接
      *
      * @return 返回数据库连接对象
-     * @throws Exception
      */
     private static Connection getDefaultMysqlConnect() {
         try {
             //获取连接
             return DefaultMysqlDruid.getConnection();
         } catch (Exception e) {
-            logger.error("数据库连接出现异常:[{}]", e);
+            logger.error("获取默认数据库连接异常:[{}]", e);
             return null;
         }
     }
@@ -109,7 +108,7 @@ public class Table {
                 }
                 return true;
             } catch (Exception e) {
-                logger.error("getStringData", e);
+                logger.error("getStringData fail:[{}]", e);
                 return false;
             }
         }
@@ -134,7 +133,6 @@ public class Table {
             return v;
         }
     }
-
 
     public void updateStatement(PreparedStatement statement, List<Object> values) throws SQLException {
         for (int i = 0; values != null && i < values.size(); i++) {
