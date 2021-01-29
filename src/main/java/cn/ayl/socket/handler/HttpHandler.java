@@ -275,7 +275,6 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        logger.info("通道不活跃的");
         super.channelInactive(ctx);
         //判空
         if (uploadFileHandler != null) {

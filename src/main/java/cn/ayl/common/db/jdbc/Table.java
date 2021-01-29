@@ -1,10 +1,13 @@
 package cn.ayl.common.db.jdbc;
 
+import cn.ayl.common.db.jdbc.druid.DruidMysqlEncodingType;
+import cn.ayl.common.db.jdbc.druid.DruidTable;
 import cn.ayl.config.Const;
 import cn.ayl.common.db.jdbc.sqlbuilder.Sql;
 import cn.ayl.util.GsonUtils;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.common.json.JsonObjects;
+import com.alibaba.druid.pool.DruidDataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +23,43 @@ import java.util.List;
 public class Table {
 
     protected static Logger logger = LoggerFactory.getLogger(Table.class);
-    protected static Connection Connect = init();
+
+    //默认的mysql数据库源
+    public static DruidDataSource DefaultMysqlDruid = createDefaultMySqlDataSource();
+    //连接
+    protected Connection Connect = getDefaultMysqlConnect();
+
+    /**
+     * 创建默认的Mysql数据源
+     *
+     * @return
+     */
+    private static DruidDataSource createDefaultMySqlDataSource() {
+        //返回
+        return DruidTable.createMySqlDataSource(Const.JdbcHost, Const.JdbcPort, Const.JdbcDBName, DruidMysqlEncodingType.UTF8, Const.JdbcUser, Const.JdbcPassword, 0, 20, 5 * 1000, true, 60 * 1000, 30 * 60 * 1000, 7 * 60 * 60 * 1000, true, "select 1", 10 * 1000, true, true, 100);
+    }
+
+    /**
+     * 获取默认的数据库连接
+     *
+     * @return 返回数据库连接对象
+     * @throws Exception
+     */
+    private static Connection getDefaultMysqlConnect() {
+        try {
+            //获取连接
+            return DefaultMysqlDruid.getConnection();
+        } catch (Exception e) {
+            logger.error("数据库连接出现异常:[{}]", e);
+            return null;
+        }
+    }
+
+    //限制权限
+    protected Table() {
+
+    }
+
     protected static List<Object> VOIDS = new ArrayList();
 
     protected static class RowObserve implements IObserveRecord {
@@ -74,17 +113,6 @@ public class Table {
                 return false;
             }
         }
-    }
-
-    protected static Connection init() {
-        Connection conn = null;
-        try {
-            Class.forName(Const.JdbcDriver);
-            conn = DriverManager.getConnection("jdbc:mysql://" + Const.JdbcHost + ":" + Const.JdbcPort + "/" + Const.JdbcDBName + "?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false&serverTimezone = GMT", Const.JdbcUser, Const.JdbcPassword);
-        } catch (Exception e) {
-            logger.error("" + e);
-        }
-        return conn;
     }
 
     protected List<Object> toList(Object[] values) {

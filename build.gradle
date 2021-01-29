@@ -50,6 +50,8 @@ dependencies {
     compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.8.2'
     //mysql-jdbc
     compile group: 'mysql', name: 'mysql-connector-java', version: '6.0.6'
+    //阿里 java连接池-druid
+    compile group: 'com.alibaba', name: 'druid', version: '1.1.21'
     //redis、redisson
     compile group: 'redis.clients', name: 'jedis', version: '2.9.0'
     compile group: 'org.redisson', name: 'redisson', version: '3.5.4'
