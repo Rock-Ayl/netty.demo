@@ -136,7 +136,9 @@ public class Table {
     public void close(ResultSet rs, PreparedStatement statement) {
         this.close(statement);
         try {
-            rs.close();
+            if (rs != null) {
+                rs.close();
+            }
         } catch (SQLException e) {
             logger.error("ResultSet fail:", e);
         }
@@ -144,7 +146,9 @@ public class Table {
 
     public void close(PreparedStatement statement) {
         try {
-            statement.close();
+            if (statement != null) {
+                statement.close();
+            }
         } catch (SQLException e) {
             logger.error("PreparedStatement fail:", e);
         }
