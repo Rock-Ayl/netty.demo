@@ -286,7 +286,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         //输入日志
-        logger.warn("http请求请求异常，连接断开,异常为:" + cause);
+        logger.info("文件流传输关闭.");
         //当连接断开的时候 关闭未关闭的文件流
         if (randomAccessFile != null) {
             try {
