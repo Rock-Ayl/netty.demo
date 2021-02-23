@@ -63,8 +63,15 @@ public class ServiceEntry {
                     MethodEntry mEntry = new MethodEntry(methodAnnotation, methodName);
                     //解析方法内的参数
                     mEntry.parseParams(method, this.interFaceClass.getName());
-                    //方法实体组装
-                    this.methodMap.put(methodName, mEntry);
+                    //如果已经存在
+                    if (this.methodMap.containsKey(methodName)) {
+                        logger.error("方法[{}]注册重复,服务出现冲突,停止服务.", methods);
+                        //终止
+                        System.exit(-1);
+                    } else {
+                        //方法实体组装
+                        this.methodMap.put(methodName, mEntry);
+                    }
                 }
             }
         } catch (Exception e) {
