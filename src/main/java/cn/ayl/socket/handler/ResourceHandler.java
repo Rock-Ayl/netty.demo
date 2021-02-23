@@ -90,8 +90,8 @@ public class ResourceHandler {
         //获取请求给与的浏览器缓存的文件最后修改时间
         String ifModifiedSince = req.headers().get(HttpHeaderNames.IF_MODIFIED_SINCE);
         try {
-            //如果存在文件最后修改时间
-            if (StringUtils.isNotEmpty(ifModifiedSince)) {
+            //如果存在文件最后修改时间,并且不是0
+            if (StringUtils.isNotEmpty(ifModifiedSince) && !"0".equals(ifModifiedSince)) {
                 //转化为时间戳并变为秒
                 long ifModifiedSinceDateSeconds = DateUtils.SDF_HTTP_DATE_FORMATTER.parse(ifModifiedSince).getTime();
                 //获取服务器静态文件最后修改时间

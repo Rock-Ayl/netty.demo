@@ -3,6 +3,7 @@ package cn.ayl.socket.encoder;
 import cn.ayl.common.enumeration.FileRequestType;
 import cn.ayl.config.Const;
 import cn.ayl.common.json.JsonObject;
+import cn.ayl.socket.handler.FileSendHandler;
 import cn.ayl.util.DateUtils;
 import cn.ayl.util.HttpUtils;
 import cn.ayl.util.MD5Utils;
@@ -199,14 +200,18 @@ public class ResponseAndEncoderHandler {
         setServerHeaders(response);
         //写入响应及对应响应报文
         ctx.write(response);
+        //文件传输过程
+        ChannelFuture sendFileFuture;
         //判断是否为https
         if (HttpUtils.isHttps(ctx)) {
             //https的传输文件方式,非零拷贝,低效,不推荐
-            ctx.writeAndFlush(new HttpChunkedInput(new ChunkedFile(randomAccessFile, startOffset, endLength, 8192)), ctx.newProgressivePromise());
+            sendFileFuture = ctx.writeAndFlush(new HttpChunkedInput(new ChunkedFile(randomAccessFile, startOffset, endLength, 8192)), ctx.newProgressivePromise());
         } else {
             //http默认的传输文件方式,零拷贝,高效
-            ctx.writeAndFlush(new DefaultFileRegion(randomAccessFile.getChannel(), startOffset, endLength), ctx.newProgressivePromise());
+            sendFileFuture = ctx.writeAndFlush(new DefaultFileRegion(randomAccessFile.getChannel(), startOffset, endLength), ctx.newProgressivePromise());
         }
+        //添加传输监控
+        sendFileFuture.addListener(FileSendHandler.VOID(file.getName()));
         //ctx响应并关闭(如果使用Chunked编码，最后则需要发送一个编码结束的看空消息体，进行标记，表示所有消息体已经成功发送完成)
         ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
     }
