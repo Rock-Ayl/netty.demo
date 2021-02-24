@@ -114,6 +114,11 @@ eg:127.0.0.1:8888/Calendar/readCalendarList?keyword=QC-水印.doc
 @Service(desc = "用户")
 public interface User extends IMicroService {
 
+    @Method(desc = "测试", auth = true, command = RequestMethod.Get)
+    JsonObject test(
+            @Param(value = "关键词", optional = true) String keyword
+    );
+
     @Method(desc = "获取用户列表", auth = true)
     JsonObject readUserList(
             @Param(value = "关键词", optional = true) String keyword,
@@ -311,7 +316,7 @@ esac
 ## 4.可配置信息所在
 
 - 配置文件:setting.properties
-- 常亮:Const.Java
+- 常量:Const.Java
 
 ## 5.接口相关
 
