@@ -104,7 +104,7 @@ eg:127.0.0.1:8888/Calendar/readCalendarList?keyword=QC-水印.doc
 
 >通过注解`@Service`和继承`IMicroService`暴露服务
 
->通过`@Method`暴露方法,方法备注,是否需要验证身份(默认不需要)
+>通过`@Method`暴露方法,方法备注,是否需要验证身份(默认不需要),请求类型(默认是Post)
 
 >通过`@Param`暴露参数,参数备注,参数是否可选(默认必传)
 
