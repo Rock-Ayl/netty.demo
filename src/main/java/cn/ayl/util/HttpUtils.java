@@ -54,14 +54,22 @@ public class HttpUtils {
     public static Map<String, Object> getParams(HttpRequest httpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
         //初始化
         Map<String, Object> params = null;
-        //如果是get
-        if (httpRequest.method() == HttpMethod.GET) {
-            //取get参数的同时过滤不必须的参数
-            params = HttpUtils.getParamsFromGet(httpRequest, paramMap);
-        } else if (httpRequest.method() == HttpMethod.POST) {
-            //取post参数的同时过滤不必须的参数
-            params = HttpUtils.getParamsFromPost(httpRequest, paramMap);
+        //根据请求类型解析参数
+        switch (httpRequest.method().toString().toLowerCase()) {
+            //地址栏
+            case "get":
+                //取get参数的同时过滤不必须的参数
+                params = HttpUtils.getParamsFromGet(httpRequest, paramMap);
+                break;
+            //body
+            case "post":
+            case "put":
+            case "delete":
+                //取post参数的同时过滤不必须的参数
+                params = HttpUtils.getParamsFromPost(httpRequest, paramMap);
+                break;
         }
+        //返回
         return params;
     }
 

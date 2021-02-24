@@ -3,12 +3,14 @@ package cn.ayl.common.enumeration;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * 请求方法
+ * 服务支持的请求方法类型
  */
 public enum RequestMethod {
 
     Get,
     Post,
+    Put,
+    Delete,
     Options;
 
     /**

@@ -140,6 +140,7 @@ public class Const {
     public final static JsonObject Json_Error_Param = JsonObject.Fail("接口传参不正确.");
     public final static JsonObject Json_No_InterFace = JsonObject.Fail("不存在该接口.");
     public final static JsonObject Json_No_Service = JsonObject.Fail("不存在该服务.");
+    public final static JsonObject Json_No_ContentType = JsonObject.Fail("不支持该请求类型.");
     public final static JsonObject Json_Not_Mobile = JsonObject.Fail("账号不是手机号.");
     public final static JsonObject Json_Not_Password = JsonObject.Fail("密码错误.");
     public final static JsonObject Json_No_User = JsonObject.Fail("用户不存在.");

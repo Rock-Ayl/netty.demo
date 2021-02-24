@@ -2,6 +2,7 @@ package cn.ayl.common.entry;
 
 import cn.ayl.common.annotation.Method;
 import cn.ayl.common.annotation.Service;
+import cn.ayl.common.enumeration.RequestMethod;
 import cn.ayl.intf.IMicroService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,12 +23,16 @@ public class ServiceEntry {
     public String name = null;
     //注释
     public String desc = null;
-    //该服务的方法组
-    public LinkedHashMap<String, MethodEntry> methodMap = new LinkedHashMap();
+    //该服务的请求类型组
+    public LinkedHashMap<String, LinkedHashMap<String, MethodEntry>> commandMap = new LinkedHashMap<>();
 
     public ServiceEntry(Class<? extends IMicroService> interFaceClass) {
         this.interFaceClass = interFaceClass;
-
+        //循环支持的请求方法类型
+        for (RequestMethod value : RequestMethod.values()) {
+            //初始化
+            commandMap.put(value.toString().toLowerCase(), new LinkedHashMap<>());
+        }
     }
 
     //初始化业务实体
@@ -63,14 +68,23 @@ public class ServiceEntry {
                     MethodEntry mEntry = new MethodEntry(methodAnnotation, methodName);
                     //解析方法内的参数
                     mEntry.parseParams(method, this.interFaceClass.getName());
-                    //如果已经存在
-                    if (this.methodMap.containsKey(methodName)) {
-                        logger.error("方法[{}]注册重复,服务出现冲突,停止服务.", methods);
-                        //终止
-                        System.exit(-1);
-                    } else {
-                        //方法实体组装
-                        this.methodMap.put(methodName, mEntry);
+                    //获取该方法的请求类型
+                    String command = methodAnnotation.command().toString().toLowerCase();
+                    //如果支持该请求类型
+                    if (this.commandMap.containsKey(command)) {
+                        //获取对应请求类型中的方法
+                        LinkedHashMap<String, MethodEntry> methodMap = this.commandMap.get(command);
+                        //如果已经存在
+                        if (methodMap.containsKey(methodName)) {
+                            logger.error("方法[{}]注册重复,服务出现冲突,停止服务.", methods);
+                            //终止
+                            System.exit(-1);
+                        } else {
+                            //方法实体组装
+                            methodMap.put(methodName, mEntry);
+                            //组装回去
+                            this.commandMap.put(command, methodMap);
+                        }
                     }
                 }
             }

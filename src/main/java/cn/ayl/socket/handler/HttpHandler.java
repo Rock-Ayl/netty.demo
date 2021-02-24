@@ -58,12 +58,19 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceAndMethod.get(0));
                 //如果服务存在
                 if (serviceEntry != null) {
-                    //获取服务中的方法
-                    MethodEntry methodEntry = serviceEntry.methodMap.get(serviceAndMethod.get(1));
-                    //如果方法存在
-                    if (methodEntry != null) {
-                        //返回是否需要验证
-                        needAuth = methodEntry.auth;
+                    //获取请求类型
+                    String command = req.method().toString().toLowerCase();
+                    //如果是支持的请求类型
+                    if (serviceEntry.commandMap.containsKey(command)) {
+                        //获取该请求类型下的方法map
+                        LinkedHashMap<String, MethodEntry> methodMap = serviceEntry.commandMap.get(command);
+                        //获取服务中的方法
+                        MethodEntry methodEntry = methodMap.get(serviceAndMethod.get(1));
+                        //如果方法存在
+                        if (methodEntry != null) {
+                            //返回是否需要验证
+                            needAuth = methodEntry.auth;
+                        }
                     }
                 }
             }
@@ -99,8 +106,14 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         if (serviceEntry == null) {
             return Const.Json_No_Service;
         }
+        //请求类型
+        String command = req.method().toString().toLowerCase();
+        //如果不存在于支持的请求类型
+        if (!serviceEntry.commandMap.containsKey(command)) {
+            return Const.Json_No_ContentType;
+        }
         //获取服务中的方法
-        MethodEntry methodEntry = serviceEntry.methodMap.get(serviceAndMethod.get(1));
+        MethodEntry methodEntry = serviceEntry.commandMap.get(command).get(serviceAndMethod.get(1));
         //如果方法存在
         if (methodEntry == null) {
             return Const.Json_No_InterFace;
@@ -207,15 +220,26 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @param req 请求
      */
     private void handleService(ChannelHandlerContext ctx, HttpRequest req) {
-        //根据请求类型处理请求 get post ...
-        if (req.method() == HttpMethod.GET || req.method() == HttpMethod.POST) {
-            //根据path和params处理业务并返回结果
-            Object result = handleServiceFactory(req);
-            //组装、响应并返回
-            ResponseAndEncoderHandler.sendObject(ctx, HttpResponseStatus.OK, result);
-        } else {
-            //当做预检请求处理
-            ResponseAndEncoderHandler.sendOption(ctx);
+        //请求类型
+        String command = req.method().toString().toLowerCase();
+        //根据请求类型分发
+        switch (command) {
+            //支持的请求类型
+            case "get":
+            case "post":
+            case "put":
+            case "delete":
+                //根据path和params处理业务并返回结果
+                Object result = handleServiceFactory(req);
+                //组装、响应并返回
+                ResponseAndEncoderHandler.sendObject(ctx, HttpResponseStatus.OK, result);
+                break;
+            //默认
+            case "options":
+            default:
+                //当做预检请求处理
+                ResponseAndEncoderHandler.sendOption(ctx);
+                break;
         }
     }
 
@@ -223,7 +247,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * 根据请求路径获得服务和方法名
      *
      * @param path eg:/Organize/login
-     * @return
+     * @return ["Organize","login"]
      */
     private static List<String> getServiceAndMethod(String path) {
         //初始化
@@ -234,8 +258,15 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         if (CollectionUtils.isNotEmpty(piecewise) && piecewise.size() > 2) {
             //获取并组装服务名
             result.add(piecewise.get(1));
-            //获取并组装方法名
-            result.add(piecewise.get(2));
+            //获取第二级
+            String second = piecewise.get(2);
+            //如果存在?
+            if (second.contains("?")) {
+                //截取到?之前
+                second = second.substring(0, second.lastIndexOf("?"));
+            }
+            //组装第二级
+            result.add(second);
         }
         //返回
         return result;

@@ -3,6 +3,7 @@ package cn.ayl.intf;
 import cn.ayl.common.annotation.Method;
 import cn.ayl.common.annotation.Param;
 import cn.ayl.common.annotation.Service;
+import cn.ayl.common.enumeration.RequestMethod;
 import cn.ayl.common.json.JsonObject;
 
 /**
@@ -11,6 +12,11 @@ import cn.ayl.common.json.JsonObject;
  */
 @Service(desc = "用户")
 public interface User extends IMicroService {
+
+    @Method(desc = "测试", auth = true, command = RequestMethod.Get)
+    JsonObject test(
+            @Param(value = "关键词", optional = true) String keyword
+    );
 
     @Method(desc = "获取用户列表", auth = true)
     JsonObject readUserList(

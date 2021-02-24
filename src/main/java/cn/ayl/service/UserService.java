@@ -17,6 +17,11 @@ import org.apache.commons.lang3.StringUtils;
 public class UserService extends Context implements User {
 
     @Override
+    public JsonObject test(String keyword) {
+        return JsonObject.Success().append("keyword", keyword);
+    }
+
+    @Override
     public JsonObject readUserList(String keyword, Integer pageIndex, Integer pageSize) {
         //验证权限为root
         if (!UserCommons.isRoot(this.user.userId)) {
