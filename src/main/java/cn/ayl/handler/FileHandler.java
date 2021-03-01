@@ -67,6 +67,7 @@ public enum FileHandler {
      * @return
      */
     public File readResourceFile(String pathSuffix) {
+        //直接从静态地址读取
         return new File(Const.ResourceFilePath + pathSuffix);
     }
 
@@ -98,6 +99,7 @@ public enum FileHandler {
                 items.add(fileObject);
             }
         }
+        //返回文件信息
         return JsonObject.Success().append(Const.Items, items);
     }
 
