@@ -41,6 +41,6 @@ public class Etcd {
         logger.info("Etcd Server Version : {}", etcd.getServerVersion());
         logger.info("Etcd Cluster Version : {}", etcd.getClusterVersion());
         System.exit(-1);
-
     }
+
 }
