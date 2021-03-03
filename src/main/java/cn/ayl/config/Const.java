@@ -100,6 +100,10 @@ public class Const {
     public static final String Neo4jUser = properties.getProperty("Neo4jUser");
     public static final String Neo4jPassword = properties.getProperty("Neo4jPassword");
 
+    //Etcd
+    public static final String EtcdHost = properties.getProperty("EtcdHost");
+    public static final String EtcdPort = properties.getProperty("EtcdPort");
+
     //MongoDB
     public static final String MongoHost = properties.getProperty("MongoHost");
     public static final String MongoPort = properties.getProperty("MongoPort");
