@@ -94,6 +94,12 @@ public class Const {
     public static final String JdbcDBName = properties.getProperty("JdbcDBName");
     public static final String JdbcPassword = properties.getProperty("JdbcPassword");
 
+    //Neo4j
+    public static final String Neo4jHost = properties.getProperty("Neo4jHost");
+    public static final String Neo4jPort = properties.getProperty("Neo4jPort");
+    public static final String Neo4jUser = properties.getProperty("Neo4jUser");
+    public static final String Neo4jPassword = properties.getProperty("Neo4jPassword");
+
     //MongoDB
     public static final String MongoHost = properties.getProperty("MongoHost");
     public static final String MongoPort = properties.getProperty("MongoPort");

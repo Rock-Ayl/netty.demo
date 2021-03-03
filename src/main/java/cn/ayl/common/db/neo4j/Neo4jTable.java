@@ -1,7 +1,9 @@
 package cn.ayl.common.db.neo4j;
 
-import cn.ayl.common.json.JsonObject;
 import cn.ayl.common.json.JsonObjects;
+import cn.ayl.config.Const;
+import cn.ayl.util.GsonUtils;
+import cn.ayl.util.JsonUtils;
 import org.neo4j.driver.v1.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,79 +17,51 @@ public class Neo4jTable {
     protected static Logger logger = LoggerFactory.getLogger(Neo4jTable.class);
 
     //Neo4j连接
-    private static Driver driver;
-    //Neo4j会话
-    private static Session session;
+    private static Driver Driver;
 
     //初始化
     static {
         try {
+            //连接url
+            String url = "bolt://" + Const.Neo4jHost + ":" + Const.Neo4jPort;
             //连接
-            driver = GraphDatabase.driver("bolt://127.0.0.1:7687", AuthTokens.basic("neo4j", "123456"));
-            //会话
-            session = driver.session();
+            Driver = GraphDatabase.driver(url, AuthTokens.basic(Const.Neo4jUser, Const.Neo4jPassword));
         } catch (Exception e) {
             logger.error("Neo4j连接初始化失败,可能1:Neo4j服务未启动,可能2:用户身份不被认证.");
         }
     }
 
-    /**
-     * 新增
-     *
-     * @return
-     */
-    public static void create() {
-        //新增事务
-        try (Transaction transaction = session.beginTransaction()) {
-            //新增逻辑
-            transaction.run("create(n:A1{NAME:{NAME},TITLE:{TITLE}})", Values.parameters("NAME", "james", "TITLE", "King"));
-            //提交
-            transaction.success();
-        }
+    //私有
+    private Neo4jTable() {
+
     }
 
     /**
-     * 查询
+     * 默认使用
      *
      * @return
      */
-    public static JsonObjects query() {
-        //查询事务
-        try (Transaction tx = session.beginTransaction()) {
-            //查询结果
-            JsonObjects items = JsonObjects.VOID();
-            //查询逻辑
-            StatementResult result = tx.run("match(a:A1) WHERE a.NAME = {NAME} RETURN a.NAME AS NAME,a.TITLE AS TITLE", Values.parameters("NAME", "james"));
-            //编辑
-            while (result.hasNext()) {
-                //获取当前查询记录
-                Record record = result.next();
-                //初始化记录对象
-                JsonObject data = JsonObject.VOID();
-                //组装
-                data.append("TITLE", record.get("TITLE").asString());
-                data.append("NAME", record.get("NAME").asString());
-                //记录至结果
-                items.add(data);
-            }
-            //返回
-            return items;
-        }
+    public static Neo4jTable use() {
+        return new Neo4jTable();
     }
 
     /**
-     * 测试主方法
+     * 实现CypherSql
      *
-     * @param args
+     * @param cypherSql cypherSql
+     * @return
      */
-    public static void main(String[] args) {
-        //新增
-        //create();
-        //查询
-        JsonObjects items = query();
-        //输出
-        System.out.println(items.toJson());
-        System.out.println("数量:" + items.size());
+    public JsonObjects execute(String cypherSql) {
+        //获取会话
+        try (Session session = Driver.session()) {
+            //输出sql
+            logger.info("Neo4j Sql Execute:[{}]", cypherSql);
+            //查询,并将结果转化为Jsons,返回
+            return JsonUtils.parses(GsonUtils.toJson(session.run(cypherSql).list(Record::asMap)));
+        } catch (Exception e) {
+            logger.error("实现cypherSql[{}]出现异常:", cypherSql, e);
+            return null;
+        }
     }
 
 }
