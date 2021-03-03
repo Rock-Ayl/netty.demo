@@ -3,7 +3,7 @@ package cn.ayl.util;
 import com.google.gson.*;
 
 /**
- * 谷歌 工具类
+ * 谷歌Gson,工具类,解析神器
  * create by Rock-Ayl 2019-6-13
  */
 public class GsonUtils {
@@ -12,7 +12,7 @@ public class GsonUtils {
     private static JsonParser Parser = new JsonParser();
 
     /**
-     * 解析对象为Json
+     * 解析object为Json结构的String
      *
      * @param o 可以转化为JsonString的对象
      * @return
