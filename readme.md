@@ -29,7 +29,7 @@
 
 # 已知bug或使用问题
 
-1.对外暴露接口要用post请求+body传Json参数的方式调用,如果用uri的方式,可能会被识别为静态文件
+1.对外暴露接口要用post请求+body传Json参数的方式调用,如果用uri的方式,可能会被识别为静态文件 (已解决,现在支持Get,Post,Put,Delete) 
 
 eg:127.0.0.1:8888/Calendar/readCalendarList?keyword=QC-水印.doc
 
@@ -37,7 +37,7 @@ eg:127.0.0.1:8888/Calendar/readCalendarList?keyword=QC-水印.doc
 
 3.使用postman上传文件会出现解析问题,但其他方式均正常,大概率是postman的问题(括弧笑)
 
-4.虽然该项目足够干净和轻量,但还是需要MySql和Redis来支持身份认证,或是你自己直接修改(推荐这种),否则调用接口会遇到身份验证问题(直接失败)
+4.虽然该项目足够干净和轻量,但是还是需要MySql和Redis来支持身份认证,或是你自己直接修改todo(推荐这种),否则调用接口会遇到身份验证问题(直接失败)
 
 ## Add dependencies to build.gradle.
 
