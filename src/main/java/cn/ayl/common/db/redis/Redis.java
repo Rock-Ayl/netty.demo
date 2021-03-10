@@ -92,7 +92,7 @@ public class Redis {
             }
             return true;
         } catch (Exception e) {
-            logger.error("message", e);
+            logger.error("message:[{}]", e);
             return false;
         }
     }
@@ -130,7 +130,7 @@ public class Redis {
             }
             return JsonUtils.parse(content);
         } catch (Exception e) {
-            logger.error("message", e);
+            logger.error("message:[{}]", e);
             return null;
         }
     }
@@ -141,7 +141,7 @@ public class Redis {
             String content = readContent(key);
             return content;
         } catch (Exception e) {
-            logger.error("message", e);
+            logger.error("message:[{}]", e);
             return null;
         }
     }
@@ -169,7 +169,7 @@ public class Redis {
             oJson.putAll(value);
             update(key, oJson.toJson());
         } catch (Exception e) {
-            logger.error("updateObject", e);
+            logger.error("message:[{}]", e);
         }
     }
 
@@ -184,7 +184,7 @@ public class Redis {
                 oJson = new com.google.gson.JsonObject();
             }
         } catch (Exception e) {
-            logger.error("message", e);
+            logger.error("message:[{}]", e);
         }
         return oJson;
     }
@@ -194,7 +194,7 @@ public class Redis {
         try {
             update(redisKey, value.toString());
         } catch (Exception e) {
-            logger.error("message", e);
+            logger.error("message:[{}]", e);
         }
     }
 
@@ -228,7 +228,7 @@ public class Redis {
                 jedisCluster.expire(key, seconds);
             }
         } catch (Exception e) {
-            logger.error("message", e);
+            logger.error("message:[{}]", e);
         }
     }
 
@@ -244,7 +244,7 @@ public class Redis {
                 jedisCluster.del(key);
             }
         } catch (Exception e) {
-            logger.error("message", e);
+            logger.error("message:[{}]", e);
         }
     }
 
@@ -261,7 +261,7 @@ public class Redis {
                 jedisCluster.expire(id, 3 * 60);
             }
         } catch (Exception e) {
-            logger.error("message", e);
+            logger.error("message:[{}]", e);
         }
     }
 
@@ -270,7 +270,7 @@ public class Redis {
             id = id + "-captcha";
             return readContent(id);
         } catch (Exception e) {
-            logger.error("message", e);
+            logger.error("message:[{}]", e);
             return null;
         }
     }
