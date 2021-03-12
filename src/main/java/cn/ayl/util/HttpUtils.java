@@ -14,6 +14,8 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryAttribute;
 import io.netty.handler.ssl.SslHandler;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,7 +100,7 @@ public class HttpUtils {
                     //如果该参数是我需要的
                     if (paramMap.containsKey(entry.getKey())) {
                         //强转并组装
-                        params.put(entry.getKey(), TypeUtils.castObject(paramMap.get(entry.getKey()).clazz, entry.getValue().get(0)));
+                        params.put(entry.getKey(), GsonUtils.castObject(paramMap.get(entry.getKey()).clazz, entry.getValue().get(0)));
                     }
                 } else {
                     //直接组装
@@ -164,7 +166,7 @@ public class HttpUtils {
                     //如果是所需参数
                     if (paramMap.containsKey(key)) {
                         //强转并组装
-                        params.put(key, TypeUtils.castObject(paramMap.get(key).clazz, attribute.getValue()));
+                        params.put(key, GsonUtils.castObject(paramMap.get(key).clazz, attribute.getValue()));
                     }
                 } else {
                     //直接组装
@@ -210,7 +212,7 @@ public class HttpUtils {
                 //如果是所需要的参数
                 if (paramMap.containsKey(key)) {
                     //强转并组装
-                    params.put(key, TypeUtils.castObject(paramMap.get(key).clazz, jsonParams.get(key)));
+                    params.put(key, GsonUtils.castObject(paramMap.get(key).clazz, jsonParams.get(key)));
                 }
             } else {
                 //直接组装
@@ -219,6 +221,58 @@ public class HttpUtils {
         }
         //返回
         return params;
+    }
+
+    /**
+     * 根据文件名区分Http响应的CONTENT_TYPE
+     *
+     * @param fileName 文件路径
+     * @return
+     */
+    public static String parseHttpResponseContentType(String fileName) {
+        //获取文件后缀
+        String fileExt = FilenameUtils.getExtension(fileName);
+        //判空
+        if (StringUtils.isNotBlank(fileExt)) {
+            //小写
+            fileExt = fileExt.toLowerCase();
+            //分发
+            switch (fileExt) {
+                case "txt":
+                case "html":
+                    return "text/html; charset=UTF-8";
+                case "text":
+                    return "text/plain; charset=UTF-8";
+                case "json":
+                    return "application/json; charset=UTF-8";
+                case "css":
+                    return "text/css; charset=UTF-8";
+                case "js":
+                    return "application/javascript;charset=utf-8";
+                case "svg":
+                    return "Image/svg+xml; charset=utf-8";
+                case "jpeg":
+                case "jpg":
+                    return "image/jpeg";
+                case "csv":
+                    return ".csv";
+                case "ico":
+                    return "image/x-icon";
+                case "png":
+                    return "image/png";
+                case "pdf":
+                    return "application/pdf; charset=utf-8";
+                case "gif":
+                    return "image/gif";
+                case "mp3":
+                    return "audio/mp3; charset=utf-8";
+                case "mp4":
+                case "mkv":
+                    return "video/mp4; charset=utf-8";
+            }
+        }
+        //缺省
+        return "application/octet-stream";
     }
 
 }

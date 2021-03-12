@@ -7,7 +7,6 @@ import cn.ayl.socket.handler.FileSendHandler;
 import cn.ayl.util.DateUtils;
 import cn.ayl.util.HttpUtils;
 import cn.ayl.util.MD5Utils;
-import cn.ayl.util.TypeUtils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
@@ -157,7 +156,7 @@ public class ResponseAndEncoderHandler {
             case preview:
             default:
                 //按文件类别区分文件类型
-                contentType = TypeUtils.parseHttpResponseContentType(realFileName);
+                contentType = HttpUtils.parseHttpResponseContentType(realFileName);
                 //告诉浏览器是预览
                 disposition = "inline";
                 break;

@@ -8,8 +8,9 @@ import com.google.gson.*;
  */
 public class GsonUtils {
 
-    private static Gson Gson = new GsonBuilder().create();
-    private static JsonParser Parser = new JsonParser();
+    //创建个静态的工具
+    private static final Gson Gson = new GsonBuilder().create();
+    private static final JsonParser Parser = new JsonParser();
 
     /**
      * 解析object为Json结构的String
@@ -22,13 +23,28 @@ public class GsonUtils {
     }
 
     /**
-     * 解析String为Json
+     * 解析String为Gson
      *
-     * @param content 可以转化为Json的String
+     * @param content 可以转化为Gson的String
      * @return
      */
     public static JsonObject parse(String content) {
         return (JsonObject) Parser.parse(content);
+    }
+
+    /**
+     * 强转对象为任意类型
+     *
+     * @param clz 类型
+     * @param o   被转换对象
+     * @param <T>
+     * @return
+     */
+    public static <T> T castObject(Class<T> clz, Object o) {
+        if (null == o) {
+            return null;
+        }
+        return Gson.fromJson(toJson(o), clz);
     }
 
 }
