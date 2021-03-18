@@ -1,4 +1,4 @@
-# 基于netty的轻量级.单机版.RPC服务框架
+# 基于netty的轻量服务器架构
 
 ## 技术栈
 
@@ -8,18 +8,16 @@
 - Redis 5.0.7
 - Mongo 4.0.9
 
-## 支持网络协议
+## 支持协议
 
 - Http
 - WebSocket
 
 ## 支持服务
 
-- 定制化对外提供数据接口
-- 即时的聊天室(WebSocket)(支持心跳)
-- formData上传文件
-- 接口下载/预览文件(支持多线程Range,浏览器缓存策略)
-- 浏览静态文件资源(支持多线程Range,video支持快进后退,浏览器缓存策略)
+- WebSocket聊天室
+- 业务接口,目前支持四种请求,Get Post Put Delete
+- 普通文件、静态文件的上传下载预览及相关浏览器策略定制,支持Range
 
 ## 作者相关
 
@@ -27,17 +25,11 @@
 
 非常欢迎对该框架有问题的小伙伴发邮件给我,我会给每一封邮件解答问题.
 
-# 已知bug或使用问题
+# 已知bug或使用时要注意的问题
 
-1.对外暴露接口要用post请求+body传Json参数的方式调用,如果用uri的方式,可能会被识别为静态文件 (已解决,现在支持Get,Post,Put,Delete) 
+1.对外接口在参数暴露/解析上,会有优先级,比如传个num=5,既可以用Integer去接,也可以用Long去接,甚至可以用String去接,但程序会有一个优先级判定,请自行斟酌修改对应逻辑
 
-eg:127.0.0.1:8888/Calendar/readCalendarList?keyword=QC-水印.doc
-
-2.对外接口在参数暴露上面,会有解析优先级,比如传个num=5,既可以用Integer去接,也可以用Long去接,甚至可以用String去接,但程序会有一个优先级判定,请尝试测试了解优先级
-
-3.使用postman上传文件会出现解析问题,但其他方式均正常,大概率是postman的问题(括弧笑)
-
-4.虽然该项目足够干净和轻量,但是还是需要MySql和Redis来支持身份认证,或是你自己直接修改todo(推荐这种),否则调用接口会遇到身份验证问题(直接失败)
+2.使用postman上传文件可能会出现异常的问题,但仅是Postman,其他方式无碍,尚不知原因.
 
 ## Add dependencies to build.gradle.
 
@@ -46,58 +38,46 @@ eg:127.0.0.1:8888/Calendar/readCalendarList?keyword=QC-水印.doc
    dependencies {
    
        //netty-4
-       compile group: 'io.netty', name: 'netty-all', version: '4.1.19.Final'
-       //mongo-Bson
-       compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.8.2'
-       //google-Gson
-       compile group: 'com.google.code.gson', name: 'gson', version: '2.8.5'
-       //apache-commons工具包
-       compile group: 'org.apache.commons', name: 'commons-dbcp2', version: '2.1.1'
-       compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.6'
-       compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
-       compile group: 'commons-io', name: 'commons-io', version: '2.5'
-       compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
-       //日志-slf4j
-       compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.25'
-       //gitHub的 超轻量级的Java类路径和模块路径扫描器
-       compile group: 'io.github.lukehutch', name: 'fast-classpath-scanner', version: '2.18.1'
-       //谷歌-Gson
-       compile group: 'com.google.code.gson', name: 'gson', version: '2.8.5'
-       //定时器 quartz
-       compile group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.0'
-       //mongo-Bson
-       compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.8.2'
-       //mysql-jdbc
-       compile group: 'mysql', name: 'mysql-connector-java', version: '6.0.6'
-       //redis,redisson
-       compile group: 'redis.clients', name: 'jedis', version: '2.9.0'
-       compile group: 'org.redisson', name: 'redisson', version: '3.5.4'
-       //etcd连接池
-       compile group: 'org.mousio', name: 'etcd4j', version: '2.17.0'
+           compile group: 'io.netty', name: 'netty-all', version: '4.1.19.Final'
+           //mongo-Bson
+           compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.8.2'
+           //google-Gson
+           compile group: 'com.google.code.gson', name: 'gson', version: '2.8.5'
+           //apache-commons工具包
+           compile group: 'org.apache.commons', name: 'commons-dbcp2', version: '2.1.1'
+           compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.6'
+           compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
+           compile group: 'commons-io', name: 'commons-io', version: '2.5'
+           compile group: 'commons-codec', name: 'commons-codec', version: '1.10'
+           //日志-slf4j
+           compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.25'
+           //gitHub-超轻量级的Java类路径和模块路径扫描器
+           compile group: 'io.github.lukehutch', name: 'fast-classpath-scanner', version: '2.18.1'
+           //谷歌-Gson
+           compile group: 'com.google.code.gson', name: 'gson', version: '2.8.5'
+           //定时器-quartz
+           compile group: 'org.quartz-scheduler', name: 'quartz', version: '2.3.0'
+           //mongo-Bson
+           compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.8.2'
+           //mysql-jdbc
+           compile group: 'mysql', name: 'mysql-connector-java', version: '6.0.6'
+           //阿里 java连接池-druid
+           compile group: 'com.alibaba', name: 'druid', version: '1.1.21'
+           //redis、redisson
+           compile group: 'redis.clients', name: 'jedis', version: '2.9.0'
+           compile group: 'org.redisson', name: 'redisson', version: '3.5.4'
+           //Etcd-连接池
+           compile group: 'org.mousio', name: 'etcd4j', version: '2.17.0'
+           //ElasticSearch-7.9.1
+           compile group: 'org.elasticsearch', name: 'elasticsearch', version: '7.9.1'
+           compile group: 'org.elasticsearch.client', name: 'elasticsearch-rest-high-level-client', version: '7.9.1'
+           //neo4j-服务器开发依赖
+           compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.5.1'
+           //apache tika-文本抽取
+           compile group: 'org.apache.tika', name: 'tika-parsers', version: '1.24.1'
    
    }
    
-   //jar包设置
-   jar {
-   
-       //这个是将所有依赖在打包时候放入jar包中,方便直接启动
-       from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-   
-       //告诉gradle,我的Main是什么,打包时候有用
-       manifest {
-           //主程序是这个
-           attributes('Main-Class': 'cn.ayl.Server')
-       }
-   
-   }
-   
-   //编译参数名称 jdk1.8新特性之一,默认关闭的,由于用到了反射,打开它,不然build后没办法启动
-   compileJava {
-   
-       //等价于:require -parameters,please add '-parameters' in [preferences]->[Build.JavaCompiler]->[Additional Parameters]
-       options.compilerArgs << '-parameters'
-   
-   }
 ```
 
 ## 1.定义接口
@@ -197,6 +177,7 @@ public class UserService extends Context implements User {
 ================
 
  >IDE中直接用`Server`的`main`启动
+ 
  
  ``` java
 public class Server {
@@ -316,15 +297,16 @@ esac
 ## 4.可配置信息所在
 
 - 配置文件:setting.properties
-- 常量:Const.Java
+- 代码中的常量:Const.Java
+- 日志配置文件:log4j.properties
 
-## 5.接口相关
+## 5.其他相关文件
 
 /netty.demo/src/main/resources目录下
 
 - 文件的上传的html
 - WebSocket聊天室的html
-- postman接口调用导出json(postman的form-data上传有bug,请使用页面上传测试)
+- postman接口调用导出json(postman的form-data上传有bug,最好使用页面上传测试)
 
 ## 6.备注
 
@@ -336,6 +318,6 @@ esac
 
 你可以学习到如何自己搭建一个单机版本的服务器框架
 
-该框架优点是 注释多,除了netty基本啥都没有,超轻量,不需要依赖Spring全家桶
+该框架优点:注释多,除了netty基本啥都没有,超轻量,不需要依赖Spring全家桶
 
 ```
