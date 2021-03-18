@@ -121,8 +121,15 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
         //获取方法中的参数组
         LinkedHashMap<String, ParamEntry> paramMap = methodEntry.paramMap;
         List<String> paramList = methodEntry.paramList;
-        //根据获取请求参数
-        Map<String, Object> params = HttpUtils.getParams(req, paramMap);
+        //请求参数
+        Map<String, Object> params;
+        try {
+            //解析请求参数
+            params = HttpUtils.getParams(req, paramMap);
+        } catch (Exception e) {
+            logger.error("解析参数出现异常, error: [{}]", e);
+            return Const.Json_Parse_Param_Find_Exception;
+        }
         if (params == null) {
             return Const.Json_Error_Param;
         }

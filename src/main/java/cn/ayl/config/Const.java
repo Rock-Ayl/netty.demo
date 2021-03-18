@@ -146,6 +146,7 @@ public class Const {
      */
 
     public final static JsonObject Json_Find_Exception = JsonObject.Fail("出现异常.");
+    public final static JsonObject Json_Parse_Param_Find_Exception = JsonObject.Fail("解析参数出现异常.");
     public final static JsonObject Json_No_Impl = JsonObject.Fail("该服务不存在具体实现.");
     public final static JsonObject Json_Error_Param = JsonObject.Fail("接口传参不正确.");
     public final static JsonObject Json_No_InterFace = JsonObject.Fail("不存在该接口.");
