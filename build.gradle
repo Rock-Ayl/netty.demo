@@ -64,6 +64,8 @@ dependencies {
     compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.5.1'
     //apache tika-文本抽取
     compile group: 'org.apache.tika', name: 'tika-parsers', version: '1.24.1'
+    //apache kafka-流处理
+    implementation group: 'org.apache.kafka', name: 'kafka-clients', version: '2.7.0'
 
 }
 
