@@ -14,8 +14,8 @@ public class FlinkConsumerMain {
     public static void main(String[] args) throws Exception {
         //获取环境
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        //载入配置
-        FlinkKafkaConsumer<String> myConsumer = new FlinkKafkaConsumer<String>("my-topic", new SimpleStringSchema(), KafkaConsumerMain.getProperties());
+        //载入配置,订阅主题
+        FlinkKafkaConsumer<String> myConsumer = new FlinkKafkaConsumer<String>(KafkaProducerMain.Topic, new SimpleStringSchema(), KafkaConsumerMain.getProperties());
         //获取数据
         DataStream<String> text = env.addSource(myConsumer);
         //打印

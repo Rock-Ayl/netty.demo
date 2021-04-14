@@ -12,6 +12,9 @@ import java.util.Properties;
  */
 public class KafkaProducerMain {
 
+    //主题
+    public final static String Topic = "my-topic";
+
     /**
      * 获取kafka生产者配置
      *
@@ -36,16 +39,22 @@ public class KafkaProducerMain {
     }
 
     public static void main(String[] args) {
+        //初始化生产者,载入配置
         Producer<String, String> producer = new KafkaProducer<>(getProperties());
+        //一个线程
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 int i = 0;
                 while (true) {
-                    producer.send(new ProducerRecord<String, String>("my-topic", Integer.toString(i), Integer.toString(i)));
-                    System.out.println("发送成功！" + i);
-                    i++;
+                    //key、value
+                    String key = Integer.toString(i);
+                    String value = Integer.toString(i);
+                    //不停的发送
+                    producer.send(new ProducerRecord<String, String>(KafkaProducerMain.Topic, key, value));
+                    System.out.println("发送成功！" + i++);
                     try {
+                        //等待一下
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
@@ -53,8 +62,8 @@ public class KafkaProducerMain {
                 }
             }
         });
+        //启动线程
         thread.start();
-        //producer.close();
     }
 
 }

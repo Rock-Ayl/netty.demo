@@ -39,11 +39,17 @@ public class KafkaConsumerMain {
     }
 
     public static void main(String[] args) {
+        //初始化kafka消费者,载入配置
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(getProperties());
-        consumer.subscribe(Arrays.asList("my-topic"));
+        //订阅主题List
+        consumer.subscribe(Arrays.asList(KafkaProducerMain.Topic));
+        //循环
         while (true) {
+            //获取消费数据
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+            //循环
             for (ConsumerRecord<String, String> record : records) {
+                //输出
                 System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
             }
         }
