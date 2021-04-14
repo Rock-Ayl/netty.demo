@@ -12,27 +12,36 @@ import java.util.Properties;
  */
 public class KafkaProducerMain {
 
-    public static void main(String[] args) {
-        Properties props = new Properties();
+    /**
+     * 获取kafka生产者配置
+     *
+     * @return
+     */
+    public static Properties getProperties() {
+        //初始化
+        Properties pro = new Properties();
         // kafka服务器
-        props.put("bootstrap.servers", "127.0.0.1:9092");
+        pro.put("bootstrap.servers", "127.0.0.1:9092");
         // 这个配置意味着leader会等待所有的follower同步完成。这个确保消息不会丢失，除非kafka集群中所有机器挂掉。这是最强的可用性保证
-        props.put("acks", "all");
+        pro.put("acks", "all");
         // 配置为大于0的值的话，客户端会在消息发送失败时重新发送
-        props.put("retries", 0);
-        props.put("linger.ms", 1);
+        pro.put("retries", 0);
+        pro.put("linger.ms", 1);
         // 配置为大于0的值的话，客户端会在消息发送失败时重新发送。
-        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        pro.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         // 值序列化，默认org.apache.kafka.common.serialization.StringDeserializer
-        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        pro.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        //返回
+        return pro;
+    }
 
-        Producer<String, String> producer = new KafkaProducer<>(props);
-
+    public static void main(String[] args) {
+        Producer<String, String> producer = new KafkaProducer<>(getProperties());
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                int i=0;
-                while (true){
+                int i = 0;
+                while (true) {
                     producer.send(new ProducerRecord<String, String>("my-topic", Integer.toString(i), Integer.toString(i)));
                     System.out.println("发送成功！" + i);
                     i++;

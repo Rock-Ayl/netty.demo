@@ -10,11 +10,17 @@ import java.util.Properties;
 
 /**
  * Created By Rock-Ayl on 2021-03-24
- * kafka 消费者 demo
+ * kafka 自身的消费者 demo
  */
 public class KafkaConsumerMain {
 
-    public static void main(String[] args) {
+    /**
+     * 获取kafka消费者配置
+     *
+     * @return
+     */
+    public static Properties getProperties() {
+        //初始化
         Properties props = new Properties();
         // kafka 服务器
         props.setProperty("bootstrap.servers", "127.0.0.1:9092");
@@ -28,7 +34,12 @@ public class KafkaConsumerMain {
         props.setProperty("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
         // 键序列化，默认org.apache.kafka.common.serialization.StringDeserializer
         props.setProperty("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
+        //返回
+        return props;
+    }
+
+    public static void main(String[] args) {
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(getProperties());
         consumer.subscribe(Arrays.asList("my-topic"));
         while (true) {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
@@ -37,4 +48,5 @@ public class KafkaConsumerMain {
             }
         }
     }
+
 }
