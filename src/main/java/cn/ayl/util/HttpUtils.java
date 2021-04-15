@@ -16,10 +16,20 @@ import io.netty.handler.codec.http.multipart.MemoryAttribute;
 import io.netty.handler.ssl.SslHandler;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -32,6 +42,118 @@ import java.util.Map;
 public class HttpUtils {
 
     protected static Logger logger = LoggerFactory.getLogger(HttpUtils.class);
+
+    /**
+     * Http Get 请求
+     *
+     * @param url    请求url
+     * @param params 请求参数
+     * @return
+     */
+    public static String sendGet(String url, HashMap<String, String> params) {
+        //响应
+        StringBuffer result = new StringBuffer();
+        //缓冲初始化
+        BufferedReader in = null;
+        try {
+            //初始化Get请求的Url
+            StringBuffer getUrl = new StringBuffer(url);
+            //判空
+            if (params != null && params.size() > 0) {
+                //代表参数的问号
+                getUrl.append("?");
+                //循环
+                for (Map.Entry<String, String> param : params.entrySet()) {
+                    //组装参数
+                    getUrl.append(param.getKey() + "=" + param.getValue() + "&");
+                }
+                //删除最后一个&
+                getUrl = getUrl.deleteCharAt(getUrl.length() - 1);
+            }
+            //创建Url对象
+            URL realUrl = new URL(getUrl.toString());
+            //打开和URL之间的连接
+            URLConnection connection = realUrl.openConnection();
+            //建立实际的连接
+            connection.connect();
+            //获取所有响应头字段
+            Map<String, List<String>> map = connection.getHeaderFields();
+            //用BufferedReader输入流来读取URL的响应
+            in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            //当前行
+            String line;
+            //循环
+            while ((line = in.readLine()) != null) {
+                //组装
+                result.append(line);
+            }
+        } catch (Exception e) {
+            logger.error("发送GET请求出现异常！" + e);
+        } finally {
+            try {
+                //判空
+                if (in != null) {
+                    //关闭
+                    in.close();
+                }
+            } catch (Exception e2) {
+                logger.error("发送GET请求出现异常！" + e2);
+            } finally {
+                //返回
+                return result.toString();
+            }
+        }
+    }
+
+    /**
+     * Http Post 请求
+     *
+     * @param url        请求url
+     * @param headers    请求 headers
+     * @param bodyEntity post的body,可能是 Json,也可以是 form-data
+     * @return
+     */
+    public static String post(String url, HashMap<String, String> headers, HttpEntity bodyEntity) {
+        //创建client
+        HttpClient client = new DefaultHttpClient();
+        //创建Post请求
+        HttpPost post = new HttpPost(url);
+        //判空
+        if (headers != null && headers.size() > 0) {
+            //循环
+            for (Map.Entry<String, String> header : headers.entrySet()) {
+                //设置headers
+                post.setHeader(header.getKey(), header.getValue());
+            }
+        }
+        //body放入post
+        post.setEntity(bodyEntity);
+        try {
+            //执行请求、获得相应
+            HttpResponse httpResponse = client.execute(post);
+            //获取响应输入流
+            InputStream inStream = httpResponse.getEntity().getContent();
+            //创建缓冲输入流
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inStream, "utf-8"));
+            //创建响应字符
+            StringBuilder strBer = new StringBuilder();
+            //行
+            String line;
+            //循环
+            while ((line = reader.readLine()) != null) {
+                //组装响应字符
+                strBer.append(line + "\n");
+            }
+            //关闭
+            inStream.close();
+            reader.close();
+            //返回响应字符
+            return strBer.toString();
+        } catch (Exception e) {
+            logger.error("post请求异常");
+            return null;
+        }
+    }
 
     /**
      * 判断一个请求是否为https即拥有SSL
