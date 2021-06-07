@@ -130,22 +130,22 @@ public class IndexTable {
             //设置一次最大获取数据量=20
             pageSize = Math.min(pageSize, 20);
             //如果起始位置为0
-            if (pageIndex == 0) {
+            if (pageIndex.equals(0)) {
                 //从哪个位置读
                 builder.from(pageIndex);
-                //读几条数据
-                builder.size(pageSize);
             } else {
                 //从哪个位置读
                 builder.from(pageIndex * pageSize);
-                //读几条数据
-                builder.size(pageSize);
             }
+            //读几条数据
+            builder.size(pageSize);
         }
         //设置超时时间
         builder.timeout(new TimeValue(60, TimeUnit.SECONDS));
         //取消默认最大查询数量上限(默认10000)
         builder.trackTotalHits(true);
+        //设置需要的、不需要的字段
+        builder.fetchSource(new String[]{}, new String[]{});
         //构造请求发起对象,这里直接配置索引名即可
         SearchRequest searchRequest = new SearchRequest(Const.ElasticSearchIndexName);
         //把查询函数构造对象注入查询请求中
