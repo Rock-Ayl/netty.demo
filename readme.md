@@ -37,12 +37,10 @@
    //依赖
    dependencies {
    
-       //netty-4
+           //netty-4
            compile group: 'io.netty', name: 'netty-all', version: '4.1.19.Final'
            //mongo-Bson
            compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.8.2'
-           //google-Gson
-           compile group: 'com.google.code.gson', name: 'gson', version: '2.8.5'
            //apache-commons工具包
            compile group: 'org.apache.commons', name: 'commons-dbcp2', version: '2.1.1'
            compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.6'
@@ -75,6 +73,8 @@
            compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.5.1'
            //apache tika-文本抽取
            compile group: 'org.apache.tika', name: 'tika-parsers', version: '1.24.1'
+           //apache kafka-流处理
+           compile group: 'org.apache.kafka', name: 'kafka-clients', version: '2.7.0'
    
    }
    
@@ -195,16 +195,19 @@ public class Server {
 
  ```
  
- >服务器中用脚本`serverStart.sh` (注意配置变量)
+ >服务器中用脚本`server.sh`
 
  ``` Bash
 #!/bin/bash
 
 #jar包路径(基于当前路径)
-APP_NAME="build/libs/netty.demo-1.0.jar"
+APP_NAME="$(pwd)/libs/netty.demo-1.0.jar"
 
 #进程PID
 pid=0
+
+#远程调试端口
+remotePort=5005
 
 Help() {
     echo "case: sh run.sh [start|stop|restart|status]"
@@ -232,9 +235,28 @@ start(){
     if [ $? -eq "0" ]; then
         echo "${APP_NAME} 已经启动,PID:${pid}"
     else
-        # pid为空 执行java -jar 命令启动服务
+        # 执行java -jar 正常启动服务
         nohup java -jar $APP_NAME >/dev/null 2>&1 &
-        echo "${APP_NAME} 正在启动了."
+        checkPID
+        echo "${APP_NAME} 启动成功."
+        echo "${APP_NAME} PID:${pid}"
+    fi
+    echo "#########End#############"
+}
+
+# 远程调试
+remote(){
+     echo "#######进程启动-远程调试##########"
+    checkPID
+     # [$? -eq "0"] pid存在 说明服务正在运行中，将进程号打印出来
+    if [ $? -eq "0" ]; then
+        echo "${APP_NAME} 已经启动,可以调试,PID:${pid}"
+    else
+        # 执行java -jar 远程调试启动服务
+        nohup java -jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${remotePort} $APP_NAME >/dev/null 2>&1 &
+        checkPID
+        echo "${APP_NAME} 启动成功."
+        echo "${APP_NAME} 调试端口:${remotePort} PID:${pid}"
     fi
     echo "#########End#############"
 }
@@ -272,11 +294,19 @@ restart(){
     start
 }
 
+# 重启远程调试
+restartRemote(){
+    stop
+    remote
+}
 
 # 命令表
 case "$1" in
     "start")
         start
+        ;;
+     "remote")
+        remote
         ;;
     "stop")
         stop
@@ -286,6 +316,9 @@ case "$1" in
         ;;
     "restart")
         restart
+        ;;
+    "restartRemote")
+        restartRemote
         ;;
     *)
     Help
