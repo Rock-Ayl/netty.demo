@@ -12,8 +12,6 @@ sourceCompatibility = 1.8
 
 //启动main
 String mainPath = 'cn.ayl.Server'
-//部署时依赖的路径,该参数及对应逻辑,在方法2使用,1注掉
-String libsPath = '/netty-demo/libs/'
 
 //使用的库
 repositories {
@@ -82,7 +80,7 @@ jar {
     //遍历项目的所有依赖的jar包赋值给变量someString
     configurations.runtime.each {
         //组装
-        someString = someString + " " + libsPath + it.name
+        someString = someString + " " + it.name
     }
 
     //告诉gradle,我的Main是什么,打包时候有用
