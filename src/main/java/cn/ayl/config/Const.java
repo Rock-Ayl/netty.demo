@@ -121,7 +121,7 @@ public class Const {
     public static int CookieIdExpiredTime = 3600 * 2;
 
     /**
-     * 常用魔法变量
+     * 常用魔法值
      */
 
     public final static String SPACE = " ";
@@ -142,7 +142,7 @@ public class Const {
     public final static String FileUploadTime = "fileUploadTime";
 
     /**
-     * Method组
+     * Method
      */
 
     public final static JsonObject Json_Find_Exception = JsonObject.Fail("出现异常.");
