@@ -28,14 +28,37 @@ public class Context {
      * 用户信息
      */
     public class User {
+
+        private User() {
+
+        }
+
         //用户的cookieId
-        public String cookieId = null;
+        private String cookieId = null;
         //用户id
-        public long userId;
+        private long userId;
+
+        public String getCookieId() {
+            return cookieId;
+        }
+
+        public void setCookieId(String cookieId) {
+            this.cookieId = cookieId;
+        }
+
+        public long getUserId() {
+            return userId;
+        }
+
+        public void setUserId(long userId) {
+            this.userId = userId;
+        }
+
     }
 
     //受保护的,不允许new,但允许继承
     protected Context() {
+
     }
 
     /**

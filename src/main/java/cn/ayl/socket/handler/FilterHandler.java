@@ -47,8 +47,8 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
                 ResponseAndEncoderHandler.sendOption(ctx);
                 return false;
             }
-            //获取请求cookieId
-            this.context.user.cookieId = req.headers().get(Const.CookieId, "");
+            //获取并设置请求cookieId
+            this.context.user.setCookieId(req.headers().get(Const.CookieId, ""));
             //获得请求path
             this.context.uriPath = req.uri();
             //根据请求类型进行细化
@@ -121,7 +121,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
         //如果Cookie需要认证(auto = true)
         if (needAuth) {
             //获取cookieId
-            String cookieId = this.context.user.cookieId;
+            String cookieId = this.context.user.getCookieId();
             //判空
             if (StringUtils.isNotBlank(cookieId)) {
                 //从Redis中获取用户登录信息并解析成Json
@@ -131,7 +131,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
                 //如果是真实用户id
                 if (userId != 0L) {
                     //赋予上下文用户id
-                    this.context.user.userId = userId;
+                    this.context.user.setUserId(userId);
                     //验证成功
                     return true;
                 }
