@@ -83,7 +83,7 @@ public class Const {
     public static final String RedisHost = properties.getProperty("RedisHost");
     public static final int RedisPort = Integer.parseInt(properties.getProperty("RedisPort"));
     public static final int RedisTimeOut = Integer.parseInt(properties.getProperty("RedisTimeOut"));
-    public static final String RedisAuth = properties.getProperty("RedisAuth", "");
+    public static final String RedisAuth = properties.getProperty("RedisAuth", null);
     public static final int RedisDatabase = Integer.parseInt(properties.getProperty("RedisDatabase"));
 
     //Jdbc-Mysql && MariaDB

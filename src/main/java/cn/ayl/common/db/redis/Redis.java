@@ -34,12 +34,6 @@ public class Redis {
         poolConfig.setMaxTotal(1000);
         poolConfig.setMaxIdle(100);
         poolConfig.setTestOnBorrow(true);
-        //密码判空
-        if (StringUtils.isEmpty(Const.RedisAuth)) {
-            //日志
-            logger.error("Redis没有配置密码,无法使用(出于安全性需要设置密码)");
-        }
-        //使用有密码的链接
         jedisPool = new JedisPool(poolConfig, Const.RedisHost, Const.RedisPort, Const.RedisTimeOut, Const.RedisAuth, Const.RedisDatabase);
         user = new Redis("user");
         auth = new Redis("auth");
