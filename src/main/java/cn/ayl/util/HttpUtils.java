@@ -4,7 +4,6 @@ import cn.ayl.common.entry.ParamEntry;
 import cn.ayl.common.enumeration.ContentType;
 import cn.ayl.common.json.JsonObject;
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
@@ -13,7 +12,6 @@ import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryAttribute;
-import io.netty.handler.ssl.SslHandler;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -164,7 +162,7 @@ public class HttpUtils {
      */
     public static Map<String, Object> getParams(HttpRequest httpRequest, LinkedHashMap<String, ParamEntry> paramMap) {
         //初始化
-        Map<String, Object> params = null;
+        Map<String, Object> params;
         //根据请求类型解析参数
         switch (httpRequest.method().toString().toLowerCase()) {
             //地址栏
@@ -172,10 +170,11 @@ public class HttpUtils {
                 //取get参数的同时过滤不必须的参数
                 params = HttpUtils.getParamsFromGet(httpRequest, paramMap);
                 break;
-            //body
+            //从body体取
             case "post":
             case "put":
             case "delete":
+            default:
                 //取post参数的同时过滤不必须的参数
                 params = HttpUtils.getParamsFromPost(httpRequest, paramMap);
                 break;
