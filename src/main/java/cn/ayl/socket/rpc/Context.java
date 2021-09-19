@@ -1,6 +1,7 @@
 package cn.ayl.socket.rpc;
 
 import cn.ayl.common.enumeration.RequestType;
+import cn.ayl.pojo.User;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelId;
 
@@ -11,50 +12,18 @@ import io.netty.channel.ChannelId;
 public class Context {
 
     //请求类型
-    public RequestType requestType = RequestType.none;
+    private RequestType requestType = RequestType.none;
     //请求者ip
-    public String ip;
+    private String ip;
     //UriPath
-    public String uriPath;
+    private String uriPath;
     //ChannelId
-    public ChannelId channelId;
+    private ChannelId channelId;
     //Channel
-    public Channel channel;
-
+    private Channel channel;
     //用户信息
-    public User user = new User();
+    private User user = new User();
 
-    /**
-     * 用户信息
-     */
-    public class User {
-
-        private User() {
-
-        }
-
-        //用户的cookieId
-        private String cookieId = null;
-        //用户id
-        private long userId;
-
-        public String getCookieId() {
-            return cookieId;
-        }
-
-        public void setCookieId(String cookieId) {
-            this.cookieId = cookieId;
-        }
-
-        public long getUserId() {
-            return userId;
-        }
-
-        public void setUserId(long userId) {
-            this.userId = userId;
-        }
-
-    }
 
     //受保护的,不允许new,但允许继承
     protected Context() {
@@ -68,13 +37,64 @@ public class Context {
      * @param channel
      * @return
      */
-    public static Context createInitContext(RequestType type, Channel channel) {
+    public static Context initContext(RequestType type, Channel channel) {
+        //初始化
         Context context = new Context();
-        context.requestType = type;
-        context.channelId = channel.id();
-        context.channel = channel;
-        context.ip = channel.remoteAddress().toString();
+        //组装参数
+        context.setRequestType(type);
+        context.setChannelId(channel.id());
+        context.setChannel(channel);
+        context.setIp(channel.remoteAddress().toString());
+        //返回
         return context;
+    }
+
+    public RequestType getRequestType() {
+        return requestType;
+    }
+
+    public void setRequestType(RequestType requestType) {
+        this.requestType = requestType;
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public String getUriPath() {
+        return uriPath;
+    }
+
+    public void setUriPath(String uriPath) {
+        this.uriPath = uriPath;
+    }
+
+    public ChannelId getChannelId() {
+        return channelId;
+    }
+
+    public void setChannelId(ChannelId channelId) {
+        this.channelId = channelId;
+    }
+
+    public Channel getChannel() {
+        return channel;
+    }
+
+    public void setChannel(Channel channel) {
+        this.channel = channel;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
 }

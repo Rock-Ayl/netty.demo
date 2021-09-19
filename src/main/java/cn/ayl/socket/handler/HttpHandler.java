@@ -90,7 +90,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      */
     private Object handleServiceFactory(HttpRequest req) {
         //根据请求路径获得服务和方法名
-        List<String> serviceAndMethod = getServiceAndMethod(this.context.uriPath);
+        List<String> serviceAndMethod = getServiceAndMethod(this.context.getUriPath());
         if (serviceAndMethod.size() < 2) {
             return Const.Json_No_Service;
         }
@@ -158,7 +158,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             //如果服务继承了上下文
             if (service instanceof Context) {
                 //赋予用户信息
-                ((Context) service).user = this.context.user;
+                ((Context) service).setUser(this.context.getUser());
             }
             //组装参数和参数类型
             Object[] valueArr = new Object[paramList.size()];
@@ -193,13 +193,13 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @throws Exception
      */
     private void handleHttpRequest(final ChannelHandlerContext ctx, HttpRequest req) throws Exception {
-        switch (this.context.requestType) {
+        switch (this.context.getRequestType()) {
             //请求静态资源
             case resource:
                 //创建一个静态资源处理器
                 this.responseHandler = new ResourceHandler();
                 //处理请求并记录文件流
-                this.randomAccessFile = this.responseHandler.handleResource(ctx, req, this.context.uriPath);
+                this.randomAccessFile = this.responseHandler.handleResource(ctx, req, this.context.getUriPath());
                 break;
             //上传请求
             case upload:

@@ -109,14 +109,14 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
             String header = this.readHeader(buffer);
             //判断是否为webSocket
             if (isWebSocket(header)) {
-                this.context = Context.createInitContext(RequestType.websocket, channel);
+                this.context = Context.initContext(RequestType.websocket, channel);
                 /*如下为Http请求,进行upload,download,service归类并绑定上下文*/
             } else if (header.startsWith("POST " + Const.UploadPath)) {
-                this.context = Context.createInitContext(RequestType.upload, channel);
+                this.context = Context.initContext(RequestType.upload, channel);
             } else if (header.startsWith("GET " + Const.DownloadPath)) {
-                this.context = Context.createInitContext(RequestType.download, channel);
+                this.context = Context.initContext(RequestType.download, channel);
             } else {
-                this.context = Context.createInitContext(RequestType.http, channel);
+                this.context = Context.initContext(RequestType.http, channel);
             }
         }
 
@@ -168,7 +168,7 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
          */
         private void switchProtocol(ChannelPipeline p) {
             //根据请求类型分发
-            switch (context.requestType) {
+            switch (context.getRequestType()) {
                 //WebSocket协议
                 case websocket:
                     switchWebSocket(p);
@@ -206,12 +206,12 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
             //基础套件
             httpAddLast(p);
             //判断是否不为上传请求
-            if (context.requestType != RequestType.upload) {
+            if (context.getRequestType() != RequestType.upload) {
                 //聚合套件
                 aggregatorAddLast(p);
             }
             //判断是否为下载请求
-            if (context.requestType == RequestType.download) {
+            if (context.getRequestType() == RequestType.download) {
                 //下载套件及处理器
                 downloadAddLast(p);
             } else {

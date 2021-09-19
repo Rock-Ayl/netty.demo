@@ -42,23 +42,23 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             //判断请求类型是否为预检
             if (req.method() == HttpMethod.OPTIONS) {
                 //预检请求当做普通http
-                this.context.requestType = RequestType.http;
+                this.context.setRequestType(RequestType.http);
                 //响应预检
                 ResponseAndEncoderHandler.sendOption(ctx);
                 return false;
             }
             //获取并设置请求cookieId
-            this.context.user.setCookieId(req.headers().get(Const.CookieId, ""));
+            this.context.getUser().setCookieId(req.headers().get(Const.CookieId, ""));
             //获得请求path
-            this.context.uriPath = req.uri();
+            this.context.setUriPath(req.uri());
             //根据请求类型进行细化
-            switch (this.context.requestType) {
+            switch (this.context.getRequestType()) {
                 //ws请求不细化类型
                 case websocket:
                     break;
                 default:
                     //细化http请求类型
-                    this.context.requestType = getHttpRequestType(context.uriPath);
+                    this.context.setRequestType(getHttpRequestType(context.getUriPath()));
                     break;
             }
             //解决长连接重用与短连接404问题
@@ -81,7 +81,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
     private void checkChanelPipe(ChannelHandlerContext ctx) {
         ChannelPipeline p = ctx.pipeline();
         //根据真正的请求类型分配
-        switch (context.requestType) {
+        switch (context.getRequestType()) {
             case download:
                 //清除http处理器
                 ProtocolDecoder.clearHttpHandlerAddLast(p);
@@ -107,7 +107,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
         //是否需要验证
         boolean needAuth = false;
         //根据请求类型分类是否需要验证身份
-        switch (this.context.requestType) {
+        switch (this.context.getRequestType()) {
             //上传必须验证身份
             case upload:
                 needAuth = true;
@@ -121,7 +121,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
         //如果Cookie需要认证(auto = true)
         if (needAuth) {
             //获取cookieId
-            String cookieId = this.context.user.getCookieId();
+            String cookieId = this.context.getUser().getCookieId();
             //判空
             if (StringUtils.isNotBlank(cookieId)) {
                 //从Redis中获取用户登录信息并解析成Json
@@ -131,7 +131,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
                 //如果是真实用户id
                 if (userId != 0L) {
                     //赋予上下文用户id
-                    this.context.user.setUserId(userId);
+                    this.context.getUser().setUserId(userId);
                     //验证成功
                     return true;
                 }
