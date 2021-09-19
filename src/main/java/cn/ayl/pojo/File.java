@@ -1,8 +1,5 @@
 package cn.ayl.pojo;
 
-import cn.ayl.common.json.JsonObject;
-import cn.ayl.config.Const;
-
 /**
  * created by Rock-Ayl 2019-12-12
  * 单个文件实体
@@ -19,22 +16,6 @@ public class File {
     private String filePath;
     //文件大小
     private long fileSize = 0L;
-
-    /**
-     * toJson方法
-     *
-     * @return
-     */
-    public JsonObject toJson() {
-        JsonObject result = JsonObject.VOID();
-        result.append(Const.FileId, getFileId());
-        result.append(Const.FileName, getFileName());
-        result.append(Const.FileExt, getFileExt());
-        result.append(Const.FilePath, getFilePath());
-        result.append(Const.FileSize, getFileSize());
-        result.append(Const.FileMD5, getFileMD5());
-        return result;
-    }
 
     public String getFileMD5() {
         return fileMD5;

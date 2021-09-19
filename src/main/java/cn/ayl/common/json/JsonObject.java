@@ -479,12 +479,12 @@ public class JsonObject extends Document {
 
     @Override
     public String toString() {
-        return JsonUtils.toJson(this);
+        return JsonUtils.toJsonString(this);
     }
 
     @Override
     public String toJson() {
-        return JsonUtils.toJson(this);
+        return JsonUtils.toJsonString(this);
     }
 
     public static String[] arrayToStrings(List<String> values) {

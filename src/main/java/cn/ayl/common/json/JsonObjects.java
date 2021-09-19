@@ -60,7 +60,7 @@ public class JsonObjects extends ArrayList<JsonObject> {
     }
 
     public String toJson() {
-        return JsonUtils.toJson(this);
+        return JsonUtils.toJsonString(this);
     }
 
 

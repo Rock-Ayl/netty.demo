@@ -89,9 +89,4 @@ public class JsonList<T> {
         return type == BsonType.DOCUMENT ? this.objects.size() : this.values.size();
     }
 
-
-    public String toJson() {
-        return JsonUtils.toJson(this);
-    }
-
 }

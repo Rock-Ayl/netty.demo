@@ -2,7 +2,6 @@ package cn.ayl.util;
 
 import cn.ayl.common.json.*;
 import org.apache.commons.lang3.StringUtils;
-import org.bson.AbstractBsonWriter;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.bson.json.JsonReader;
@@ -95,27 +94,11 @@ public class JsonUtils {
         return buffer.toString();
     }
 
-    public static String toJson(JsonList list) {
-        if (list.isJsonObject()) {
-            return list.objects.toJson();
-        }
-        StringWriter writer = new StringWriter();
-        BsonDocWriter w = new BsonDocWriter(writer);
-        try {
-            w.updateState(AbstractBsonWriter.State.VALUE);
-            parser.writeIterable(w, list.values, EncoderContext.builder().build());
-            String content = writer.toString();
-            return content;
-        } finally {
-            w.close();
-            try {
-                writer.close();
-            } catch (Exception e) {
-            }
-        }
+    public static JsonObject toJson(Object object) {
+        return parse(GsonUtils.toJsonString(object));
     }
 
-    public static String toJson(JsonObject document) {
+    public static String toJsonString(JsonObject document) {
         StringWriter writer = new StringWriter();
         BsonDocWriter w = new BsonDocWriter(writer);
         try {
@@ -132,7 +115,7 @@ public class JsonUtils {
     }
 
 
-    public static String toJson(JsonObjects documents) {
+    public static String toJsonString(JsonObjects documents) {
         StringWriter writer = new StringWriter();
         BsonDocWriter w = new BsonDocWriter(writer);
         try {

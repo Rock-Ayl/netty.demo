@@ -6,6 +6,8 @@ import cn.ayl.common.file.FileCommons;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.common.json.JsonObjects;
 import cn.ayl.config.Const;
+import cn.ayl.util.GsonUtils;
+import cn.ayl.util.JsonUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -73,25 +75,25 @@ public enum FileHandler {
     /**
      * 处理上传
      *
-     * @param fileEntryList 文件实体
-     * @param params        其他参数对象
+     * @param fileList 文件实体
+     * @param params   其他参数对象
      * @return
      */
-    public JsonObject uploadFile(List<File> fileEntryList, JsonObject params) {
+    public JsonObject uploadFile(List<File> fileList, JsonObject params) {
         //初始化返回值
         JsonObjects items = JsonObjects.VOID();
         //判空
-        if (CollectionUtils.isNotEmpty(fileEntryList)) {
+        if (CollectionUtils.isNotEmpty(fileList)) {
             //循环
-            for (File fileEntry : fileEntryList) {
+            for (File file : fileList) {
                 //获取文件fileId
-                String fileId = fileEntry.getFileId();
+                String fileId = file.getFileId();
                 //文件实体转Json
-                JsonObject fileObject = fileEntry.toJson();
+                JsonObject fileObject = JsonUtils.toJson(file);
                 //将传过来的额外参数组装进实体
                 fileObject.putAll(params);
                 //文件信息记录至Mysql
-                FileCommons.insertFileInfo(fileEntry);
+                FileCommons.insertFileInfo(file);
                 //文件信息记录至ES
                 FileCommons.addFileIndexToES(fileId);
                 //组装返回值
