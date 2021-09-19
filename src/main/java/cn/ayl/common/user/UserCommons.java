@@ -51,4 +51,14 @@ public class UserCommons {
         return false;
     }
 
+    /**
+     * 判断是否不为系统管理员
+     *
+     * @param userId
+     * @return
+     */
+    public static boolean isNotRoot(long userId) {
+        return !isRoot(userId);
+    }
+
 }

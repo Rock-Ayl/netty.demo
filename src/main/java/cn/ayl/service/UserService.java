@@ -1,8 +1,8 @@
 package cn.ayl.service;
 
-import cn.ayl.common.user.UserCommons;
 import cn.ayl.common.db.redis.Redis;
 import cn.ayl.common.json.JsonObject;
+import cn.ayl.common.user.UserCommons;
 import cn.ayl.config.Const;
 import cn.ayl.intf.User;
 import cn.ayl.socket.rpc.Context;
@@ -24,7 +24,7 @@ public class UserService extends Context implements User {
     @Override
     public JsonObject readUserList(String keyword, Integer pageIndex, Integer pageSize) {
         //验证权限为root
-        if (!UserCommons.isRoot(this.getUser().getUserId())) {
+        if (UserCommons.isNotRoot(this.getUserId())) {
             return Const.Json_No_Permission;
         }
         //验证关键词

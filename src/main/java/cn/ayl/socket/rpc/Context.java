@@ -49,6 +49,36 @@ public class Context {
         return context;
     }
 
+    /**
+     * 获取用户id
+     *
+     * @return
+     */
+    public Long getUserId() {
+        //判空
+        if (user != null) {
+            //返回id
+            return user.getUserId();
+        }
+        //默认
+        return null;
+    }
+
+    /**
+     * 获取用户cookieId
+     *
+     * @return
+     */
+    public String getUserCookieId() {
+        //判空
+        if (user != null) {
+            //返回id
+            return user.getCookieId();
+        }
+        //默认
+        return null;
+    }
+
     public RequestType getRequestType() {
         return requestType;
     }
