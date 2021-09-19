@@ -1,17 +1,19 @@
 package cn.ayl.socket.handler;
 
-import cn.ayl.config.Const;
 import cn.ayl.common.entry.MethodEntry;
 import cn.ayl.common.entry.ParamEntry;
 import cn.ayl.common.entry.RegistryEntry;
 import cn.ayl.common.entry.ServiceEntry;
+import cn.ayl.config.Const;
 import cn.ayl.socket.encoder.ResponseAndEncoderHandler;
 import cn.ayl.socket.rpc.Context;
 import cn.ayl.util.HttpUtils;
 import cn.ayl.util.ScanClassUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.util.ReferenceCountUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -190,7 +192,6 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      *
      * @param ctx
      * @param req
-     * @throws Exception
      */
     private void handleHttpRequest(final ChannelHandlerContext ctx, HttpRequest req) {
         switch (this.context.getRequestType()) {

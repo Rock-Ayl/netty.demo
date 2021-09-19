@@ -3,11 +3,11 @@ package cn.ayl.socket.handler;
 import cn.ayl.common.db.redis.Redis;
 import cn.ayl.common.enumeration.RequestType;
 import cn.ayl.common.json.JsonObject;
-import cn.ayl.util.JsonUtils;
 import cn.ayl.config.Const;
+import cn.ayl.socket.decoder.ProtocolDecoder;
 import cn.ayl.socket.encoder.ResponseAndEncoderHandler;
 import cn.ayl.socket.rpc.Context;
-import cn.ayl.socket.decoder.ProtocolDecoder;
+import cn.ayl.util.JsonUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPipeline;
@@ -56,6 +56,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
                 //ws请求不细化类型
                 case websocket:
                     break;
+                //其他
                 default:
                     //细化http请求类型
                     this.context.setRequestType(getHttpRequestType(context.getUriPath()));

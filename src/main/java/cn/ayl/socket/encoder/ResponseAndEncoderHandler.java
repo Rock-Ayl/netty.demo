@@ -1,15 +1,18 @@
 package cn.ayl.socket.encoder;
 
 import cn.ayl.common.enumeration.FileRequestType;
-import cn.ayl.config.Const;
 import cn.ayl.common.json.JsonObject;
+import cn.ayl.config.Const;
 import cn.ayl.socket.handler.FileSendHandler;
 import cn.ayl.util.DateUtils;
 import cn.ayl.util.HttpUtils;
 import cn.ayl.util.MD5Utils;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.CharsetUtil;
@@ -18,7 +21,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.URLEncoder;
 import java.util.Date;
 
@@ -31,7 +36,7 @@ public class ResponseAndEncoderHandler {
     protected static Logger logger = LoggerFactory.getLogger(ResponseAndEncoderHandler.class);
 
     /**
-     * 设置通用响应headers
+     * 设置响应通用headers
      *
      * @param response
      */

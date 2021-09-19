@@ -26,6 +26,11 @@ public class FileSendHandler implements ChannelProgressiveFutureListener {
         return new FileSendHandler(fileName);
     }
 
+    /**
+     * 私有化
+     *
+     * @param fileName
+     */
     private FileSendHandler(String fileName) {
         this.fileName = fileName;
     }

@@ -5,8 +5,10 @@ import cn.ayl.config.Const;
 import cn.ayl.handler.FileHandler;
 import cn.ayl.socket.encoder.ResponseAndEncoderHandler;
 import cn.ayl.util.HttpUtils;
-import io.netty.channel.*;
-import io.netty.handler.codec.http.*;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +17,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Map;
 
-import static io.netty.handler.codec.http.HttpResponseStatus.*;
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 
 /**
  * created by Rock-Ayl on 2019-11-18
@@ -30,8 +32,6 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
 
     /**
      * 请求进入点
-     *
-     * @throws Exception
      */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) {
@@ -67,10 +67,9 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
      *
      * @param ctx
      * @param cause
-     * @throws Exception
      */
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         //输入日志
         logger.warn("下载请求异常,连接断开,异常为:" + cause);
         //当连接断开的时候 关闭未关闭的文件流

@@ -2,12 +2,8 @@ package cn.ayl.socket.decoder;
 
 import cn.ayl.common.enumeration.RequestType;
 import cn.ayl.config.Const;
-import cn.ayl.socket.handler.DownloadFileHandler;
-import cn.ayl.socket.handler.FilterHandler;
-import cn.ayl.socket.handler.HttpHandler;
-import cn.ayl.socket.handler.WebSocketHandler;
-import cn.ayl.socket.rpc.Context;
 import cn.ayl.socket.handler.*;
+import cn.ayl.socket.rpc.Context;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -55,7 +51,7 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
     private static final String webSocketHandlerName = "webSocket-handler";
 
     @Override
-    protected void initChannel(SocketChannel ch) throws Exception {
+    protected void initChannel(SocketChannel ch) {
         //组装实现类
         ch.pipeline().addLast(new ProtocolDecoderExecute());
     }
@@ -87,8 +83,9 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
             Channel channel = p.channel();
             //断点续传检查一下
             this.context = channel.attr(Const.AttrContext).get();
-            //如果上下文存在空，直接返回
+            //如果上下文存在空
             if (this.context != null) {
+                //直接返回
                 return;
             }
             //区分下网络协议并创建上下文
@@ -236,7 +233,7 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
     }
 
     //所有http必须要用到的套件
-    public static void httpAddLast(ChannelPipeline p) {
+    private static void httpAddLast(ChannelPipeline p) {
         //http请求解码
         p.addLast(HttpRequestDecoderName, new HttpRequestDecoder());
         //身份验证/过滤器
@@ -246,13 +243,13 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
     }
 
     //聚合套件
-    public static void aggregatorAddLast(ChannelPipeline p) {
+    private static void aggregatorAddLast(ChannelPipeline p) {
         //netty是基于分段请求的，HttpObjectAggregator的作用是将HTTP消息的多个部分合成一条完整的HTTP消息,参数是聚合字节的最大长度
         p.addLast(httpChunkAggregatorName, new HttpObjectAggregator(1024 * 1048576));
     }
 
     //心跳套件及处理器
-    public static void heartAddLast(ChannelPipeline p) {
+    private static void heartAddLast(ChannelPipeline p) {
         //初始化心跳设置 读、写、读写 以及 心跳单位
         p.addLast(WebSocketIdleStateName, new IdleStateHandler(Const.ReaderIdleTimeSeconds, Const.WriterIdleTimeSeconds, Const.AllIdleTimeSeconds, TimeUnit.SECONDS));
         //心跳处理器
@@ -260,7 +257,7 @@ public class ProtocolDecoder extends ChannelInitializer<SocketChannel> {
     }
 
     //升级WebSocket套件及处理器
-    public static void webSocketAddLast(ChannelPipeline p) {
+    private static void webSocketAddLast(ChannelPipeline p) {
         //升级为WebSocket
         p.addLast(WebSocketServerProtocolHandlerName, new WebSocketServerProtocolHandler(Const.WebSocketPath));
         //webSocket处理器
