@@ -1,4 +1,4 @@
-package cn.ayl.common.entry;
+package cn.ayl.pojo;
 
 import cn.ayl.config.Const;
 import cn.ayl.common.json.JsonObject;

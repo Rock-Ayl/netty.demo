@@ -2,7 +2,7 @@ package cn.ayl.common.file;
 
 import cn.ayl.common.db.elaticsearch.IndexTable;
 import cn.ayl.common.db.jdbc.SqlTable;
-import cn.ayl.common.entry.FileEntry;
+import cn.ayl.pojo.FileEntry;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.config.Const;
 

@@ -1,6 +1,6 @@
 package cn.ayl.handler;
 
-import cn.ayl.common.entry.FileEntry;
+import cn.ayl.pojo.FileEntry;
 import cn.ayl.common.enumeration.FileRequestType;
 import cn.ayl.common.file.FileCommons;
 import cn.ayl.common.json.JsonObject;

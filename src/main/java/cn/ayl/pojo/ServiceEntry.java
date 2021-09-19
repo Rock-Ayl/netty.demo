@@ -1,4 +1,4 @@
-package cn.ayl.common.entry;
+package cn.ayl.pojo;
 
 import cn.ayl.common.annotation.Method;
 import cn.ayl.common.annotation.Service;

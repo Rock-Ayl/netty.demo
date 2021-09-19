@@ -1,6 +1,6 @@
 package cn.ayl;
 
-import cn.ayl.common.entry.RegistryEntry;
+import cn.ayl.pojo.RegistryEntry;
 import cn.ayl.common.job.Scheduler;
 import cn.ayl.socket.server.ServerSocket;
 

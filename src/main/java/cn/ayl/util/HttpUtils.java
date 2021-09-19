@@ -1,6 +1,6 @@
 package cn.ayl.util;
 
-import cn.ayl.common.entry.ParamEntry;
+import cn.ayl.pojo.ParamEntry;
 import cn.ayl.common.enumeration.ContentType;
 import cn.ayl.common.json.JsonObject;
 import io.netty.buffer.ByteBuf;

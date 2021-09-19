@@ -1,9 +1,9 @@
 package cn.ayl.socket.handler;
 
-import cn.ayl.common.entry.MethodEntry;
-import cn.ayl.common.entry.ParamEntry;
-import cn.ayl.common.entry.RegistryEntry;
-import cn.ayl.common.entry.ServiceEntry;
+import cn.ayl.pojo.MethodEntry;
+import cn.ayl.pojo.ParamEntry;
+import cn.ayl.pojo.RegistryEntry;
+import cn.ayl.pojo.ServiceEntry;
 import cn.ayl.config.Const;
 import cn.ayl.socket.encoder.ResponseAndEncoderHandler;
 import cn.ayl.socket.rpc.Context;

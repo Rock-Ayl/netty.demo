@@ -1,6 +1,6 @@
 package cn.ayl.socket.handler;
 
-import cn.ayl.common.entry.FileEntry;
+import cn.ayl.pojo.FileEntry;
 import cn.ayl.common.file.FileCommons;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.config.Const;
