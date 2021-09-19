@@ -1,6 +1,5 @@
 package cn.ayl.pojo;
 
-import cn.ayl.common.annotation.Param;
 import cn.ayl.common.enumeration.ClassType;
 import cn.ayl.common.enumeration.RequestMethod;
 import cn.ayl.common.enumeration.ContentType;
@@ -8,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -18,9 +16,9 @@ import java.util.List;
  * Created by Rock-Ayl on 2019-11-13
  * 承载请求方法的实体
  */
-public class MethodEntry {
+public class Method {
 
-    protected static Logger logger = LoggerFactory.getLogger(MethodEntry.class);
+    protected static Logger logger = LoggerFactory.getLogger(Method.class);
 
     //名称
     public String name;
@@ -34,13 +32,13 @@ public class MethodEntry {
     public ContentType contentType;
     //返回值类型: 一般为Class_ 因为JsonObject就是对象
     public transient ClassType resultType;
-    public transient Method method;
+    public transient java.lang.reflect.Method method;
     //参数组
-    public LinkedHashMap<String, ParamEntry> paramMap = new LinkedHashMap();
+    public LinkedHashMap<String, Param> paramMap = new LinkedHashMap();
     public List<String> paramList = new ArrayList<>();
     public List<Class<?>> paramEntryList = new ArrayList<>();
 
-    public MethodEntry(cn.ayl.common.annotation.Method method, String name) {
+    public Method(cn.ayl.common.annotation.Method method, String name) {
         this.command = method.command();
         this.contentType = method.contentType();
         this.desc = method.desc();
@@ -49,7 +47,7 @@ public class MethodEntry {
     }
 
     //解析方法实体中的参数
-    public void parseParams(Method method, String className) {
+    public void parseParams(java.lang.reflect.Method method, String className) {
         //方法
         this.method = method;
         //确认返回值类型
@@ -69,7 +67,7 @@ public class MethodEntry {
                 System.exit(-1);
             }
             //获取注解
-            Param paramAnnotation = (Param) paramAnnotations[i][0];
+            cn.ayl.common.annotation.Param paramAnnotation = (cn.ayl.common.annotation.Param) paramAnnotations[i][0];
             if (!paramNames[i].isNamePresent()) {
                 logger.info("java compile[{}] require -parameters,please add '-parameters' in [preferences]->[Build.JavaCompiler]->[Additional Paramaters]", className);
                 System.exit(-1);
@@ -81,7 +79,7 @@ public class MethodEntry {
             //参数类型
             ClassType type = ClassType.parseType(cls);
             //创建实体
-            ParamEntry param = new ParamEntry(cls, type, paramName, paramDesc, paramAnnotation.optional());
+            Param param = new Param(cls, type, paramName, paramDesc, paramAnnotation.optional());
             //组装
             paramMap.put(param.name, param);
             paramList.add(param.name);

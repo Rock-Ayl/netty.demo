@@ -1,9 +1,9 @@
 package cn.ayl.socket.handler;
 
-import cn.ayl.pojo.MethodEntry;
-import cn.ayl.pojo.ParamEntry;
-import cn.ayl.pojo.RegistryEntry;
-import cn.ayl.pojo.ServiceEntry;
+import cn.ayl.pojo.Method;
+import cn.ayl.pojo.Param;
+import cn.ayl.pojo.Registry;
+import cn.ayl.pojo.Service;
 import cn.ayl.config.Const;
 import cn.ayl.socket.encoder.ResponseAndEncoderHandler;
 import cn.ayl.socket.rpc.Context;
@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -57,7 +56,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             //判空
             if (serviceAndMethod.size() > 1) {
                 //获取服务
-                ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceAndMethod.get(0));
+                Service serviceEntry = Registry.serviceMap.get(serviceAndMethod.get(0));
                 //如果服务存在
                 if (serviceEntry != null) {
                     //获取请求类型
@@ -65,9 +64,9 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                     //如果是支持的请求类型
                     if (serviceEntry.commandMap.containsKey(command)) {
                         //获取该请求类型下的方法map
-                        LinkedHashMap<String, MethodEntry> methodMap = serviceEntry.commandMap.get(command);
+                        LinkedHashMap<String, Method> methodMap = serviceEntry.commandMap.get(command);
                         //获取服务中的方法
-                        MethodEntry methodEntry = methodMap.get(serviceAndMethod.get(1));
+                        Method methodEntry = methodMap.get(serviceAndMethod.get(1));
                         //如果方法存在
                         if (methodEntry != null) {
                             //返回是否需要验证
@@ -103,7 +102,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             return Const.Json_No_Service;
         }
         //获取服务
-        ServiceEntry serviceEntry = RegistryEntry.serviceMap.get(serviceName);
+        Service serviceEntry = Registry.serviceMap.get(serviceName);
         //如果服务存在
         if (serviceEntry == null) {
             return Const.Json_No_Service;
@@ -115,13 +114,13 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
             return Const.Json_No_ContentType;
         }
         //获取服务中的方法
-        MethodEntry methodEntry = serviceEntry.commandMap.get(command).get(serviceAndMethod.get(1));
+        Method methodEntry = serviceEntry.commandMap.get(command).get(serviceAndMethod.get(1));
         //如果方法存在
         if (methodEntry == null) {
             return Const.Json_No_InterFace;
         }
         //获取方法中的参数组
-        LinkedHashMap<String, ParamEntry> paramMap = methodEntry.paramMap;
+        LinkedHashMap<String, Param> paramMap = methodEntry.paramMap;
         List<String> paramList = methodEntry.paramList;
         //请求参数
         Map<String, Object> params;
@@ -175,7 +174,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 valueTypeArr[i] = parType;
             }
             //定位服务的方法
-            Method method = serviceClass.getMethod(methodEntry.name, valueTypeArr);
+            java.lang.reflect.Method method = serviceClass.getMethod(methodEntry.name, valueTypeArr);
             logger.info("service:[{}] Method:[{}]", serviceClass, methodEntry.name);
             //加入参数并执行
             Object resultObject = method.invoke(service, valueArr);

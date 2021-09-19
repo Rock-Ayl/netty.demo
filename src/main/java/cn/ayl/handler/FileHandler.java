@@ -1,6 +1,6 @@
 package cn.ayl.handler;
 
-import cn.ayl.pojo.FileEntry;
+import cn.ayl.pojo.File;
 import cn.ayl.common.enumeration.FileRequestType;
 import cn.ayl.common.file.FileCommons;
 import cn.ayl.common.json.JsonObject;
@@ -9,7 +9,6 @@ import cn.ayl.config.Const;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -29,7 +28,7 @@ public enum FileHandler {
      * @param cookieId 用户cookieId,用来验证身份
      * @return
      */
-    public File readDownloadFile(FileRequestType type, String fileId, String fileName, String cookieId) {
+    public java.io.File readDownloadFile(FileRequestType type, String fileId, String fileName, String cookieId) {
         //根据下载类型来进行处理
         switch (type) {
             //如果是下载、预览
@@ -46,7 +45,7 @@ public enum FileHandler {
                     //判空
                     if (StringUtils.isNotBlank(fileMD5) && fileSize > 0L) {
                         //从已经上传至系统的目录获取文件
-                        File file = new File(FileCommons.initFilePath(fileMD5, fileSize));
+                        java.io.File file = new java.io.File(FileCommons.initFilePath(fileMD5, fileSize));
                         //如果存在并且是个文件
                         if (file.exists() && file.isFile()) {
                             //返回
@@ -66,9 +65,9 @@ public enum FileHandler {
      * @param pathSuffix 资源路径后缀
      * @return
      */
-    public File readResourceFile(String pathSuffix) {
+    public java.io.File readResourceFile(String pathSuffix) {
         //直接从静态地址读取
-        return new File(Const.ResourceFilePath + pathSuffix);
+        return new java.io.File(Const.ResourceFilePath + pathSuffix);
     }
 
     /**
@@ -78,13 +77,13 @@ public enum FileHandler {
      * @param params        其他参数对象
      * @return
      */
-    public JsonObject uploadFile(List<FileEntry> fileEntryList, JsonObject params) {
+    public JsonObject uploadFile(List<File> fileEntryList, JsonObject params) {
         //初始化返回值
         JsonObjects items = JsonObjects.VOID();
         //判空
         if (CollectionUtils.isNotEmpty(fileEntryList)) {
             //循环
-            for (FileEntry fileEntry : fileEntryList) {
+            for (File fileEntry : fileEntryList) {
                 //获取文件fileId
                 String fileId = fileEntry.getFileId();
                 //文件实体转Json

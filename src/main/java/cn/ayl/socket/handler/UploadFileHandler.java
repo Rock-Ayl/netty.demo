@@ -1,6 +1,6 @@
 package cn.ayl.socket.handler;
 
-import cn.ayl.pojo.FileEntry;
+import cn.ayl.pojo.File;
 import cn.ayl.common.file.FileCommons;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.config.Const;
@@ -20,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +40,7 @@ public class UploadFileHandler {
     //请求上下文
     private Context context;
     //文件实体列表
-    public List<FileEntry> fileEntryList = new ArrayList<>();
+    public List<File> fileEntryList = new ArrayList<>();
     //记录所有进来的参数,包括form-data、cookieId
     private JsonObject params = JsonObject.VOID();
 
@@ -126,7 +125,7 @@ public class UploadFileHandler {
             //判空
             if (CollectionUtils.isNotEmpty(this.fileEntryList)) {
                 //循环
-                for (FileEntry fileEntry : this.fileEntryList) {
+                for (File fileEntry : this.fileEntryList) {
                     //打印
                     logger.info("upload FileName=[{}] success.", fileEntry.getFileName());
                 }
@@ -194,7 +193,7 @@ public class UploadFileHandler {
                 //如果数据已经存储完毕
                 if (fileUpload.isCompleted()) {
                     //获取文件对象
-                    File file = fileUpload.getFile();
+                    java.io.File file = fileUpload.getFile();
                     //获取文件名
                     String fileName = fileUpload.getFilename();
                     //生成一个fileId(UUID)
@@ -202,7 +201,7 @@ public class UploadFileHandler {
                     //获取文件大小
                     long fileSize = fileUpload.length();
                     //创建文件实体
-                    FileEntry fileEntry = new FileEntry();
+                    File fileEntry = new File();
                     //文件fileId插入实体
                     fileEntry.setFileId(fileId);
                     //文件名插入实体
@@ -225,11 +224,11 @@ public class UploadFileHandler {
                     //存储进Lists
                     this.fileEntryList.add(fileEntry);
                     //获取存储文件的对象
-                    File uploadFile = new File(filePath);
+                    java.io.File uploadFile = new java.io.File(filePath);
                     //如果不存在(重用特性),视为服务器未拥有的新文件
                     if (!uploadFile.exists()) {
                         //将临时文件复制到你指定的目录(临时文件会自动删除,不用去理会)
-                        FileUtils.copyFile(file, new File(filePath));
+                        FileUtils.copyFile(file, new java.io.File(filePath));
                     }
                 }
                 break;

@@ -2,7 +2,7 @@ package cn.ayl.common.file;
 
 import cn.ayl.common.db.elaticsearch.IndexTable;
 import cn.ayl.common.db.jdbc.SqlTable;
-import cn.ayl.pojo.FileEntry;
+import cn.ayl.pojo.File;
 import cn.ayl.common.json.JsonObject;
 import cn.ayl.config.Const;
 
@@ -35,7 +35,7 @@ public class FileCommons {
      *
      * @param fileEntry
      */
-    public static void insertFileInfo(FileEntry fileEntry) {
+    public static void insertFileInfo(File fileEntry) {
         //插入文件信息
         SqlTable.use().insert("INSERT file (fileId,fileName,fileSize,fileMD5,fileUploadTime) VALUES (?,?,?,?,?)", new Object[]{fileEntry.getFileId(), fileEntry.getFileName(), fileEntry.getFileSize(), fileEntry.getFileMD5(), System.currentTimeMillis()});
     }

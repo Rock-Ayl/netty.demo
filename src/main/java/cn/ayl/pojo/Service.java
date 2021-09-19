@@ -1,7 +1,5 @@
 package cn.ayl.pojo;
 
-import cn.ayl.common.annotation.Method;
-import cn.ayl.common.annotation.Service;
 import cn.ayl.common.enumeration.RequestMethod;
 import cn.ayl.intf.IMicroService;
 import org.slf4j.Logger;
@@ -13,9 +11,9 @@ import java.util.LinkedHashMap;
  * Created by Rock-Ayl on 2019-11-13
  * 承载请求服务的实体
  */
-public class ServiceEntry {
+public class Service {
 
-    protected static Logger logger = LoggerFactory.getLogger(ServiceEntry.class);
+    protected static Logger logger = LoggerFactory.getLogger(Service.class);
 
     //IMicroService的子集
     public Class<? extends IMicroService> interFaceClass;
@@ -24,9 +22,9 @@ public class ServiceEntry {
     //注释
     public String desc = null;
     //该服务的请求类型组
-    public LinkedHashMap<String, LinkedHashMap<String, MethodEntry>> commandMap = new LinkedHashMap<>();
+    public LinkedHashMap<String, LinkedHashMap<String, Method>> commandMap = new LinkedHashMap<>();
 
-    public ServiceEntry(Class<? extends IMicroService> interFaceClass) {
+    public Service(Class<? extends IMicroService> interFaceClass) {
         this.interFaceClass = interFaceClass;
         //循环支持的请求方法类型
         for (RequestMethod value : RequestMethod.values()) {
@@ -38,7 +36,7 @@ public class ServiceEntry {
     //初始化业务实体
     public Boolean init() {
         //获取注解
-        Service ServiceAnnotation = this.interFaceClass.getAnnotation(Service.class);
+        cn.ayl.common.annotation.Service ServiceAnnotation = this.interFaceClass.getAnnotation(cn.ayl.common.annotation.Service.class);
         //判断是否存在
         if (ServiceAnnotation == null) {
             logger.warn("Class[{}] has not @Service annotation,please define.", this.interFaceClass.getName());
@@ -57,15 +55,15 @@ public class ServiceEntry {
                     //获取该方法
                     java.lang.reflect.Method method = methods[i];
                     //该方法如果没有@Method注释，忽略
-                    if (!method.isAnnotationPresent(Method.class)) {
+                    if (!method.isAnnotationPresent(cn.ayl.common.annotation.Method.class)) {
                         continue;
                     }
                     //获取该方法的@Method注解
-                    Method methodAnnotation = method.getAnnotation(Method.class);
+                    cn.ayl.common.annotation.Method methodAnnotation = method.getAnnotation(cn.ayl.common.annotation.Method.class);
                     //方法名
                     String methodName = method.getName();
                     //创建一个方法实体
-                    MethodEntry mEntry = new MethodEntry(methodAnnotation, methodName);
+                    Method mEntry = new Method(methodAnnotation, methodName);
                     //解析方法内的参数
                     mEntry.parseParams(method, this.interFaceClass.getName());
                     //获取该方法的请求类型
@@ -73,7 +71,7 @@ public class ServiceEntry {
                     //如果支持该请求类型
                     if (this.commandMap.containsKey(command)) {
                         //获取对应请求类型中的方法
-                        LinkedHashMap<String, MethodEntry> methodMap = this.commandMap.get(command);
+                        LinkedHashMap<String, Method> methodMap = this.commandMap.get(command);
                         //如果已经存在
                         if (methodMap.containsKey(methodName)) {
                             logger.error("方法[{}]注册重复,服务出现冲突,停止服务.", methods);

@@ -6,7 +6,7 @@ import cn.ayl.common.enumeration.ClassType;
  * Created by Rock-Ayl on 2019-11-13
  * 承载请求参数的实体
  */
-public class ParamEntry {
+public class Param {
 
     //类
     public final Class<?> clazz;
@@ -19,7 +19,7 @@ public class ParamEntry {
     //是否必须
     public final boolean optional;
 
-    public ParamEntry(final Class<?> clazz, final ClassType type, final String name, final String desc, boolean optional) {
+    public Param(final Class<?> clazz, final ClassType type, final String name, final String desc, boolean optional) {
         this.clazz = clazz;
         this.name = name;
         this.desc = desc;

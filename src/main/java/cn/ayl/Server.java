@@ -1,6 +1,6 @@
 package cn.ayl;
 
-import cn.ayl.pojo.RegistryEntry;
+import cn.ayl.pojo.Registry;
 import cn.ayl.common.job.Scheduler;
 import cn.ayl.socket.server.ServerSocket;
 
@@ -14,7 +14,7 @@ public class Server {
         //启动定时器线程
         Scheduler.startup();
         //扫描所有服务已存在
-        RegistryEntry.scanServices();
+        Registry.scanServices();
         //扫描之后,可以启动netty监听
         ServerSocket.SocketServer.startup();
     }

@@ -15,14 +15,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by Rock-Ayl on 2019-11-13
  * 所有服务的注册表
  */
-public class RegistryEntry {
+public class Registry {
 
-    protected static Logger logger = LoggerFactory.getLogger(RegistryEntry.class);
+    protected static Logger logger = LoggerFactory.getLogger(Registry.class);
 
     //主要功能
     public static List<String> DefaultService = init();
     //所有服务
-    public static ConcurrentHashMap<String, ServiceEntry> serviceMap = new ConcurrentHashMap();
+    public static ConcurrentHashMap<String, Service> serviceMap = new ConcurrentHashMap();
 
     /**
      * 初始化功能列表
@@ -73,7 +73,7 @@ public class RegistryEntry {
                 continue;
             }
             //创建服务实体
-            ServiceEntry serviceEntry = new ServiceEntry(cls);
+            Service serviceEntry = new Service(cls);
             //初始化服务实体，解析里面的方法、参数
             serviceEntry.init();
             //组装至List存放

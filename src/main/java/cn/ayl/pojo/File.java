@@ -1,13 +1,13 @@
 package cn.ayl.pojo;
 
-import cn.ayl.config.Const;
 import cn.ayl.common.json.JsonObject;
+import cn.ayl.config.Const;
 
 /**
  * created by Rock-Ayl 2019-12-12
- * 一个文件实体
+ * 单个文件实体
  */
-public class FileEntry {
+public class File {
 
     //文件id
     private String fileId;
