@@ -192,7 +192,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * @param req
      * @throws Exception
      */
-    private void handleHttpRequest(final ChannelHandlerContext ctx, HttpRequest req) throws Exception {
+    private void handleHttpRequest(final ChannelHandlerContext ctx, HttpRequest req) {
         switch (this.context.getRequestType()) {
             //请求静态资源
             case resource:
@@ -283,7 +283,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
      * 通道，请求过来从这里分类
      */
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object msg) {
         //获取上下文
         context = ctx.channel().attr(Const.AttrContext).get();
         //获取失败，返回
@@ -322,7 +322,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         //当连接断开的时候 关闭未关闭的文件流
         if (randomAccessFile != null) {
             try {
