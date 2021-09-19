@@ -222,7 +222,7 @@ public class HttpUtils {
                     //如果该参数是我需要的
                     if (paramMap.containsKey(entry.getKey())) {
                         //强转并组装
-                        params.put(entry.getKey(), GsonUtils.castObject(paramMap.get(entry.getKey()).clazz, entry.getValue().get(0)));
+                        params.put(entry.getKey(), GsonUtils.parseObject(entry.getValue().get(0), paramMap.get(entry.getKey()).clazz));
                     }
                 } else {
                     //直接组装
@@ -288,7 +288,7 @@ public class HttpUtils {
                     //如果是所需参数
                     if (paramMap.containsKey(key)) {
                         //强转并组装
-                        params.put(key, GsonUtils.castObject(paramMap.get(key).clazz, attribute.getValue()));
+                        params.put(key, GsonUtils.parseObject(attribute.getValue(), paramMap.get(key).clazz));
                     }
                 } else {
                     //直接组装
@@ -334,7 +334,7 @@ public class HttpUtils {
                 //如果是所需要的参数
                 if (paramMap.containsKey(key)) {
                     //强转并组装
-                    params.put(key, GsonUtils.castObject(paramMap.get(key).clazz, jsonParams.get(key)));
+                    params.put(key, GsonUtils.parseObject(jsonParams.get(key), paramMap.get(key).clazz));
                 }
             } else {
                 //直接组装

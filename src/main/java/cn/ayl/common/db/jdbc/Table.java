@@ -128,7 +128,7 @@ public class Table {
         } else if (v instanceof JsonObjects) {
             return ((JsonObjects) v).toJson();
         } else if (v instanceof List) {
-            return GsonUtils.toJson(v);
+            return GsonUtils.toJsonString(v);
         } else {
             return v;
         }

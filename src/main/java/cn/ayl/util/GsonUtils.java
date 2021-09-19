@@ -18,7 +18,7 @@ public class GsonUtils {
      * @param o 可以转化为JsonString的对象
      * @return
      */
-    public static String toJson(Object o) {
+    public static String toJsonString(Object o) {
         return Gson.toJson(o);
     }
 
@@ -40,11 +40,11 @@ public class GsonUtils {
      * @param <T>
      * @return
      */
-    public static <T> T castObject(Class<T> clz, Object o) {
+    public static <T> T parseObject(Object o, Class<T> clz) {
         if (null == o) {
             return null;
         }
-        return Gson.fromJson(toJson(o), clz);
+        return Gson.fromJson(toJsonString(o), clz);
     }
 
 }

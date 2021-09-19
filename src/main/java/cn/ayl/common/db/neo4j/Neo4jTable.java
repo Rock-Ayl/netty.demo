@@ -57,7 +57,7 @@ public class Neo4jTable {
             //输出sql
             logger.info("Neo4j Sql Execute:[{}]", cypherSql);
             //查询,并将结果转化为Jsons,返回
-            return JsonUtils.parses(GsonUtils.toJson(session.run(cypherSql).list(Record::asMap)));
+            return JsonUtils.parses(GsonUtils.toJsonString(session.run(cypherSql).list(Record::asMap)));
         } catch (Exception e) {
             logger.error("实现cypherSql[{}]出现异常:", cypherSql, e);
             return null;

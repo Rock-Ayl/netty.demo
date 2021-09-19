@@ -278,7 +278,7 @@ public class JsonObject extends Document {
 
     private String valueToString(Object v) {
         if (v instanceof Object[] || v instanceof List) {
-            return GsonUtils.toJson(v);
+            return GsonUtils.toJsonString(v);
         }
         return v.toString();
     }
