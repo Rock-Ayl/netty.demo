@@ -52,18 +52,18 @@ public class ResourceHandler {
                     //如果静态文件没有改动,直接返回(让浏览器用缓存)
                     if (isNotModified(req, file)) {
                         //文件未被修改,浏览器可以延用缓存
-                        ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.NOT_MODIFIED, "Modified false.");
+                        ResponseAndEncoderHandler.use().sendFailAndMessage(ctx, HttpResponseStatus.NOT_MODIFIED, "Modified false.");
                     } else {
                         //获取文件流
                         randomAccessFile = new RandomAccessFile(file, "r");
                         //获取Http-Headers-Range
                         String range = req.headers().get(HttpHeaderNames.RANGE);
                         //响应请求文件流
-                        ResponseAndEncoderHandler.sendFileStream(ctx, range, file, randomAccessFile, FileRequestType.preview, file.getName());
+                        ResponseAndEncoderHandler.use().sendFileStream(ctx, range, file, randomAccessFile, FileRequestType.preview, file.getName());
                     }
                 } else {
                     //不存在文件,响应失败
-                    ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.NOT_FOUND, "没有发现文件.");
+                    ResponseAndEncoderHandler.use().sendFailAndMessage(ctx, HttpResponseStatus.NOT_FOUND, "没有发现文件.");
                 }
             }
         } catch (IOException e) {

@@ -44,7 +44,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
                 //预检请求当做普通http
                 this.context.setRequestType(RequestType.http);
                 //响应预检
-                ResponseAndEncoderHandler.sendOption(ctx);
+                ResponseAndEncoderHandler.use().sendOption(ctx);
                 return false;
             }
             //获取并设置请求cookieId
@@ -67,7 +67,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             //身份效验
             if (!authUser(req)) {
                 //如果身份效验失败,直接发送错误信息
-                ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.UNAUTHORIZED, "验证信息失败或不支持该请求类型.");
+                ResponseAndEncoderHandler.use().sendFailAndMessage(ctx, HttpResponseStatus.UNAUTHORIZED, "验证信息失败或不支持该请求类型.");
                 //不认同
                 return false;
             }

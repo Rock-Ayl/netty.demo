@@ -156,19 +156,6 @@ public class HttpUtils {
     }
 
     /**
-     * 判断一个请求是否为https即拥有SSL
-     *
-     * @param ctx
-     * @return
-     */
-    public static boolean isHttps(ChannelHandlerContext ctx) {
-        if (ctx.pipeline().get(SslHandler.class) != null) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * 从请求中获取参数
      *
      * @param httpRequest get/post请求

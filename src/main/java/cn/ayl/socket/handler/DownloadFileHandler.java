@@ -52,10 +52,10 @@ public class DownloadFileHandler extends SimpleChannelInboundHandler<FullHttpReq
                 //获取range值
                 String range = request.headers().get(HttpHeaderNames.RANGE);
                 //响应成功
-                ResponseAndEncoderHandler.sendFileStream(ctx, range, file, this.randomAccessFile, type, fileName);
+                ResponseAndEncoderHandler.use().sendFileStream(ctx, range, file, this.randomAccessFile, type, fileName);
             } else {
                 //响应失败
-                ResponseAndEncoderHandler.sendFailAndMessage(ctx, NOT_FOUND, "下载请求失败,文件不存在或用户信息失效.");
+                ResponseAndEncoderHandler.use().sendFailAndMessage(ctx, NOT_FOUND, "下载请求失败,文件不存在或用户信息失效.");
             }
         } catch (Exception e) {
             logger.error("响应请求文件流失败:{}", e);

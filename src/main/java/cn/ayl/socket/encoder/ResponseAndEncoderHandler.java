@@ -14,6 +14,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.io.FilenameUtils;
@@ -36,11 +37,27 @@ public class ResponseAndEncoderHandler {
     protected static Logger logger = LoggerFactory.getLogger(ResponseAndEncoderHandler.class);
 
     /**
+     * 构造
+     *
+     * @return
+     */
+    public static ResponseAndEncoderHandler use() {
+        return new ResponseAndEncoderHandler();
+    }
+
+    /**
+     * 私有化
+     */
+    private ResponseAndEncoderHandler() {
+
+    }
+
+    /**
      * 设置响应通用headers
      *
      * @param response
      */
-    private static void setServerHeaders(HttpResponse response) {
+    private void setServerHeaders(HttpResponse response) {
         HttpHeaders headers = response.headers();
         headers.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         headers.set(HttpHeaderNames.SERVER, Const.ServerName);
@@ -58,7 +75,7 @@ public class ResponseAndEncoderHandler {
      * @param status
      * @param result 返回结果,一般为Json
      */
-    public static void sendObject(ChannelHandlerContext ctx, HttpResponseStatus status, Object result) {
+    public void sendObject(ChannelHandlerContext ctx, HttpResponseStatus status, Object result) {
         //创建一个新缓冲
         ByteBuf content = Unpooled.copiedBuffer(result.toString(), CharsetUtil.UTF_8);
         //请求初始化
@@ -83,7 +100,7 @@ public class ResponseAndEncoderHandler {
      * @param status
      * @param content
      */
-    public static void sendFailAndMessage(ChannelHandlerContext ctx, HttpResponseStatus status, String content) {
+    public void sendFailAndMessage(ChannelHandlerContext ctx, HttpResponseStatus status, String content) {
         sendObject(ctx, status, JsonObject.Fail(content));
     }
 
@@ -92,7 +109,7 @@ public class ResponseAndEncoderHandler {
      *
      * @param ctx
      */
-    public static void sendOption(ChannelHandlerContext ctx) {
+    public void sendOption(ChannelHandlerContext ctx) {
         sendObject(ctx, HttpResponseStatus.OK, "ok");
     }
 
@@ -107,7 +124,7 @@ public class ResponseAndEncoderHandler {
      * @param realFileName     返回给对方的真实文件名
      * @throws IOException
      */
-    public static void sendFileStream(ChannelHandlerContext ctx, String range, File file, RandomAccessFile randomAccessFile, FileRequestType fileRequestType, String realFileName) throws IOException {
+    public void sendFileStream(ChannelHandlerContext ctx, String range, File file, RandomAccessFile randomAccessFile, FileRequestType fileRequestType, String realFileName) throws IOException {
         //获取真实的文件后缀
         String realFileExt = FilenameUtils.getExtension(realFileName);
         //文件长度
@@ -207,7 +224,7 @@ public class ResponseAndEncoderHandler {
         //文件传输过程
         ChannelFuture sendFileFuture;
         //判断是否为https
-        if (HttpUtils.isHttps(ctx)) {
+        if (isHttps(ctx)) {
             //https的传输文件方式,非零拷贝,低效,不推荐
             sendFileFuture = ctx.writeAndFlush(new HttpChunkedInput(new ChunkedFile(randomAccessFile, startOffset, endLength, 8192)), ctx.newProgressivePromise());
         } else {
@@ -218,6 +235,19 @@ public class ResponseAndEncoderHandler {
         sendFileFuture.addListener(FileSendHandler.VOID(file.getName()));
         //ctx响应并关闭(如果使用Chunked编码，最后则需要发送一个编码结束的看空消息体，进行标记，表示所有消息体已经成功发送完成)
         ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+    }
+
+    /**
+     * 判断一个请求是否为https即拥有SSL
+     *
+     * @param ctx
+     * @return
+     */
+    private boolean isHttps(ChannelHandlerContext ctx) {
+        if (ctx.pipeline().get(SslHandler.class) != null) {
+            return true;
+        }
+        return false;
     }
 
 }

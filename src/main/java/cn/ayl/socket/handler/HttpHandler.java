@@ -240,13 +240,13 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 //根据path和params处理业务并返回结果
                 Object result = handleServiceFactory(req);
                 //组装、响应并返回
-                ResponseAndEncoderHandler.sendObject(ctx, HttpResponseStatus.OK, result);
+                ResponseAndEncoderHandler.use().sendObject(ctx, HttpResponseStatus.OK, result);
                 break;
             //默认
             case "options":
             default:
                 //当做预检请求处理
-                ResponseAndEncoderHandler.sendOption(ctx);
+                ResponseAndEncoderHandler.use().sendOption(ctx);
                 break;
         }
     }
@@ -302,7 +302,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 uploadFileHandler.handleHttpFormDataContent(ctx, (HttpContent) msg);
             } else {
                 //响应
-                ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.OK, "失败的请求.");
+                ResponseAndEncoderHandler.use().sendFailAndMessage(ctx, HttpResponseStatus.OK, "失败的请求.");
             }
         } catch (Exception e) {
             logger.error("channelRead", e);

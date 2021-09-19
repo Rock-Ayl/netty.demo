@@ -63,7 +63,7 @@ public class UploadFileHandler {
             //如果是get请求，返回
             if (HttpMethod.GET == request.method()) {
                 //发送错误消息
-                ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.OK, "upload must use post.");
+                ResponseAndEncoderHandler.use().sendFailAndMessage(ctx, HttpResponseStatus.OK, "upload must use post.");
                 //返回
                 return;
             }
@@ -75,14 +75,14 @@ public class UploadFileHandler {
                 this.decoder.setDiscardThreshold(0);
             } catch (HttpPostRequestDecoder.ErrorDataDecoderException e1) {
                 //返回错误消息
-                ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.OK, "upload decoder fail.");
+                ResponseAndEncoderHandler.use().sendFailAndMessage(ctx, HttpResponseStatus.OK, "upload decoder fail.");
                 //返回
                 return;
             }
             //是否为Multipart请求
             if (this.decoder.isMultipart() == false) {
                 //返回错误消息
-                ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.OK, "upload must is Multipart");
+                ResponseAndEncoderHandler.use().sendFailAndMessage(ctx, HttpResponseStatus.OK, "upload must is Multipart");
                 //返回
                 return;
             }
@@ -104,7 +104,7 @@ public class UploadFileHandler {
         } catch (Exception e1) {
             logger.error("handleHttpContent error:", e1);
             //返回错误消息
-            ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.OK, "文件上传出现错误.");
+            ResponseAndEncoderHandler.use().sendFailAndMessage(ctx, HttpResponseStatus.OK, "文件上传出现错误.");
             //关闭链接
             ctx.channel().close();
             //返回
@@ -119,9 +119,9 @@ public class UploadFileHandler {
             //响应并关闭
             if (result != null) {
                 //响应
-                ResponseAndEncoderHandler.sendObject(ctx, HttpResponseStatus.OK, result);
+                ResponseAndEncoderHandler.use().sendObject(ctx, HttpResponseStatus.OK, result);
             } else {
-                ResponseAndEncoderHandler.sendFailAndMessage(ctx, HttpResponseStatus.OK, "上传失败,业务处理文件响应为空.");
+                ResponseAndEncoderHandler.use().sendFailAndMessage(ctx, HttpResponseStatus.OK, "上传失败,业务处理文件响应为空.");
             }
             //判空
             if (CollectionUtils.isNotEmpty(this.fileEntryList)) {
