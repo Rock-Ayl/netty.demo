@@ -4,7 +4,10 @@ import cn.ayl.config.Const;
 import cn.ayl.socket.decoder.ProtocolDecoder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import org.slf4j.Logger;
@@ -16,6 +19,7 @@ import org.slf4j.LoggerFactory;
  */
 public enum ServerSocket {
 
+    //单例
     SocketServer;
 
     protected static Logger logger = LoggerFactory.getLogger(ServerSocket.class);
