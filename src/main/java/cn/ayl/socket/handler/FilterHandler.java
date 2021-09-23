@@ -47,8 +47,6 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
                 ResponseAndEncoderHandler.use().sendOption(ctx);
                 return false;
             }
-            //获取并设置请求cookieId
-            this.context.getUser().setCookieId(req.headers().get(Const.CookieId, ""));
             //获得请求path
             this.context.setUriPath(req.uri());
             //根据请求类型进行细化
@@ -65,7 +63,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
             //解决长连接重用与短连接404问题
             checkChanelPipe(ctx);
             //身份效验
-            if (!authUser(req)) {
+            if (authUser(req) == false) {
                 //如果身份效验失败,直接发送错误信息
                 ResponseAndEncoderHandler.use().sendFailAndMessage(ctx, HttpResponseStatus.UNAUTHORIZED, "验证信息失败或不支持该请求类型.");
                 //不认同
@@ -109,7 +107,7 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
         boolean needAuth = false;
         //根据请求类型分类是否需要验证身份
         switch (this.context.getRequestType()) {
-            //上传必须验证身份
+            //上传必须验证自己身份
             case upload:
                 needAuth = true;
                 break;
@@ -131,8 +129,9 @@ public class FilterHandler extends ChannelInboundHandlerAdapter {
                 long userId = userInfo.getLong("userId", 0L);
                 //如果是真实用户id
                 if (userId != 0L) {
-                    //赋予上下文用户id
+                    //赋予上下文用户信息
                     this.context.getUser().setUserId(userId);
+                    this.context.getUser().setCookieId(cookieId);
                     //验证成功
                     return true;
                 }
