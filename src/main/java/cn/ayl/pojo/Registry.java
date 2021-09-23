@@ -19,51 +19,50 @@ public class Registry {
 
     protected static Logger logger = LoggerFactory.getLogger(Registry.class);
 
-    //主要功能
-    public static List<String> DefaultService = init();
+    //默认服务
+    public static List<String> DefaultServiceList = init();
     //所有服务
     public static ConcurrentHashMap<String, Service> serviceMap = new ConcurrentHashMap();
 
     /**
-     * 初始化功能列表
+     * 初始化默认服务列表
      */
     private static List<String> init() {
         //创建
-        List<String> function = new ArrayList<>();
+        List<String> functionSet = new ArrayList<>();
         //组装 webSocket
-        function.add(Const.WebSocketPath.replace('/', '.'));
+        functionSet.add(Const.WebSocketPath.replace('/', '.'));
         //组装 upload
-        function.add(Const.UploadPath.replace('/', '.'));
+        functionSet.add(Const.UploadPath.replace('/', '.'));
         //组装 download
-        function.add(Const.DownloadPath.replace('/', '.'));
+        functionSet.add(Const.DownloadPath.replace('/', '.'));
         //返回
-        return function;
+        return functionSet;
     }
 
     //扫描所有服务
     public static void scanServices() {
         //获取所有继承 IMicroService的接口路径
-        List<String> names = ScanClassUtils.scan.getNamesOfSubinterfacesOf(IMicroService.class);
+        List<String> serviceList = ScanClassUtils.scan.getNamesOfSubinterfacesOf(IMicroService.class);
         //判空
-        if (CollectionUtils.isEmpty(names)) {
+        if (CollectionUtils.isEmpty(serviceList)) {
             //提示下
             logger.info(">>>>>> 不存在任何服务 >>>>>>");
             return;
         }
         //获取当前服务
-        for (String className : names) {
-            //循环系统功能
-            for (String otherService : DefaultService) {
-                //如果默认功能被服务占用
-                if (className.endsWith(otherService)) {
-                    //报错
-                    logger.error("默认服务被占用,被占用者:" + otherService + "占用者:" + className + ",请修改服务名.");
+        for (String serviceName : serviceList) {
+            //默认
+            for (String defaultServiceName : DefaultServiceList) {
+                //判断该服务有没有被注册过
+                if (serviceName.endsWith(defaultServiceName)) {
+                    logger.error("默认服务被占用,被占用者:" + defaultServiceName + "占用者:" + serviceName + ",请修改服务名.");
                     //强制停止系统
                     System.exit(-1);
                 }
             }
             //获取类
-            Class cls = ScanClassUtils.scan.classNameToClassRef(className);
+            Class cls = ScanClassUtils.scan.classNameToClassRef(serviceName);
             //获取实现类
             List<String> implNames = ScanClassUtils.readImplClassNames(cls.getName());
             //没有实现不注册
