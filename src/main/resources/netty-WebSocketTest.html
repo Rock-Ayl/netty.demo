@@ -7,7 +7,7 @@
 <body>
 <form onsubmit="return false">
     聊天室ip: <input type="text" id="chatIp" value="192.168.2.163:8888"><br><br>
-    <textarea id="message" name="message" style="width: 400px;height: 200px"></textarea>
+    <textarea id="message" name="message" style="width: 400px;height: 200px" onkeydown="if(event.keyCode==13) send(this.value);" ></textarea>
     <input type="button" value="发送数据" onclick="send(this.form.message.value);">
     <h3>服务器输出：</h3>
     <textarea id="responseText" style="width: 400px;height: 300px;"></textarea>
