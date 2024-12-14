@@ -35,9 +35,11 @@ public enum ServerSocket {
      * 创建并启动netty
      */
     public void startup() {
-        //初始化boss和worker
-        this.bossGroup = new NioEventLoopGroup();
-        this.workerGroup = new NioEventLoopGroup();
+        //cpu数
+        int cpu = Runtime.getRuntime().availableProcessors();
+        //初始化boss和worker,指定线程数
+        this.bossGroup = new NioEventLoopGroup(cpu);
+        this.workerGroup = new NioEventLoopGroup(cpu * 2);
         try {
             //用ServerBootstrap创建Server
             ServerBootstrap bootstrap = new ServerBootstrap()
