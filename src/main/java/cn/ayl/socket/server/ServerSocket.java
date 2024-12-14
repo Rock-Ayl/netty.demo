@@ -66,6 +66,7 @@ public enum ServerSocket {
                     .childOption(ChannelOption.SO_KEEPALIVE, true)
                     .childOption(ChannelOption.SO_REUSEADDR, true)
                     .childOption(ChannelOption.TCP_NODELAY, true)
+                    //优化:启用 PooledByteBufAllocator 以提高内存分配效率
                     .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
             /**
              * 这里的 handler 会被用来处理新接收的Channel。
