@@ -100,6 +100,7 @@ public enum ServerSocket {
              * shut down your server.(关闭你的服务)
              */
             this.channel = channelFuture.channel();
+            //阻塞等待直到服务器Channel关闭(closeFuture()方法获取Channel 的CloseFuture对象,然后调用sync()方法)
             this.channel.closeFuture().sync();
         } catch (Exception e) {
             logger.error("Socket startup Error, maybe Address already in use ", e);
