@@ -10,6 +10,8 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,17 +37,30 @@ public enum ServerSocket {
      * 创建并启动netty
      */
     public void startup() {
+
+        /**
+         * boss、worker
+         */
+
         //cpu数
         int cpu = Runtime.getRuntime().availableProcessors();
-        //初始化boss和worker,指定线程数
+        //初始化boss和worker,指定线程数( 相当于指定 网络模型 )
         this.bossGroup = new NioEventLoopGroup(cpu);
         this.workerGroup = new NioEventLoopGroup(cpu * 2);
+
+        /**
+         * 服务引导类
+         */
+
         try {
+
             //用ServerBootstrap创建Server
             ServerBootstrap bootstrap = new ServerBootstrap()
-                    //将boss和工作者放入
+                    //将boss和工作者放入(相当于指定 网络模型 )
                     .group(this.bossGroup, this.workerGroup)
-                    //初始化一个新的Channel去接收到达的connection。
+                    //打印日志(非必选)
+                    .handler(new LoggingHandler(LogLevel.INFO))
+                    //指定IO模型
                     .channel(NioServerSocketChannel.class)
                     /**
                      * 你可以给Channel配置特有的参数。
