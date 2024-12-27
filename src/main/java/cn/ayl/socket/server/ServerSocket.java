@@ -60,7 +60,11 @@ public enum ServerSocket {
                     .group(this.bossGroup, this.workerGroup)
                     //打印日志(非必选)
                     .handler(new LoggingHandler(LogLevel.INFO))
-                    //指定IO模型
+                    /**
+                     * 指定IO模型(其实就是指定 客户端模型 还是 服务端模型)
+                     * {@link NioServerSocketChannel} 是服务端模型
+                     * {@link io.netty.channel.socket.nio.NioSocketChannel} 是客户端模型
+                     */
                     .channel(NioServerSocketChannel.class)
                     /**
                      * 你可以给Channel配置特有的参数。
